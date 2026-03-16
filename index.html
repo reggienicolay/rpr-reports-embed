@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; script-src 'self'; connect-src 'none';">
+<title>RPR Market Reports — Embed Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:      #18181b;
+  --ink-mid:  #52525b;
+  --ink-soft: #a1a1aa;
+  --border:   #e4e4e7;
+  --surface:  #fafafa;
+  --white:    #ffffff;
+  --accent:   #1a1a2e;
+  --accent-h: #2d2d4e;
+  --success:  #16a34a;
+  --radius:   10px;
+  --mono:     'DM Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+  --serif:    'Fraunces', serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ── */
+.site-header {
+  background: var(--accent);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.site-header .wordmark {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 300;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.site-header .wordmark em { font-style: italic; color: rgba(255,255,255,0.55); }
+.site-header .badge {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Main layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  grid-template-rows: 1fr auto;
+  min-height: calc(100vh - 56px);
+  gap: 0;
+}
+
+/* ── Left panel: generator ── */
+.gen-panel {
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.gen-panel-inner { padding: 1.5rem; flex: 1; }
+
+.section-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.field-group { margin-bottom: 1.25rem; }
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  margin-bottom: 4px;
+}
+label .req { color: #e11d48; margin-left: 2px; }
+label .hint {
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="color"],
+select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color 0.15s;
+  outline: none;
+}
+input[type="text"]:focus,
+input[type="url"]:focus,
+select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,26,46,0.08); }
+
+input[type="color"] {
+  padding: 2px 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.color-row { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: center; }
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  padding: 2px;
+}
+.color-swatch input { width: 100%; height: 100%; border: none; border-radius: 6px; padding: 0; cursor: pointer; }
+
+/* ── Reports repeater ── */
+.reports-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+.report-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 28px;
+  gap: 6px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+}
+.report-row input {
+  height: 30px;
+  font-size: 12px;
+  background: var(--white);
+}
+.report-row input[placeholder="Area label"] { font-weight: 500; }
+
+.btn-remove {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.btn-remove:hover { border-color: #e11d48; color: #e11d48; }
+
+.btn-add {
+  width: 100%;
+  height: 34px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-mid);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); background: rgba(26,26,46,0.02); }
+.btn-add::before { content: '+'; font-size: 16px; line-height: 1; }
+
+/* ── Advanced toggle ── */
+.advanced-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 0;
+  margin-top: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  text-align: left;
+}
+.advanced-toggle .chevron {
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+  color: var(--ink-soft);
+}
+.advanced-toggle.open .chevron { transform: rotate(180deg); }
+
+.advanced-section { display: none; padding-top: 1rem; }
+.advanced-section.open { display: block; }
+
+/* ── Display mode tabs ── */
+.mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.mode-tab {
+  padding: 8px 4px;
+  border: none;
+  background: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+}
+.mode-tab:last-child { border-right: none; }
+.mode-tab.active { background: var(--accent); color: #fff; }
+
+.mode-detail { margin-top: 10px; display: none; }
+.mode-detail.visible { display: block; }
+
+/* ── Right panel: preview ── */
+.preview-panel {
+  background: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.preview-header span {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.preview-device-tabs { display: flex; gap: 4px; }
+.device-tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.device-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.preview-body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem;
+}
+.preview-frame {
+  background: #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08);
+}
+.preview-frame.desktop { width: 100%; min-width: 520px; }
+.preview-frame.mobile  { width: 390px; }
+
+/* ── The live card (rendered inline) ── */
+.live-card-wrap {
+  padding: 1.5rem;
+  background: #f0f0f0;
+  min-height: 400px;
+}
+
+.live-card {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 0 auto;
+  font-family: var(--sans);
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.lc-header {
+  padding: 1.125rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.lc-header-agent { margin-left: auto; text-align: right; }
+.lc-header-name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+.lc-header-brokerage { font-size: 11px; opacity: 0.72; margin-top: 2px; }
+
+.lc-logo { height: 32px; width: auto; object-fit: contain; display: block; }
+
+.lc-hero { padding: 1.375rem 1.5rem 0.75rem; border-bottom: 1px solid #f0f0f0; }
+.lc-headline { font-size: 21px; font-weight: 600; color: #1a1a1a; line-height: 1.25; margin-bottom: 0.375rem; }
+.lc-subheadline { font-size: 14px; color: #666; line-height: 1.55; }
+
+.lc-body { padding: 1.125rem 1.5rem; }
+.lc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+.lc-field { display: flex; flex-direction: column; gap: 3px; }
+.lc-field.full { grid-column: 1 / -1; }
+.lc-label { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+.lc-input {
+  height: 38px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  padding: 0 10px;
+  color: #1a1a1a;
+  width: 100%;
+}
+.lc-select {
+  height: 38px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  padding: 0 10px;
+  color: #1a1a1a;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+.lc-btn {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.875rem;
+}
+.lc-disclaimer {
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  padding: 0.625rem 1.5rem 1.125rem;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+/* ── Output panel ── */
+.output-panel {
+  grid-column: 1 / -1;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.output-header h2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.btn-copy {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+.btn-copy.copied { background: var(--success); border-color: var(--success); color: #fff; }
+
+.code-block {
+  background: #18181b;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #e4e4e7;
+  white-space: pre;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.code-block .attr-name  { color: #7dd3fc; }
+.code-block .attr-value { color: #86efac; }
+.code-block .tag        { color: #f472b6; }
+.code-block .str        { color: #fde68a; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .preview-panel { min-height: 420px; }
+  .output-panel { grid-column: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wordmark">RPR <em>Market Reports</em> — Embed Generator</div>
+  <div class="badge">v1.0.3</div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ LEFT: Generator form ══ -->
+  <div class="gen-panel">
+    <div class="gen-panel-inner">
+
+      <!-- Reports -->
+      <div class="section-label">Market reports <span class="req">*</span></div>
+      <div class="field-group">
+        <div style="display:grid;grid-template-columns:1fr 1fr 28px;gap:6px;margin-bottom:4px;padding:0 8px;">
+          <label style="margin:0;font-size:11px;">Area label</label>
+          <label style="margin:0;font-size:11px;">RPR report URL</label>
+          <span></span>
+        </div>
+        <div class="reports-list" id="reportsList"></div>
+        <button class="btn-add" id="addReport">Add area</button>
+      </div>
+
+      <!-- Webhook -->
+      <div class="section-label">Webhook</div>
+      <div class="field-group">
+        <label>Webhook URL <span class="req">*</span> <span class="hint">Zapier / Make / GHL</span></label>
+        <input type="text" id="webhook" placeholder="https://hooks.zapier.com/hooks/catch/…">
+      </div>
+
+      <!-- Branding -->
+      <div class="section-label">Branding</div>
+      <div class="field-group two-col">
+        <div>
+          <label>Agent name</label>
+          <input type="text" id="agentName" placeholder="Sarah Johnson">
+        </div>
+        <div>
+          <label>Brokerage</label>
+          <input type="text" id="brokerage" placeholder="Luxury Realty Group">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Logo URL <span class="hint">must be https://</span></label>
+        <input type="text" id="logoUrl" placeholder="https://example.com/logo.png">
+      </div>
+      <div class="field-group">
+        <label>Brand color</label>
+        <div class="color-row">
+          <div class="color-swatch"><input type="color" id="colorBrand" value="#1a1a2e"></div>
+          <input type="text" id="colorBrandHex" value="#1a1a2e" placeholder="#1a1a2e" style="font-family:var(--mono);font-size:12px;">
+        </div>
+      </div>
+
+      <!-- Copy -->
+      <div class="section-label">Copy</div>
+      <div class="field-group">
+        <label>Headline</label>
+        <input type="text" id="headline" value="What's happening in your neighborhood?">
+      </div>
+      <div class="field-group">
+        <label>Subheadline</label>
+        <input type="text" id="subheadline" value="Select your area and get a free local market report.">
+      </div>
+      <div class="field-group">
+        <label>Button label</label>
+        <input type="text" id="btnLabel" value="Get My Market Report">
+      </div>
+
+      <!-- Display mode -->
+      <div class="section-label">Display mode</div>
+      <div class="field-group">
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="inline">Inline</button>
+          <button class="mode-tab"        data-mode="floating">Floating</button>
+          <button class="mode-tab"        data-mode="modal">Modal</button>
+        </div>
+        <div class="mode-detail visible" id="detail-inline">
+          <p style="font-size:12px;color:var(--ink-soft);margin-top:6px;">Form renders inline at the script tag location.</p>
+        </div>
+        <div class="mode-detail" id="detail-floating">
+          <div style="margin-top:8px;" class="field-group">
+            <label>Button label</label>
+            <input type="text" id="floatLabel" value="Get Market Report">
+          </div>
+          <div class="field-group">
+            <label>Position</label>
+            <select id="floatPosition">
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+            </select>
+          </div>
+        </div>
+        <div class="mode-detail" id="detail-modal">
+          <div style="margin-top:8px;" class="field-group">
+            <label>Trigger selector <span class="hint">CSS selector of your button</span></label>
+            <input type="text" id="modalTrigger" placeholder="#open-reports" style="font-family:var(--mono);font-size:12px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced toggle -->
+      <button class="advanced-toggle" id="advToggle">
+        Advanced options
+        <span class="chevron">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+      </button>
+      <div class="advanced-section" id="advSection">
+        <div class="field-group two-col">
+          <div>
+            <label>Font — heading</label>
+            <input type="text" id="fontHeading" placeholder="Playfair Display">
+          </div>
+          <div>
+            <label>Font — body</label>
+            <input type="text" id="fontBody" placeholder="Lato">
+          </div>
+        </div>
+        <div class="field-group two-col">
+          <div>
+            <label>Card background</label>
+            <input type="text" id="cardBg" placeholder="#ffffff" style="font-family:var(--mono);font-size:12px;">
+          </div>
+          <div>
+            <label>Card text color</label>
+            <input type="text" id="cardText" placeholder="#333333" style="font-family:var(--mono);font-size:12px;">
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Card border radius <span class="hint">px</span></label>
+          <input type="text" id="cardRadius" placeholder="18" style="width:80px;font-family:var(--mono);">
+        </div>
+        <div class="field-group">
+          <label>Area dropdown label</label>
+          <input type="text" id="areaLabel" placeholder="Area of interest">
+        </div>
+        <div class="field-group">
+          <label>Step 2 heading</label>
+          <input type="text" id="reportsHeading" placeholder="Your Market Report">
+        </div>
+        <div class="field-group" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="gdprEnabled" style="width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;">
+          <label for="gdprEnabled" style="margin:0;font-size:13px;font-weight:400;color:var(--ink);">Enable GDPR consent checkbox</label>
+        </div>
+        <div class="field-group" id="gdprTextField" style="display:none;">
+          <label>GDPR label text</label>
+          <input type="text" id="gdprText" value="I agree to receive communications about local real estate market activity.">
+        </div>
+      </div>
+
+    </div><!-- /gen-panel-inner -->
+  </div><!-- /gen-panel -->
+
+  <!-- ══ RIGHT: Preview ══ -->
+  <div class="preview-panel">
+    <div class="preview-header">
+      <span>Live preview</span>
+      <div class="preview-device-tabs">
+        <button class="device-tab active" data-device="desktop">Desktop</button>
+        <button class="device-tab"        data-device="mobile">Mobile</button>
+      </div>
+    </div>
+    <div class="preview-body" id="previewBody">
+      <div class="preview-frame desktop" id="previewFrame">
+        <div class="live-card-wrap" id="liveCardWrap">
+          <div class="live-card" id="liveCard">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM: Output code ══ -->
+  <div class="output-panel">
+    <div class="output-header">
+      <h2>Embed code</h2>
+      <button class="btn-copy" id="copyBtn">Copy</button>
+    </div>
+    <div class="code-block" id="codeBlock"></div>
+  </div>
+
+</div><!-- /layout -->
+
+<script src="generator.js"></script>
+</body>
+</html>
