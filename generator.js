@@ -275,6 +275,10 @@ function renderCode(cfg) {
   const reports = cfg.reports.filter(r => r.label && r.url);
   const lines   = [];
 
+  /* Show/hide warning banner when webhook is missing */
+  const warning = document.getElementById('webhookWarning');
+  if (warning) warning.classList.toggle('visible', !cfg.webhook);
+
   lines.push('<script');
   lines.push('  src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"');
 
