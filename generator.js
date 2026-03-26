@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const genInputIds = [
     'agentName','brokerage','logoUrl',
     'headline','subheadline','btnLabel','floatLabel','modalTrigger',
-    'fontHeading','fontBody','cardBg','cardText','cardRadius',
+    'fontHeading','fontBody','cardRadius',
     'areaLabel','reportsHeading','gdprText',
   ];
   genInputIds.forEach(id => {
@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     generate();
   });
+
+  /* Card background color picker <-> hex sync */
+  initColorPair('cardBgPicker', 'cardBg');
+  initColorPair('cardTextPicker', 'cardText');
 
   /* Add area button (cap at 50 areas) */
   document.getElementById('addReport').addEventListener('click', () => {
@@ -493,6 +497,17 @@ function applyConfig(config) {
     }
   }
 
+  /* Sync card color pickers to hex fields */
+  ['cardBg','cardText'].forEach(id => {
+    const hex = config[id];
+    if (hex && /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(hex)) {
+      const picker = document.getElementById(id + 'Picker');
+      if (picker) picker.value = hex.length === 4
+        ? '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3]
+        : hex;
+    }
+  });
+
   /* GDPR checkbox */
   if (config.gdprEnabled) {
     document.getElementById('gdprEnabled').checked = true;
@@ -529,6 +544,24 @@ function persistConfig() {
 }
 
 /* ─────────────────────────────────────────────
+   Google Fonts loader for preview
+───────────────────────────────────────────── */
+let _loadedFonts = new Set();
+function loadPreviewFonts(heading, body) {
+  const fonts = [heading, body].filter(Boolean);
+  /* Only load fonts we haven't already injected */
+  const toLoad = fonts.filter(f => !_loadedFonts.has(f));
+  if (!toLoad.length) return;
+  toLoad.forEach(f => _loadedFonts.add(f));
+  const link = document.createElement('link');
+  link.rel  = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family='
+    + toLoad.map(f => f.replace(/\s+/g, '+') + ':wght@400;500;600').join('&family=')
+    + '&display=swap';
+  document.head.appendChild(link);
+}
+
+/* ─────────────────────────────────────────────
    Live preview render
 ───────────────────────────────────────────── */
 function renderPreview(cfg) {
@@ -537,28 +570,30 @@ function renderPreview(cfg) {
   const btnTextC = isLight(brand) ? '#18181b' : '#ffffff';
   const card     = document.getElementById('liveCard');
 
+  /* Load and apply Google Fonts in preview */
+  loadPreviewFonts(cfg.fontHeading, cfg.fontBody);
+  const headingFont = cfg.fontHeading ? '"' + cfg.fontHeading + '", serif' : '';
+  const bodyFont    = cfg.fontBody    ? '"' + cfg.fontBody    + '", sans-serif' : '';
+
   /* Area dropdown options */
   const areas    = cfg.reports.length
     ? cfg.reports.map(r => '<option>' + esc(r.label) + '</option>').join('')
     : '<option>Select an area\u2026</option>';
   const areaLabel = cfg.areaLabel || DEFAULTS.areaLabel;
 
-  /* Agent header */
+  /* Agent header — matches the embed widget layout */
   const hasAgent = cfg.agentName || cfg.brokerage || cfg.logoUrl;
   let headerHTML = '';
   if (hasAgent) {
-    let avatarInner = '';
     if (cfg.logoUrl) {
-      avatarInner = '<img src="' + esc(cfg.logoUrl) + '" alt="">';
-    } else {
-      avatarInner = initials(cfg.agentName) || initials(cfg.brokerage);
+      headerHTML += '<img class="lc-logo" src="' + esc(cfg.logoUrl) + '" alt="">';
     }
-    headerHTML = '<div class="lc-avatar">' + avatarInner + '</div>'
-      + '<div class="lc-agent-info">'
-      + (cfg.agentName ? '<div class="lc-agent-name">' + esc(cfg.agentName) + '</div>' : '')
-      + (cfg.brokerage ? '<div class="lc-brokerage">' + esc(cfg.brokerage) + '</div>' : '')
-      + '</div>'
-      + '<span class="lc-badge">Powered by RPR</span>';
+    if (cfg.agentName || cfg.brokerage) {
+      headerHTML += '<div class="lc-agent-info">'
+        + (cfg.agentName ? '<div class="lc-agent-name">' + esc(cfg.agentName) + '</div>' : '')
+        + (cfg.brokerage ? '<div class="lc-brokerage">' + esc(cfg.brokerage) + '</div>' : '')
+        + '</div>';
+    }
   }
 
   /* GDPR */
@@ -571,8 +606,8 @@ function renderPreview(cfg) {
     + (headerHTML || '<div style="width:8px"></div>')
     + '</div>'
     + '<div class="lc-hero">'
-    + '<div class="lc-headline">' + esc(cfg.headline || DEFAULTS.headline) + '</div>'
-    + '<div class="lc-subheadline">' + esc(cfg.subheadline || DEFAULTS.subheadline) + '</div>'
+    + '<div class="lc-headline"' + (headingFont ? ' style="font-family:' + headingFont + '"' : '') + '>' + esc(cfg.headline || DEFAULTS.headline) + '</div>'
+    + '<div class="lc-subheadline"' + (bodyFont ? ' style="font-family:' + bodyFont + '"' : '') + '>' + esc(cfg.subheadline || DEFAULTS.subheadline) + '</div>'
     + '</div>'
     + '<div class="lc-body"><div class="lc-grid">'
     + '<div class="lc-field"><div class="lc-label">First name *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="First name" tabindex="-1" readonly></div>'
@@ -583,16 +618,17 @@ function renderPreview(cfg) {
     + '<select class="lc-select" tabindex="-1">' + areas + '</select></div>'
     + '</div>'
     + gdprHTML
-    + '<button class="lc-btn" style="background:' + brand + ';color:' + btnTextC + '" tabindex="-1">'
+    + '<button class="lc-btn" style="background:' + brand + ';color:' + btnTextC + (bodyFont ? ';font-family:' + bodyFont : '') + '" tabindex="-1">'
     + esc(cfg.btnLabel || DEFAULTS.btnLabel) + '</button>'
     + '</div>'
     + '<div class="lc-disclaimer">Your information is kept private and never sold.</div>';
 
   /* ── Mode-specific preview chrome ── */
-  const body = document.getElementById('previewBody');
+  const body  = document.getElementById('previewBody');
+  const panel = body.closest('.preview-panel');
 
   /* Clean up previous mode artifacts */
-  const oldFloat   = body.querySelector('.float-preview');
+  const oldFloat   = panel.querySelector('.float-preview');
   const oldOverlay = body.querySelector('.modal-preview-overlay');
   const oldHint    = document.getElementById('liveCardWrap').querySelector('.modal-trigger-hint');
   if (oldFloat)   oldFloat.remove();
@@ -605,7 +641,7 @@ function renderPreview(cfg) {
     pill.style.background = brand;
     pill.style.color = btnTextC;
     pill.textContent = cfg.floatLabel || 'Get Market Report';
-    body.appendChild(pill);
+    panel.appendChild(pill);
   }
 
   if (cfg.displayMode === 'modal') {
@@ -787,6 +823,30 @@ function clipboardWrite(text, btn, resetLabel) {
 }
 
 /* ─────────────────────────────────────────────
+   Color picker <-> hex text field pair
+───────────────────────────────────────────── */
+function initColorPair(pickerId, hexId) {
+  const picker = document.getElementById(pickerId);
+  const hex    = document.getElementById(hexId);
+  if (!picker || !hex) return;
+
+  picker.addEventListener('input', function() {
+    hex.value = this.value;
+    generate();
+  });
+
+  hex.addEventListener('input', function() {
+    const val = this.value.trim();
+    if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(val)) {
+      picker.value = val.length === 4
+        ? '#' + val[1]+val[1] + val[2]+val[2] + val[3]+val[3]
+        : val;
+    }
+    generate();
+  });
+}
+
+/* ─────────────────────────────────────────────
    Helpers
 ───────────────────────────────────────────── */
 function esc(str) {
@@ -808,10 +868,3 @@ function isLight(hex) {
   return (r*0.299 + g*0.587 + b*0.114) > 186;
 }
 
-function initials(name) {
-  if (!name) return '';
-  const parts = name.trim().split(/\s+/);
-  return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
-    : parts[0][0].toUpperCase();
-}
