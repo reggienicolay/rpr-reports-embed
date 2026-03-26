@@ -1,6 +1,6 @@
 # RPR Market Reports — Embed Widget
 
-**Version:** 1.0.4
+**Version:** 1.0.5
 **Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
