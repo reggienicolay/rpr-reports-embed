@@ -71,7 +71,7 @@ If you prefer to write the embed code by hand (or need to customize beyond what 
 
 ```html
 <script
-  src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"
+  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
   data-webhook="https://hooks.zapier.com/hooks/catch/12345/abcdef/"
   data-agent-name="Sarah Johnson"
   data-brokerage="Luxury Realty Group"
@@ -195,7 +195,7 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 ```html
 <div class="my-section">
   <script
-    src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"
+    src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
     data-display-mode="inline"
     data-reports='[…]'
     data-webhook="https://…"
@@ -207,7 +207,7 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 
 ```html
 <script
-  src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"
+  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
   data-display-mode="floating"
   data-float-label="Get Market Report"
   data-float-position="bottom-right"
@@ -222,7 +222,7 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 <button id="market-report-cta">See Local Market Data</button>
 
 <script
-  src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"
+  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
   data-display-mode="modal"
   data-modal-trigger="#market-report-cta"
   data-reports='[…]'

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; script-src 'self'; connect-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; script-src 'self'; connect-src 'self' https:;">
 <title>RPR Market Reports — Embed Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -222,6 +222,14 @@ input[type="color"] {
   flex-shrink: 0;
 }
 .btn-remove:hover { border-color: #e11d48; color: #e11d48; }
+.report-url-warning {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: #b45309;
+  margin-top: 2px;
+  display: none;
+}
+.report-url-warning.visible { display: block; }
 
 .btn-add {
   width: 100%;
@@ -285,6 +293,24 @@ input[type="color"] {
   margin-bottom: 1rem;
 }
 .webhook-warning svg { flex-shrink: 0; margin-top: 1px; }
+.btn-test-webhook {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-test-webhook:hover { border-color: var(--accent); color: var(--accent); }
+.btn-test-webhook:disabled { opacity: 0.5; cursor: not-allowed; }
+.test-webhook-result { font-size: 11px; margin-top: 4px; min-height: 16px; }
+.test-webhook-result.success { color: var(--success); }
+.test-webhook-result.error { color: #dc2626; }
 
 /* ── Right panel: preview ── */
 .preview-panel {
@@ -328,6 +354,7 @@ input[type="color"] {
   justify-content: center;
   padding: 2rem;
   overflow-y: auto;
+  position: relative;
 }
 .preview-frame { transition: width 0.3s; width: 100%; }
 .preview-frame.mobile { width: 375px; }
@@ -419,10 +446,42 @@ input[type="color"] {
   border-radius: 50px;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
+  font-family: var(--sans);
+  cursor: default;
   border: none;
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   pointer-events: none;
+  z-index: 2;
+}
+.float-preview.left { right: auto; left: 24px; }
+
+/* Modal preview overlay */
+.modal-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 0;
+}
+.modal-trigger-hint {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.modal-trigger-btn-preview {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  background: var(--white);
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--ink-mid);
 }
 
 /* ── Bottom panel: output ── */
@@ -498,7 +557,7 @@ input[type="color"] {
 
 <header class="site-header">
   <div class="wordmark">RPR <em>Market Reports</em> — Embed Generator</div>
-  <div class="badge">v1.0.4</div>
+  <div class="badge">v1.0.5</div>
 </header>
 
 <div class="layout">
@@ -540,6 +599,8 @@ input[type="color"] {
           <label>Webhook URL <span class="hint">Zapier / Make / GHL</span></label>
           <input type="url" id="webhook" placeholder="https://hooks.zapier.com/hooks/catch/…">
           <p class="field-hint">Optional — if left blank the form will still display reports but leads will not be captured. You can add this later.</p>
+          <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test lead</button>
+          <div class="test-webhook-result" id="testWebhookResult"></div>
         </div>
       </div>
 
@@ -704,7 +765,10 @@ input[type="color"] {
   <div class="output-panel">
     <div class="output-header">
       <h2>Embed code</h2>
-      <button class="btn-copy" id="copyBtn">Copy</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-copy" id="copyLinkBtn">Copy generator link</button>
+        <button class="btn-copy" id="copyBtn">Copy</button>
+      </div>
     </div>
     <div class="code-block" id="codeBlock"></div>
   </div>

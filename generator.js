@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    RPR Market Reports — Embed Generator JS
-   v1.0.4
+   v1.0.5
 ═══════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────
@@ -22,20 +22,38 @@ const DEFAULTS = {
   maxReportRows:  50,
 };
 
+/* Field IDs for URL hash encoding (scalar fields only) */
+const FIELD_KEYS = [
+  'webhook','agentName','brokerage','logoUrl','colorBrandHex',
+  'fontHeading','fontBody','headline','subheadline','btnLabel',
+  'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
+  'cardRadius','areaLabel','reportsHeading','gdprText',
+];
+
 /* ─────────────────────────────────────────────
    State
 ───────────────────────────────────────────── */
-let displayMode = 'inline';
-let rowId       = 0;
+let displayMode      = 'inline';
+let rowId            = 0;
+let _suppressGenerate = false;
 
 /* ─────────────────────────────────────────────
    Boot
 ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* Seed two example rows (skip generate until boot is done) */
-  addReportRow('Beverly Hills 90210', '', true);
-  addReportRow('Santa Monica 90401', '', true);
+  /* ── Restore config from URL hash or localStorage ── */
+  const hashStr  = location.hash.slice(1);
+  const stored   = (() => { try { return localStorage.getItem('rpr-generator-config') || ''; } catch(e) { return ''; } })();
+  const configStr = hashStr || stored;
+
+  if (configStr) {
+    applyConfig(hashToConfig(configStr));
+  } else {
+    /* Default seed rows */
+    addReportRow('Beverly Hills 90210', '', true);
+    addReportRow('Santa Monica 90401', '', true);
+  }
   updateRemoveButtons();
 
   /* ── Collapsible sections ── */
@@ -89,8 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
     addReportRow('', '');
   });
 
-  /* Copy button */
+  /* Copy buttons */
   document.getElementById('copyBtn').addEventListener('click', copyCode);
+  document.getElementById('copyLinkBtn').addEventListener('click', copyLink);
+
+  /* Test webhook button */
+  document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
 
   /* Mode tabs — use event delegation on parent */
   document.querySelector('.mode-tabs').addEventListener('click', e => {
@@ -104,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tab && tab.dataset.device) setDevice(tab.dataset.device, tab);
   });
 
-  /* Report rows — event delegation for remove buttons and input changes */
+  /* Report rows — event delegation for remove buttons, input changes, and URL validation */
   document.getElementById('reportsList').addEventListener('click', e => {
     const btn = e.target.closest('.btn-remove');
     if (btn) {
@@ -112,7 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (row) removeRow(Number(row.dataset.id));
     }
   });
-  document.getElementById('reportsList').addEventListener('input', generate);
+  document.getElementById('reportsList').addEventListener('input', e => {
+    if (e.target.classList.contains('report-url')) validateReportUrl(e.target);
+    generate();
+  });
+  document.getElementById('reportsList').addEventListener('focusout', e => {
+    if (e.target.classList.contains('report-url')) validateReportUrl(e.target);
+  });
 
   /* Webhook warning: check initial state */
   updateWebhookWarning();
@@ -162,11 +190,94 @@ function initCollapsibleSections() {
 }
 
 /* ─────────────────────────────────────────────
-   Webhook warning
+   Webhook warning + test button visibility
 ───────────────────────────────────────────── */
 function updateWebhookWarning() {
   const val = document.getElementById('webhook').value.trim();
   document.getElementById('webhookWarning').style.display = val ? 'none' : 'flex';
+  document.getElementById('testWebhookBtn').style.display = val ? 'inline-block' : 'none';
+  const result = document.getElementById('testWebhookResult');
+  result.textContent = '';
+  result.className = 'test-webhook-result';
+}
+
+/* ─────────────────────────────────────────────
+   Test webhook
+───────────────────────────────────────────── */
+function sendTestWebhook() {
+  const cfg    = vals();
+  const btn    = document.getElementById('testWebhookBtn');
+  const result = document.getElementById('testWebhookResult');
+
+  if (!cfg.webhook) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+  result.textContent = '';
+  result.className = 'test-webhook-result';
+
+  const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
+
+  const payload = {
+    form_id:       'rpr-test-000',
+    first_name:    'Test',
+    last_name:     'Lead (from RPR Generator)',
+    email:         'test@example.com',
+    phone:         '(555) 000-0000',
+    selected_area: firstLabel,
+    report_url:    'https://www.narrpr.com/reports-v2/test/pdf',
+    agent_name:    cfg.agentName || '',
+    brokerage:     cfg.brokerage || '',
+    gdpr_consent:  null,
+    source_url:    location.href,
+    timestamp:     new Date().toISOString(),
+  };
+
+  fetch(cfg.webhook, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(res.status);
+    result.textContent = 'Test sent! Check your webhook destination.';
+    result.className = 'test-webhook-result success';
+  })
+  .catch(() => {
+    result.textContent = 'Failed \u2014 check your webhook URL and try again.';
+    result.className = 'test-webhook-result error';
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Send test lead';
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Report URL validation
+───────────────────────────────────────────── */
+function validateReportUrl(input) {
+  const row     = input.closest('.report-row');
+  if (!row) return;
+  let warning   = row.querySelector('.report-url-warning');
+  const val     = input.value.trim();
+
+  if (!val) {
+    if (warning) warning.classList.remove('visible');
+    return;
+  }
+
+  if (!/narrpr\.com/i.test(val)) {
+    if (!warning) {
+      warning = document.createElement('div');
+      warning.className = 'report-url-warning';
+      warning.textContent = 'This doesn\u2019t look like an RPR report URL \u2014 make sure you clicked Share and copied the PDF link from narrpr.com';
+      row.appendChild(warning);
+    }
+    warning.classList.add('visible');
+  } else {
+    if (warning) warning.classList.remove('visible');
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -187,7 +298,7 @@ function addReportRow(label, url, skipGenerate) {
 
   const urlInput         = document.createElement('input');
   urlInput.type          = 'text';
-  urlInput.placeholder   = 'https://www.narrpr.com/reports-v2/…';
+  urlInput.placeholder   = 'https://www.narrpr.com/reports-v2/\u2026';
   urlInput.value         = url;
   urlInput.className     = 'report-url';
 
@@ -232,6 +343,14 @@ function getReports() {
     label: row.querySelector('.report-label').value.trim(),
     url:   row.querySelector('.report-url').value.trim(),
   })).filter(r => r.label && r.url);
+}
+
+/* Also read ALL report rows including incomplete ones (for URL persistence) */
+function getAllReportRows() {
+  return Array.from(document.querySelectorAll('.report-row')).map(row => ({
+    label: row.querySelector('.report-label').value.trim(),
+    url:   row.querySelector('.report-url').value.trim(),
+  }));
 }
 
 /* ─────────────────────────────────────────────
@@ -298,6 +417,7 @@ function v(id) {
 ───────────────────────────────────────────── */
 let _genTimer = 0;
 function generate() {
+  if (_suppressGenerate) return;
   clearTimeout(_genTimer);
   _genTimer = setTimeout(_generateNow, 60);
 }
@@ -306,6 +426,106 @@ function _generateNow() {
   const cfg = vals();
   renderPreview(cfg);
   renderCode(cfg);
+  persistConfig(cfg);
+}
+
+/* ─────────────────────────────────────────────
+   URL hash + localStorage persistence
+───────────────────────────────────────────── */
+function configToHash() {
+  const params = new URLSearchParams();
+
+  /* Scalar fields — only encode non-empty, non-default values */
+  FIELD_KEYS.forEach(key => {
+    const el = document.getElementById(key);
+    if (!el) return;
+    const val = el.value.trim();
+    if (!val) return;
+    params.set(key, val);
+  });
+
+  /* Display mode — only if not inline */
+  if (displayMode !== 'inline') params.set('displayMode', displayMode);
+
+  /* GDPR checkbox */
+  if (document.getElementById('gdprEnabled').checked) params.set('gdprEnabled', '1');
+
+  /* Reports — include all rows (even incomplete) so partial work is preserved */
+  const rows = getAllReportRows();
+  if (rows.length) params.set('reports', JSON.stringify(rows));
+
+  return params.toString();
+}
+
+function hashToConfig(str) {
+  const config = {};
+  let params;
+  try { params = new URLSearchParams(str); } catch(e) { return config; }
+
+  FIELD_KEYS.forEach(key => {
+    if (params.has(key)) config[key] = params.get(key);
+  });
+
+  if (params.has('displayMode')) config.displayMode = params.get('displayMode');
+  if (params.has('gdprEnabled')) config.gdprEnabled = params.get('gdprEnabled') === '1';
+  if (params.has('reports')) {
+    try { config.reports = JSON.parse(params.get('reports')); } catch(e) { /* ignore */ }
+  }
+
+  return config;
+}
+
+function applyConfig(config) {
+  _suppressGenerate = true;
+
+  /* Scalar fields */
+  FIELD_KEYS.forEach(key => {
+    if (!(key in config)) return;
+    const el = document.getElementById(key);
+    if (el) el.value = config[key];
+  });
+
+  /* Sync color picker to hex field */
+  if (config.colorBrandHex) {
+    const hex = config.colorBrandHex;
+    if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(hex)) {
+      document.getElementById('colorBrand').value = hex;
+    }
+  }
+
+  /* GDPR checkbox */
+  if (config.gdprEnabled) {
+    document.getElementById('gdprEnabled').checked = true;
+    document.getElementById('gdprTextField').style.display = 'block';
+  }
+
+  /* Display mode */
+  if (config.displayMode) {
+    displayMode = config.displayMode;
+    document.querySelectorAll('.mode-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.mode === displayMode)
+    );
+    document.querySelectorAll('.mode-detail').forEach(d => d.classList.remove('visible'));
+    const detail = document.getElementById('detail-' + displayMode);
+    if (detail) detail.classList.add('visible');
+  }
+
+  /* Reports */
+  if (Array.isArray(config.reports) && config.reports.length) {
+    config.reports.forEach(r => addReportRow(r.label || '', r.url || '', true));
+  } else {
+    /* No reports in config — seed defaults */
+    addReportRow('Beverly Hills 90210', '', true);
+    addReportRow('Santa Monica 90401', '', true);
+  }
+
+  _suppressGenerate = false;
+}
+
+function persistConfig() {
+  const hash = configToHash();
+  history.replaceState(null, '', hash ? '#' + hash : location.pathname + location.search);
+  try { localStorage.setItem('rpr-generator-config', hash); } catch(e) { /* ignore */ }
 }
 
 /* ─────────────────────────────────────────────
@@ -320,7 +540,7 @@ function renderPreview(cfg) {
   /* Area dropdown options */
   const areas    = cfg.reports.length
     ? cfg.reports.map(r => '<option>' + esc(r.label) + '</option>').join('')
-    : '<option>Select an area…</option>';
+    : '<option>Select an area\u2026</option>';
   const areaLabel = cfg.areaLabel || DEFAULTS.areaLabel;
 
   /* Agent header */
@@ -367,6 +587,41 @@ function renderPreview(cfg) {
     + esc(cfg.btnLabel || DEFAULTS.btnLabel) + '</button>'
     + '</div>'
     + '<div class="lc-disclaimer">Your information is kept private and never sold.</div>';
+
+  /* ── Mode-specific preview chrome ── */
+  const body = document.getElementById('previewBody');
+
+  /* Clean up previous mode artifacts */
+  const oldFloat   = body.querySelector('.float-preview');
+  const oldOverlay = body.querySelector('.modal-preview-overlay');
+  const oldHint    = document.getElementById('liveCardWrap').querySelector('.modal-trigger-hint');
+  if (oldFloat)   oldFloat.remove();
+  if (oldOverlay) oldOverlay.remove();
+  if (oldHint)    oldHint.remove();
+
+  if (cfg.displayMode === 'floating') {
+    const pill = document.createElement('button');
+    pill.className = 'float-preview' + (cfg.floatPosition === 'bottom-left' ? ' left' : '');
+    pill.style.background = brand;
+    pill.style.color = btnTextC;
+    pill.textContent = cfg.floatLabel || 'Get Market Report';
+    body.appendChild(pill);
+  }
+
+  if (cfg.displayMode === 'modal') {
+    const wrap = document.getElementById('liveCardWrap');
+    const hint = document.createElement('div');
+    hint.className = 'modal-trigger-hint';
+    hint.innerHTML = '<div style="margin-bottom:6px">Your button triggers the modal</div>'
+      + '<span class="modal-trigger-btn-preview">'
+      + esc(cfg.modalTrigger || '#your-button')
+      + '</span>';
+    wrap.insertBefore(hint, wrap.firstChild);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-preview-overlay';
+    body.appendChild(overlay);
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -377,7 +632,7 @@ function renderCode(cfg) {
   const lines   = [];
 
   lines.push('<script');
-  lines.push('  src="https://reggienicolay.github.io/rpr-reports-embed/rpr-reports-embed.js"');
+  lines.push('  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"');
 
   if (reports.length) {
     const json = JSON.stringify(reports, null, 2)
@@ -491,19 +746,34 @@ function escHtml(str) {
 }
 
 /* ─────────────────────────────────────────────
-   Copy
+   Copy embed code
 ───────────────────────────────────────────── */
 function copyCode() {
   const raw = document.getElementById('codeBlock').dataset.raw || '';
   const btn = document.getElementById('copyBtn');
-  navigator.clipboard.writeText(raw).then(() => {
+  clipboardWrite(raw, btn, 'Copy');
+}
+
+/* ─────────────────────────────────────────────
+   Copy generator link
+───────────────────────────────────────────── */
+function copyLink() {
+  const btn = document.getElementById('copyLinkBtn');
+  clipboardWrite(location.href, btn, 'Copy generator link');
+}
+
+/* ─────────────────────────────────────────────
+   Shared clipboard helper
+───────────────────────────────────────────── */
+function clipboardWrite(text, btn, resetLabel) {
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    setTimeout(() => { btn.textContent = resetLabel; btn.classList.remove('copied'); }, 2000);
   }).catch(() => {
     /* Fallback for non-HTTPS or iframe contexts */
     const ta = document.createElement('textarea');
-    ta.value = raw;
+    ta.value = text;
     ta.style.position = 'fixed';
     ta.style.opacity = '0';
     document.body.appendChild(ta);
@@ -512,7 +782,7 @@ function copyCode() {
     document.body.removeChild(ta);
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    setTimeout(() => { btn.textContent = resetLabel; btn.classList.remove('copied'); }, 2000);
   });
 }
 

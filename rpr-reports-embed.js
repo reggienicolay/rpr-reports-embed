@@ -264,6 +264,7 @@
 
 /* Card */
 .rpr-rep-embed .rpr-r-card {
+	container-type: inline-size;
 	width: 100%; max-width: var(--rpr-r-card-max-width, 520px);
 	background: var(--rpr-r-card-bg, #ffffff); border: 1px solid var(--rpr-r-card-border, #e8e8e8);
 	border-radius: var(--rpr-r-card-radius, 18px); overflow: hidden;
@@ -422,8 +423,8 @@
 .rpr-rep-embed .rpr-r-report-btn:hover { background: var(--rpr-r-brand-hover); }
 .rpr-rep-embed .rpr-r-report-btn svg { width: 14px; height: 14px; }
 
-/* Responsive */
-@media (max-width: 480px) {
+/* Responsive — container query so the card adapts to its parent width, not the viewport */
+@container (max-width: 480px) {
 	.rpr-rep-embed .rpr-r-fields { grid-template-columns: 1fr; }
 	.rpr-rep-embed .rpr-r-field.full { grid-column: 1; }
 	.rpr-rep-embed .rpr-r-report-card { flex-wrap: wrap; }
