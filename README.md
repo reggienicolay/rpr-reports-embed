@@ -1,10 +1,52 @@
-# rpr-reports-embed.js
+# RPR Market Reports — Embed Widget
 
-**Version:** 1.0.3  
-**Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)  
+**Version:** 1.0.4
+**Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
-A self-contained lead capture widget for embedding RPR market reports on any website. Visitors select an area, submit their contact information, and are presented with a link to the corresponding RPR PDF report. Lead data is delivered to a webhook of your choosing.
+A self-contained lead capture widget for embedding RPR market reports on any website. Visitors select an area, submit their contact information, and receive a link to the corresponding RPR report. Lead data is delivered to a webhook of your choosing (Zapier, Make, GoHighLevel, etc.).
+
+---
+
+## For Realtors: Getting started
+
+The fastest way to set up the widget is the **Embed Generator** — a visual tool that builds your embed code without touching any JSON or HTML by hand.
+
+**Open the generator:** [https://reggienicolay.github.io/rpr-reports-embed/](https://reggienicolay.github.io/rpr-reports-embed/)
+
+### Step 1 — Get your report URLs from RPR
+
+Log into [narrpr.com](https://narrpr.com) and generate the reports you want to offer. RPR supports several report types:
+
+| Report type | Best for | How to generate |
+|-------------|----------|-----------------|
+| **Market Activity Report** | Showing active, pending, and sold listings in a ZIP code or city | Search a location, select Market Activity, choose your filters, and generate the report |
+| **Neighborhood Report** | Giving buyers/sellers a snapshot of a specific neighborhood | Search a neighborhood or subdivision, select Neighborhood Report, and generate |
+| **Market Trends Report** | Visualizing price trends, days on market, and inventory over time | Search a location, select Market Trends, choose your date range, and generate |
+| **Trade Area Report** (Commercial) | Analyzing demographics, traffic, and consumer spending for a commercial area | Switch to RPR Commercial, search a location or draw a trade area, and generate |
+
+For each report:
+
+1. Click **Share** and copy the PDF link — it will look like `https://www.narrpr.com/reports-v2/UUID/pdf`
+2. In the generator, click **Add area**, type a label (e.g. "Beverly Hills 90210"), and paste the URL
+
+You can mix report types in the same widget — for example, offer a Market Activity Report for one area and a Neighborhood Report for another.
+
+### Step 2 — Configure branding
+
+Fill in your name, brokerage, logo URL, and brand color. The live preview updates in real time so you can see exactly what visitors will see.
+
+### Step 3 — Set up your webhook (recommended)
+
+Paste your webhook URL (from Zapier, Make, GoHighLevel, or any service that accepts JSON POST requests). This is where lead data is sent when someone submits the form.
+
+If you skip the webhook, the widget still works — visitors can view reports — but contact information won't be captured anywhere.
+
+### Step 4 — Copy and paste
+
+Click **Copy** at the bottom of the generator. Paste the embed code into your website wherever you want the form to appear — your homepage, a landing page, a blog post, etc.
+
+If you use WordPress, paste the code into a **Custom HTML** block. If you use Squarespace, Wix, or another builder, look for an "Embed" or "Custom Code" option.
 
 ---
 
@@ -19,15 +61,13 @@ No data is stored by the widget itself. All lead data flows exclusively to your 
 
 ---
 
-## Installation
+## Manual installation
 
-Add one `<script>` tag to your page. No build step, no package manager, no dependencies.
+If you prefer to write the embed code by hand (or need to customize beyond what the generator offers), add one `<script>` tag to your page. No build step, no package manager, no dependencies.
 
 **Do not add `async` or `defer`** to the script tag. The widget relies on `document.currentScript` to read its configuration, which is only available during synchronous execution.
 
----
-
-## Quickstart
+### Quickstart
 
 ```html
 <script
@@ -35,7 +75,7 @@ Add one `<script>` tag to your page. No build step, no package manager, no depen
   data-webhook="https://hooks.zapier.com/hooks/catch/12345/abcdef/"
   data-agent-name="Sarah Johnson"
   data-brokerage="Luxury Realty Group"
-  data-color-brand="#1a1a2e"
+  data-color-brand="#0086E6"
   data-reports='[
     {"label":"Beverly Hills 90210","url":"https://www.narrpr.com/reports-v2/UUID/pdf"},
     {"label":"Santa Monica 90401","url":"https://www.narrpr.com/reports-v2/UUID/pdf"},
@@ -48,15 +88,6 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 
 ---
 
-## Getting report URLs from RPR
-
-1. Log into [narrpr.com](https://narrpr.com)
-2. Run a market activity report for the ZIP code or city you want
-3. Click **Share** and copy the PDF link — it will look like `https://www.narrpr.com/reports-v2/UUID/pdf`
-4. Paste it into the `data-reports` array as the `url` value for that area
-
----
-
 ## Configuration reference
 
 ### Required
@@ -64,7 +95,12 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 | Attribute | Description |
 |-----------|-------------|
 | `data-reports` | JSON array of area objects. Each object must have a `label` (shown in the dropdown and on the report card) and a `url` (the RPR PDF link). Must contain at least one valid entry. All `url` values must begin with `http://` or `https://`; entries failing this check are silently dropped. |
-| `data-webhook` | HTTPS URL that receives lead data on each submission. Must begin with `https://` — non-HTTPS values are rejected and no data is transmitted. |
+
+### Recommended
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-webhook` | HTTPS URL that receives lead data on each submission. Must begin with `https://` — non-HTTPS values are rejected and no data is transmitted. If omitted, the form still displays reports but leads are not captured. |
 
 ### Branding
 
@@ -73,7 +109,7 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 | `data-agent-name` | — | Agent display name, shown in the card header |
 | `data-brokerage` | — | Brokerage name, shown below the agent name in the card header |
 | `data-logo-url` | — | Logo image URL. Must begin with `https://`; HTTP and data URIs are rejected |
-| `data-color-brand` | `#1a1a2e` | Primary brand color (3- or 6-digit hex). Used for the header bar, submit button, and focus rings. Button text color is computed automatically for contrast |
+| `data-color-brand` | `#0086E6` | Primary brand color (3- or 6-digit hex). Used for the header bar, submit button, and focus rings. Button text color is computed automatically for contrast |
 | `data-color-brand-hover` | auto | Hover state for buttons. If omitted, derived by darkening `data-color-brand` by 20 points |
 | `data-font-heading` | inherit | Google Font name for headings. Loaded automatically if provided. Only letters, numbers, spaces, and hyphens are accepted |
 | `data-font-body` | inherit | Google Font name for body text and form inputs |
@@ -86,7 +122,7 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 | Attribute | Default |
 |-----------|---------|
 | `data-headline` | `What's happening in your neighborhood?` |
-| `data-subheadline` | `Select your area below and get a free local market report — no obligation.` |
+| `data-subheadline` | `Select your area and get a free local market report.` |
 | `data-btn-label` | `Get My Market Report` |
 | `data-disclaimer` | `Your information is kept private and never sold.` |
 | `data-area-label` | `Area of interest` |
@@ -209,9 +245,10 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 
 ## Changelog
 
-**v1.0.3** — 8 security fixes  
-**v1.0.2** — 6 bug fixes  
-**v1.0.1** — 10 bug fixes  
+**v1.0.4** — Default brand color updated to RPR blue (#0086E6). Generator: collapsible sections, syntax highlighting fix, accessibility improvements, debounced rendering, clipboard fallback, DEFAULTS consolidation.
+**v1.0.3** — 8 security fixes
+**v1.0.2** — 6 bug fixes
+**v1.0.1** — 10 bug fixes
 **v1.0.0** — Initial release
 
 Full changelog is in the file header of `rpr-reports-embed.js`.
