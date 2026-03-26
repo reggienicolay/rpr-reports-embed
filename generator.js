@@ -164,7 +164,7 @@ function initCollapsibleSections() {
     /* Accessibility: make header keyboard-focusable and announce state */
     header.setAttribute('role', 'button');
     header.setAttribute('tabindex', '0');
-    header.setAttribute('aria-expanded', 'true');
+    header.setAttribute('aria-expanded', header.classList.contains('open') ? 'true' : 'false');
     body.id = body.id || 'section-body-' + sectionId;
     header.setAttribute('aria-controls', body.id);
 
