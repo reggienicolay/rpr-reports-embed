@@ -1,5 +1,5 @@
 /**
- * rpr-reports-embed.js  v1.0.3
+ * rpr-reports-embed.js  v1.0.6
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
