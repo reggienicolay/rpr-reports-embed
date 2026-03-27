@@ -640,6 +640,19 @@ function renderPreview(cfg) {
     pill.style.background = brand;
     pill.style.color = btnTextC;
     pill.textContent = cfg.floatLabel || 'Get Market Report';
+    pill.style.cursor = 'pointer';
+    pill.style.pointerEvents = 'auto';
+    pill.addEventListener('click', function() {
+      var wrap = document.getElementById('liveCardWrap');
+      var overlay = body.querySelector('.modal-preview-overlay');
+      if (wrap.style.display === 'none') {
+        wrap.style.display = '';
+        if (overlay) overlay.style.display = '';
+      } else {
+        wrap.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
+      }
+    });
     body.appendChild(pill);
   }
 
