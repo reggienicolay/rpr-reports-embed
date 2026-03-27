@@ -625,10 +625,9 @@ function renderPreview(cfg) {
 
   /* ── Mode-specific preview chrome ── */
   const body  = document.getElementById('previewBody');
-  const panel = body.closest('.preview-panel');
 
   /* Clean up previous mode artifacts */
-  const oldFloat   = panel.querySelector('.float-preview');
+  const oldFloat   = body.querySelector('.float-preview');
   const oldOverlay = body.querySelector('.modal-preview-overlay');
   const oldHint    = document.getElementById('liveCardWrap').querySelector('.modal-trigger-hint');
   if (oldFloat)   oldFloat.remove();
@@ -641,7 +640,7 @@ function renderPreview(cfg) {
     pill.style.background = brand;
     pill.style.color = btnTextC;
     pill.textContent = cfg.floatLabel || 'Get Market Report';
-    panel.appendChild(pill);
+    body.appendChild(pill);
   }
 
   if (cfg.displayMode === 'modal') {
