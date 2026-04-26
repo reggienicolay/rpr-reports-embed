@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    RPR Market Reports — Embed Generator JS
-   v1.0.7
+   v1.0.8
 ═══════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────
@@ -136,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('copyBtn').addEventListener('click', copyCode);
   document.getElementById('copyLinkBtn').addEventListener('click', copyLink);
 
+  /* Reset button — clears localStorage + URL hash, reloads with defaults */
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) resetBtn.addEventListener('click', resetConfig);
+
   /* Test webhook button */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
 
@@ -248,6 +252,10 @@ function updateWebhookWarning() {
 
   document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
 
+  /* HTTPS warning — surfaces in the generator before the embed widget rejects it at runtime */
+  const urlWarning = document.getElementById('deliveryUrlWarning');
+  if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
+
   /* Test button only shows when a URL has been entered */
   const testBtn = document.getElementById('testWebhookBtn');
   if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
@@ -268,6 +276,13 @@ function sendTestWebhook() {
   const result = document.getElementById('testWebhookResult');
 
   if (!cfg.webhookUrl) return;
+
+  /* Enforce HTTPS \u2014 matches what the embed widget enforces at runtime */
+  if (!/^https:\/\//i.test(cfg.webhookUrl)) {
+    result.textContent = 'Webhook URL must start with https:// \u2014 leads will not be sent over insecure connections.';
+    result.className = 'test-webhook-result error';
+    return;
+  }
 
   btn.disabled = true;
   btn.textContent = 'Sending\u2026';
@@ -863,6 +878,20 @@ function syntaxHighlight(raw) {
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─────────────────────────────────────────────
+   Reset config — clears localStorage + URL hash and reloads.
+   Reload is the simplest way to re-seed defaults across all
+   fields (the alternative would be to manually walk every
+   field, including dynamic report rows).
+───────────────────────────────────────────── */
+function resetConfig() {
+  if (!confirm('Clear all saved generator fields and start fresh? This cannot be undone.')) return;
+  try { localStorage.removeItem('rpr-generator-config'); } catch(e) { /* ignore */ }
+  /* Strip hash and reload */
+  history.replaceState(null, '', location.pathname + location.search);
+  location.reload();
 }
 
 /* ─────────────────────────────────────────────

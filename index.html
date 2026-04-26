@@ -332,6 +332,37 @@ input[type="color"] {
   padding: 1px 5px;
   word-break: break-all;
 }
+.delivery-url-warning {
+  font-size: 11px;
+  color: #b45309;
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.delivery-url-warning code {
+  font-family: var(--mono);
+  background: #fef3c7;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.delivery-privacy-note {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.btn-reset {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.85);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-reset:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); color: #fff; }
 
 .btn-test-webhook {
   margin-top: 8px;
@@ -586,7 +617,10 @@ input[type="color"] {
 
 <header class="site-header">
   <div class="wordmark">RPR <em>Market Reports</em> — Embed Generator</div>
-  <div class="badge">v1.0.7</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button type="button" class="btn-reset" id="resetBtn" title="Clear all saved fields and start fresh">Reset</button>
+    <div class="badge">v1.0.8</div>
+  </div>
 </header>
 
 <div class="layout">
@@ -674,7 +708,7 @@ input[type="color"] {
               <div class="panel-title">How to set up Pushover ($5 one-time, 30-day free trial):</div>
               <ol>
                 <li>Download the Pushover app and create a free account</li>
-                <li>Visit <a href="https://pushover.net/apps/build" target="_blank" rel="noopener">pushover.net/apps/build</a> and register a new application — name it "RPR Leads" or similar, then copy the API Token</li>
+                <li>Visit <a href="https://pushover.net/apps/build" target="_blank" rel="noopener noreferrer">pushover.net/apps/build</a> and register a new application — name it "RPR Leads" or similar, then copy the API Token</li>
                 <li>Copy your User Key from the Pushover dashboard</li>
                 <li>Your webhook URL is: <code>https://api.pushover.net/1/messages.json?token=API_TOKEN&amp;user=USER_KEY</code></li>
                 <li>Paste that full URL in the field below</li>
@@ -685,7 +719,7 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-toolkit" hidden>
               <div class="panel-title">How to set up Toolkit.app (free, 2 minutes):</div>
               <ol>
-                <li>Go to <a href="https://gettoolkit.app/tools/api/webhook-to-email" target="_blank" rel="noopener">gettoolkit.app/tools/api/webhook-to-email</a></li>
+                <li>Go to <a href="https://gettoolkit.app/tools/api/webhook-to-email" target="_blank" rel="noopener noreferrer">gettoolkit.app/tools/api/webhook-to-email</a></li>
                 <li>Enter your email address and click <strong>Send Magic Link</strong></li>
                 <li>Click the link in your email to verify</li>
                 <li>Copy the webhook URL provided</li>
@@ -697,7 +731,7 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-slack" hidden>
               <div class="panel-title">How to set up Slack (free, 5 minutes):</div>
               <ol>
-                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com/apps</a></li>
+                <li>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer">api.slack.com/apps</a></li>
                 <li>Click <strong>Create New App &gt; From scratch</strong></li>
                 <li>Name it "RPR Leads" and pick your workspace</li>
                 <li>Go to <strong>Incoming Webhooks</strong> and toggle it On</li>
@@ -723,7 +757,7 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-sheets" hidden>
               <div class="panel-title">How to set up Google Sheets (free, 10 minutes):</div>
               <ol>
-                <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a> to create a new Google Sheet</li>
+                <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener noreferrer">sheets.new</a> to create a new Google Sheet</li>
                 <li>Name the first row columns: <code>Timestamp | First Name | Last Name | Email | Phone | Area | Report URL</code></li>
                 <li>Click <strong>Extensions &gt; Apps Script</strong></li>
                 <li>Delete all existing code and paste the RPR script (see link below)</li>
@@ -732,7 +766,7 @@ input[type="color"] {
                 <li>Click <strong>Deploy</strong> and authorize when prompted</li>
                 <li>Copy the web app URL and paste it below</li>
               </ol>
-              <p class="panel-foot">Full setup guide: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener">blog.narrpr.com/google-sheets-setup</a>. Free. Leads stored as rows. Enable email notifications in Tools &gt; Notification Rules.</p>
+              <p class="panel-foot">Full setup guide: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener noreferrer">blog.narrpr.com/google-sheets-setup</a>. Free. Leads stored as rows. Enable email notifications in Tools &gt; Notification Rules.</p>
             </div>
 
             <div class="delivery-panel" id="panel-ghl" hidden>
@@ -750,7 +784,7 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-make" hidden>
               <div class="panel-title">How to set up Make ($9/month Core plan):</div>
               <ol>
-                <li>Sign up at <a href="https://make.com" target="_blank" rel="noopener">make.com</a> and create a new Scenario</li>
+                <li>Sign up at <a href="https://make.com" target="_blank" rel="noopener noreferrer">make.com</a> and create a new Scenario</li>
                 <li>Add a <strong>Custom Webhook</strong> as the trigger module</li>
                 <li>Click <strong>Create a webhook</strong> and copy the URL</li>
                 <li>Paste it in the field below</li>
@@ -762,13 +796,13 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-zapier" hidden>
               <div class="panel-title">How to set up Zapier (paid plan required):</div>
               <ol>
-                <li>Sign up or log in at <a href="https://zapier.com" target="_blank" rel="noopener">zapier.com</a></li>
+                <li>Sign up or log in at <a href="https://zapier.com" target="_blank" rel="noopener noreferrer">zapier.com</a></li>
                 <li>Create a new Zap &gt; Trigger: <strong>Webhooks by Zapier &gt; Catch Hook</strong></li>
                 <li>Copy the webhook URL from the Test tab</li>
                 <li>Paste it in the field below</li>
                 <li>Add an action (email, CRM, Google Sheets, etc.)</li>
               </ol>
-              <p class="panel-foot">Webhooks by Zapier requires a paid plan (from $20/month).</p>
+              <p class="panel-foot">Webhooks by Zapier requires a paid plan (from $20/month). When you click "Send test" above, Zapier may show the body as a single field — your live form submissions are sent as proper JSON and will be parsed normally.</p>
             </div>
 
             <div class="delivery-panel" id="panel-custom" hidden>
@@ -780,6 +814,12 @@ input[type="color"] {
           <div id="deliveryUrlGroup" hidden style="margin-top:12px">
             <label>Webhook URL</label>
             <input type="url" id="deliveryUrl" placeholder="https://…">
+            <div class="delivery-url-warning" id="deliveryUrlWarning" hidden>
+              Webhook URL must start with <code>https://</code> — leads will not be sent over insecure connections.
+            </div>
+            <p class="delivery-privacy-note">
+              Webhook URLs grant write access to your channel. Don't share the generator link publicly.
+            </p>
             <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test</button>
             <div class="test-webhook-result" id="testWebhookResult"></div>
           </div>
@@ -888,7 +928,7 @@ input[type="color"] {
             <input type="text" id="fontBody" placeholder="Lato">
           </div>
         </div>
-        <p class="field-hint" style="margin-top:-8px">Browse available fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener" style="color:var(--accent)">fonts.google.com</a></p>
+        <p class="field-hint" style="margin-top:-8px">Browse available fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">fonts.google.com</a></p>
         <div class="field-group two-col">
           <div>
             <label>Card background</label>
