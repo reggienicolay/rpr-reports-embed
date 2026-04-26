@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    RPR Market Reports — Embed Generator JS
-   v1.0.6
+   v1.0.7
 ═══════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────
@@ -24,11 +24,26 @@ const DEFAULTS = {
 
 /* Field IDs for URL hash encoding (scalar fields only) */
 const FIELD_KEYS = [
-  'webhook','agentName','brokerage','logoUrl','colorBrandHex',
+  'deliveryMethod','deliveryUrl','agentName','brokerage','logoUrl','colorBrandHex',
   'fontHeading','fontBody','headline','subheadline','btnLabel',
   'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
   'cardRadius','areaLabel','reportsHeading','gdprText',
 ];
+
+/* Per-method copy: placeholders + "check your X" success suffix */
+const DELIVERY_META = {
+  ntfy:       { placeholder: 'https://ntfy.sh/your-topic-name',                                  destination: 'ntfy app' },
+  simplepush: { placeholder: 'https://api.simplepush.io/send/YOUR-KEY',                          destination: 'SimplePush app' },
+  pushover:   { placeholder: 'https://api.pushover.net/1/messages.json?token=...&user=...',     destination: 'Pushover app' },
+  toolkit:    { placeholder: 'https://gettoolkit.app/webhook/...',                              destination: 'email inbox' },
+  slack:      { placeholder: 'https://hooks.slack.com/services/...',                             destination: 'Slack channel' },
+  discord:    { placeholder: 'https://discord.com/api/webhooks/...',                             destination: 'Discord channel' },
+  sheets:     { placeholder: 'https://script.google.com/macros/s/.../exec',                      destination: 'Google Sheet' },
+  ghl:        { placeholder: 'https://services.leadconnectorhq.com/hooks/...',                   destination: 'GoHighLevel workflow' },
+  make:       { placeholder: 'https://hook.us1.make.com/...',                                    destination: 'Make scenario' },
+  zapier:     { placeholder: 'https://hooks.zapier.com/hooks/catch/...',                         destination: 'Zapier task history' },
+  custom:     { placeholder: 'https://your-webhook-endpoint.com/...',                            destination: 'webhook destination' },
+};
 
 /* ─────────────────────────────────────────────
    State
@@ -71,8 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.addEventListener('input', generate);
   });
 
-  /* Webhook gets its own listener: generate + update warning */
-  document.getElementById('webhook').addEventListener('input', function() {
+  /* Delivery method dropdown — toggles panels + URL field, then generates */
+  document.getElementById('deliveryMethod').addEventListener('change', function() {
+    handleDeliveryChange();
+    generate();
+  });
+
+  /* Shared delivery URL input */
+  document.getElementById('deliveryUrl').addEventListener('input', function() {
     updateWebhookWarning();
     generate();
   });
@@ -146,8 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.classList.contains('report-url')) validateReportUrl(e.target);
   });
 
-  /* Webhook warning: check initial state */
-  updateWebhookWarning();
+  /* Initial delivery panel + warning state (after applyConfig has run) */
+  handleDeliveryChange();
 
   generateNow();
 });
@@ -194,15 +215,48 @@ function initCollapsibleSections() {
 }
 
 /* ─────────────────────────────────────────────
+   Delivery method panel handler
+───────────────────────────────────────────── */
+function handleDeliveryChange() {
+  const method   = document.getElementById('deliveryMethod').value;
+  const urlGroup = document.getElementById('deliveryUrlGroup');
+  const urlInput = document.getElementById('deliveryUrl');
+
+  /* Hide all panels, show the selected one */
+  document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
+  const panel = document.getElementById('panel-' + method);
+  if (panel) panel.hidden = false;
+
+  /* Show URL input for everything except none/sheets/empty */
+  const noUrl = !method || method === 'none' || method === 'sheets';
+  urlGroup.hidden = noUrl;
+
+  /* Update placeholder for the selected service */
+  const meta = DELIVERY_META[method];
+  if (urlInput && meta) urlInput.placeholder = meta.placeholder;
+
+  updateWebhookWarning();
+}
+
+/* ─────────────────────────────────────────────
    Webhook warning + test button visibility
 ───────────────────────────────────────────── */
 function updateWebhookWarning() {
-  const val = document.getElementById('webhook').value.trim();
-  document.getElementById('webhookWarning').style.display = val ? 'none' : 'flex';
-  document.getElementById('testWebhookBtn').style.display = val ? 'inline-block' : 'none';
+  const method  = document.getElementById('deliveryMethod').value;
+  const url     = document.getElementById('deliveryUrl').value.trim();
+  const noDelivery = !method || method === 'none';
+
+  document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
+
+  /* Test button only shows when a URL has been entered */
+  const testBtn = document.getElementById('testWebhookBtn');
+  if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
+
   const result = document.getElementById('testWebhookResult');
-  result.textContent = '';
-  result.className = 'test-webhook-result';
+  if (result) {
+    result.textContent = '';
+    result.className = 'test-webhook-result';
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -213,7 +267,7 @@ function sendTestWebhook() {
   const btn    = document.getElementById('testWebhookBtn');
   const result = document.getElementById('testWebhookResult');
 
-  if (!cfg.webhook) return;
+  if (!cfg.webhookUrl) return;
 
   btn.disabled = true;
   btn.textContent = 'Sending\u2026';
@@ -237,23 +291,28 @@ function sendTestWebhook() {
     timestamp:     new Date().toISOString(),
   };
 
-  fetch(cfg.webhook, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+  /* no-cors so we don't trip CORS preflight on Slack/Discord/etc;
+     trade-off is we can't read the response, only confirm it sent */
+  const meta        = DELIVERY_META[cfg.deliveryMethod] || {};
+  const destination = meta.destination || 'webhook destination';
+
+  fetch(cfg.webhookUrl, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    JSON.stringify(payload),
   })
-  .then(res => {
-    if (!res.ok) throw new Error(res.status);
-    result.textContent = 'Test sent! Check your webhook destination.';
+  .then(() => {
+    result.textContent = 'Test sent \u2014 check your ' + destination + '.';
     result.className = 'test-webhook-result success';
   })
   .catch(() => {
-    result.textContent = 'Failed \u2014 check your webhook URL and try again.';
+    result.textContent = 'Could not send test \u2014 check your URL and try again.';
     result.className = 'test-webhook-result error';
   })
   .finally(() => {
     btn.disabled = false;
-    btn.textContent = 'Send test lead';
+    btn.textContent = 'Send test';
   });
 }
 
@@ -385,9 +444,12 @@ function setDevice(device, btn) {
    Read all values
 ───────────────────────────────────────────── */
 function vals() {
+  const method = v('deliveryMethod');
+  const url    = (!method || method === 'none' || method === 'sheets') ? '' : v('deliveryUrl');
   return {
     reports:        getReports(),
-    webhook:        v('webhook'),
+    deliveryMethod: method,
+    webhookUrl:     url,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
     logoUrl:        v('logoUrl'),
@@ -470,6 +532,9 @@ function hashToConfig(str) {
     if (params.has(key)) config[key] = params.get(key);
   });
 
+  /* Legacy field — pre-1.0.6 hashes used `webhook` instead of deliveryUrl. */
+  if (params.has('webhook')) config.webhook = params.get('webhook');
+
   if (params.has('displayMode')) config.displayMode = params.get('displayMode');
   if (params.has('gdprEnabled')) config.gdprEnabled = params.get('gdprEnabled') === '1';
   if (params.has('reports')) {
@@ -481,6 +546,13 @@ function hashToConfig(str) {
 
 function applyConfig(config) {
   _suppressGenerate = true;
+
+  /* Backwards-compat: pre-1.0.6 saved configs used `webhook=…` with no
+     deliveryMethod. Treat any saved URL as a custom webhook. */
+  if (config.webhook && !config.deliveryMethod) {
+    config.deliveryMethod = 'custom';
+    config.deliveryUrl    = config.webhook;
+  }
 
   /* Scalar fields */
   FIELD_KEYS.forEach(key => {
@@ -691,7 +763,7 @@ function renderCode(cfg) {
     lines.push("  data-reports='[]'");
   }
 
-  if (cfg.webhook)     lines.push('  data-webhook="'      + av(cfg.webhook)      + '"');
+  if (cfg.webhookUrl)  lines.push('  data-webhook="'      + av(cfg.webhookUrl)   + '"');
   if (cfg.agentName)   lines.push('  data-agent-name="'   + av(cfg.agentName)    + '"');
   if (cfg.brokerage)   lines.push('  data-brokerage="'    + av(cfg.brokerage)    + '"');
   if (cfg.logoUrl)     lines.push('  data-logo-url="'     + av(cfg.logoUrl)      + '"');
