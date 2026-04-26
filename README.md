@@ -1,6 +1,6 @@
 # RPR Market Reports — Embed Widget
 
-**Version:** 1.0.5
+**Version:** 1.0.8
 **Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
@@ -36,11 +36,25 @@ You can mix report types in the same widget — for example, offer a Market Acti
 
 Fill in your name, brokerage, logo URL, and brand color. The live preview updates in real time so you can see exactly what visitors will see.
 
-### Step 3 — Set up your webhook (recommended)
+### Step 3 — Set up lead delivery (recommended)
 
-Paste your webhook URL (from Zapier, Make, GoHighLevel, or any service that accepts JSON POST requests). This is where lead data is sent when someone submits the form.
+Pick a delivery method from the **How do you want to receive leads?** dropdown. The generator includes 12 options ranging from free-and-instant to enterprise:
 
-If you skip the webhook, the widget still works — visitors can view reports — but contact information won't be captured anywhere.
+| Method | Notes |
+|--------|-------|
+| **ntfy.sh**, **SimplePush** | Free phone push notifications, ~2-minute setup |
+| **Pushover** | Phone push, $5 one-time |
+| **Toolkit.app** | Free email notification, no account needed |
+| **Slack**, **Discord** | Free channel messages |
+| **Google Sheets** | Free spreadsheet logging with optional email alerts |
+| **GoHighLevel** | Native CRM workflow (pennies per lead) |
+| **Make**, **Zapier** | Connect to anything (paid plans) |
+| **Custom webhook URL** | Any HTTPS endpoint that accepts a JSON POST |
+| **No notification** | Display reports without capturing leads |
+
+Selecting a method reveals inline setup instructions for that service and a webhook URL field. Paste the URL the service gives you, and the generator builds your `data-webhook` attribute automatically.
+
+If you skip lead delivery (or pick "No notification"), the widget still works — visitors can view reports — but contact information won't be captured anywhere.
 
 ### Step 4 — Copy and paste
 
@@ -245,6 +259,10 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 
 ## Changelog
 
+**v1.0.8** — Generator hardening: HTTPS validation surfaced inline (warns before the embed widget rejects it at runtime), Reset button in the site header to clear localStorage + URL hash, privacy note under the URL input ("webhook URLs grant write access — don't share the generator link publicly"), `rel="noopener noreferrer"` on all instruction-panel links, Zapier panel notes the no-cors test-button quirk.
+**v1.0.7** — Lead Delivery dropdown: replaces the single webhook URL field with a guided 12-option selector (ntfy, SimplePush, Pushover, Toolkit, Slack, Discord, Google Sheets, GoHighLevel, Make, Zapier, Custom, No notification), each with inline setup instructions. Webhook test button uses `mode: 'no-cors'` to avoid preflight failures on Slack/Discord. Backwards-compat shim maps legacy saved generator links (`?#…webhook=…`) to `deliveryMethod=custom`.
+**v1.0.6** — Generator polish: Copy/Display/Advanced sections collapsed by default, font label layout fix, float button positioning anchored to preview body and toggleable in the preview.
+**v1.0.5** — Shareable generator URLs (config persisted in URL hash + localStorage), display mode preview, "Send test lead" button, RPR-URL validation hint, embed widget hosted on R2 CDN.
 **v1.0.4** — Default brand color updated to RPR blue (#0086E6). Generator: collapsible sections, syntax highlighting fix, accessibility improvements, debounced rendering, clipboard fallback, DEFAULTS consolidation.
 **v1.0.3** — 8 security fixes
 **v1.0.2** — 6 bug fixes
