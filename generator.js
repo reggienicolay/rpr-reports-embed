@@ -242,8 +242,10 @@ function handleDeliveryChange() {
   const panel = document.getElementById('panel-' + method);
   if (panel) panel.hidden = false;
 
-  /* Show URL input for everything except none/sheets/empty */
-  const noUrl = !method || method === 'none' || method === 'sheets';
+  /* Show URL input for every method except "none" / empty.
+     Sheets DOES need the URL field — the deployed Web App URL is
+     what the script.appendRow handler listens on. */
+  const noUrl = !method || method === 'none';
   urlGroup.hidden = noUrl;
 
   /* Update placeholder for the selected service */
@@ -509,7 +511,7 @@ function sanitizeFontName(name) {
 
 function vals() {
   const method = v('deliveryMethod');
-  const url    = (!method || method === 'none' || method === 'sheets') ? '' : v('deliveryUrl');
+  const url    = (!method || method === 'none') ? '' : v('deliveryUrl');
   const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';  /* default minimal */
   return {
     reports:        getReports(),
