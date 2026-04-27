@@ -1,6 +1,6 @@
 # RPR Market Reports — Embed Widget
 
-**Version:** 1.0.8
+**Version:** 1.1.0
 **Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
@@ -36,7 +36,16 @@ You can mix report types in the same widget — for example, offer a Market Acti
 
 Fill in your name, brokerage, logo URL, and brand color. The live preview updates in real time so you can see exactly what visitors will see.
 
-### Step 3 — Set up lead delivery (recommended)
+### Step 3 — Pick a form mode
+
+In the **Widget Settings** card on the Market Reports tab, choose:
+
+- **Minimal** *(default for new embeds)* — area + email only. Lower friction, higher conversion. Best for top-of-funnel lead capture where the next interaction is an email follow-up.
+- **Full** — first name, last name, email, phone, and area. Richer leads. Best for agents whose CRM workflow needs all four fields at form submission.
+
+You can switch modes at any time and re-copy the embed code. The widget itself reads `data-form-mode="..."` from the embed snippet — existing deployed widgets without the attribute keep working in **Full** mode (no breaking change).
+
+### Step 4 — Set up lead delivery (recommended)
 
 Pick a delivery method from the **How do you want to receive leads?** dropdown. The generator includes 12 options ranging from free-and-instant to enterprise:
 
@@ -56,7 +65,7 @@ Selecting a method reveals inline setup instructions for that service and a webh
 
 If you skip lead delivery (or pick "No notification"), the widget still works — visitors can view reports — but contact information won't be captured anywhere.
 
-### Step 4 — Copy and paste
+### Step 5 — Copy and paste
 
 Click **Copy** at the bottom of the generator. Paste the embed code into your website wherever you want the form to appear — your homepage, a landing page, a blog post, etc.
 
@@ -115,6 +124,7 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 | Attribute | Description |
 |-----------|-------------|
 | `data-webhook` | HTTPS URL that receives lead data on each submission. Must begin with `https://` — non-HTTPS values are rejected and no data is transmitted. If omitted, the form still displays reports but leads are not captured. |
+| `data-form-mode` | `"minimal"` (area + email only) or `"full"` (first/last/email/phone + area). **Default: `"full"`** for backwards compatibility with deployed embeds. The v1.1+ generator emits `data-form-mode="minimal"` by default for new embeds. |
 
 ### Branding
 
@@ -259,6 +269,7 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 
 ## Changelog
 
+**v1.1.0** — Builder redesign + Form Mode toggle. New embed-widget attribute `data-form-mode` with values `"minimal"` (area + email only — single-question lead capture) and `"full"` (first/last/email/phone + area — current behavior). Widget runtime default stays `"full"` so existing deployed embeds without the attribute keep working unchanged; the v1.1 generator emits `data-form-mode="minimal"` by default for newly-created embeds. Generator UI rebuilt: side-nav driven panes (Market Reports / Lead Delivery / Branding / Display / Settings), glass-card containers, Work Sans typography, immersive dark preview stage with dot-grid background. The collapsible-accordion pattern from v1.0.x is gone; one section is visible at a time via the side nav. All existing IDs, persistence behavior, syntax highlighting, Reset, Send-test webhook, HTTPS validation, and 12-method delivery dropdown intact.
 **v1.0.8** — Generator hardening: HTTPS validation surfaced inline (warns before the embed widget rejects it at runtime), Reset button in the site header to clear localStorage + URL hash, privacy note under the URL input ("webhook URLs grant write access — don't share the generator link publicly"), `rel="noopener noreferrer"` on all instruction-panel links, Zapier panel notes the no-cors test-button quirk.
 **v1.0.7** — Lead Delivery dropdown: replaces the single webhook URL field with a guided 12-option selector (ntfy, SimplePush, Pushover, Toolkit, Slack, Discord, Google Sheets, GoHighLevel, Make, Zapier, Custom, No notification), each with inline setup instructions. Webhook test button uses `mode: 'no-cors'` to avoid preflight failures on Slack/Discord. Backwards-compat shim maps legacy saved generator links (`?#…webhook=…`) to `deliveryMethod=custom`.
 **v1.0.6** — Generator polish: Copy/Display/Advanced sections collapsed by default, font label layout fix, float button positioning anchored to preview body and toggleable in the preview.
