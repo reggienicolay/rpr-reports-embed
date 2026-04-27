@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    RPR Market Reports — Embed Generator JS
-   v1.0.8
+   v1.1.0 (redesign branch — side nav + form-mode toggle)
 ═══════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────
@@ -24,7 +24,7 @@ const DEFAULTS = {
 
 /* Field IDs for URL hash encoding (scalar fields only) */
 const FIELD_KEYS = [
-  'deliveryMethod','deliveryUrl','agentName','brokerage','logoUrl','colorBrandHex',
+  'deliveryMethod','deliveryUrl','formMode','agentName','brokerage','logoUrl','colorBrandHex',
   'fontHeading','fontBody','headline','subheadline','btnLabel',
   'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
   'cardRadius','areaLabel','reportsHeading','gdprText',
@@ -139,6 +139,17 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Reset button — clears localStorage + URL hash, reloads with defaults */
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', resetConfig);
+
+  /* Side nav: click switches which .section-pane is visible. */
+  document.querySelectorAll('.side-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => switchPane(btn.dataset.pane));
+  });
+
+  /* Form Mode tabs (radio-card style). The visible buttons set
+     #formMode (a hidden input that participates in vals() / persistence). */
+  document.querySelectorAll('.form-mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => setFormMode(btn.dataset.formMode));
+  });
 
   /* Test webhook button */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
@@ -432,6 +443,36 @@ function getAllReportRows() {
 }
 
 /* ─────────────────────────────────────────────
+   Side nav: show one .section-pane at a time.
+   Pane visibility is purely a UI affordance; all
+   inputs remain in the DOM so vals() / persistence
+   work the same way regardless of which pane is
+   on screen.
+───────────────────────────────────────────── */
+function switchPane(pane) {
+  if (!pane) return;
+  document.querySelectorAll('.section-pane').forEach(p => {
+    p.classList.toggle('active', p.dataset.pane === pane);
+  });
+  document.querySelectorAll('.side-nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.pane === pane);
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Form Mode toggle (Minimal vs Full)
+───────────────────────────────────────────── */
+function setFormMode(mode) {
+  if (mode !== 'minimal' && mode !== 'full') return;
+  const hidden = document.getElementById('formMode');
+  if (hidden) hidden.value = mode;
+  document.querySelectorAll('.form-mode-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.formMode === mode);
+  });
+  generate();
+}
+
+/* ─────────────────────────────────────────────
    Display mode
 ───────────────────────────────────────────── */
 function setMode(mode) {
@@ -461,10 +502,12 @@ function setDevice(device, btn) {
 function vals() {
   const method = v('deliveryMethod');
   const url    = (!method || method === 'none' || method === 'sheets') ? '' : v('deliveryUrl');
+  const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';  /* default minimal */
   return {
     reports:        getReports(),
     deliveryMethod: method,
     webhookUrl:     url,
+    formMode:       formMode,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
     logoUrl:        v('logoUrl'),
@@ -575,6 +618,13 @@ function applyConfig(config) {
     const el = document.getElementById(key);
     if (el) el.value = config[key];
   });
+
+  /* Sync form-mode-tabs to whichever value we just restored. */
+  if (config.formMode) {
+    document.querySelectorAll('.form-mode-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.formMode === config.formMode);
+    });
+  }
 
   /* Sync color picker to hex field */
   if (config.colorBrandHex) {
@@ -697,12 +747,19 @@ function renderPreview(cfg) {
     + '<div class="lc-subheadline"' + (bodyFont ? ' style="font-family:' + bodyFont + '"' : '') + '>' + esc(cfg.subheadline || DEFAULTS.subheadline) + '</div>'
     + '</div>'
     + '<div class="lc-body"><div class="lc-grid">'
-    + '<div class="lc-field"><div class="lc-label">First name *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="First name" tabindex="-1" readonly></div>'
-    + '<div class="lc-field"><div class="lc-label">Last name *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="Last name" tabindex="-1" readonly></div>'
-    + '<div class="lc-field"><div class="lc-label">Email *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="you@example.com" tabindex="-1" readonly></div>'
-    + '<div class="lc-field"><div class="lc-label">Phone</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="(555) 555-5555" tabindex="-1" readonly></div>'
-    + '<div class="lc-field full"><div class="lc-label">' + esc(areaLabel) + ' *</div>'
-    + '<select class="lc-select" tabindex="-1">' + areas + '</select></div>'
+    + (cfg.formMode === 'minimal'
+        /* Minimal: area on top, email below — matches embed widget render order */
+        ? '<div class="lc-field full"><div class="lc-label">' + esc(areaLabel) + ' *</div>'
+          + '<select class="lc-select" tabindex="-1">' + areas + '</select></div>'
+          + '<div class="lc-field full"><div class="lc-label">Email *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="you@example.com" tabindex="-1" readonly></div>'
+        /* Full: 2-column grid of first/last/email/phone, then area full-width */
+        : '<div class="lc-field"><div class="lc-label">First name *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="First name" tabindex="-1" readonly></div>'
+          + '<div class="lc-field"><div class="lc-label">Last name *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="Last name" tabindex="-1" readonly></div>'
+          + '<div class="lc-field"><div class="lc-label">Email *</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="you@example.com" tabindex="-1" readonly></div>'
+          + '<div class="lc-field"><div class="lc-label">Phone</div><input class="lc-input" style="border-color:#e0e0e0" placeholder="(555) 555-5555" tabindex="-1" readonly></div>'
+          + '<div class="lc-field full"><div class="lc-label">' + esc(areaLabel) + ' *</div>'
+          + '<select class="lc-select" tabindex="-1">' + areas + '</select></div>'
+      )
     + '</div>'
     + gdprHTML
     + '<button class="lc-btn" style="background:' + brand + ';color:' + btnTextC + (bodyFont ? ';font-family:' + bodyFont : '') + '" tabindex="-1">'
@@ -779,6 +836,10 @@ function renderCode(cfg) {
   }
 
   if (cfg.webhookUrl)  lines.push('  data-webhook="'      + av(cfg.webhookUrl)   + '"');
+  /* Always emit data-form-mode so the embed code is explicit about which
+     form variant the agent picked. The widget itself defaults to 'full' for
+     backwards-compat, so omitting would silently flip new minimal embeds. */
+  lines.push('  data-form-mode="' + av(cfg.formMode) + '"');
   if (cfg.agentName)   lines.push('  data-agent-name="'   + av(cfg.agentName)    + '"');
   if (cfg.brokerage)   lines.push('  data-brokerage="'    + av(cfg.brokerage)    + '"');
   if (cfg.logoUrl)     lines.push('  data-logo-url="'     + av(cfg.logoUrl)      + '"');

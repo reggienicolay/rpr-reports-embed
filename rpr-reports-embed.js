@@ -1,10 +1,15 @@
 /**
- * rpr-reports-embed.js  v1.0.6
+ * rpr-reports-embed.js  v1.1.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.1.0: data-form-mode="minimal" renders an email-only lead form (area
+ * dropdown + email + button). Default remains "full" (first/last/email/phone
+ * + area) so existing deployed embeds without the attribute keep working
+ * exactly as before.
  *
  * Required attributes:
  *   data-reports   JSON array: [{"label":"Area Name","url":"https://narrpr.com/..."},…]
@@ -26,6 +31,10 @@
  *   data-float-label       Floating button label (display-mode=floating)
  *   data-float-position    "bottom-right" | "bottom-left"   (default: bottom-right)
  *   data-modal-trigger     CSS selector of element that opens modal (display-mode=modal)
+ *   data-form-mode         "full" | "minimal" (default: full). Minimal renders
+ *                          area + email only; first_name/last_name/phone are
+ *                          omitted from the form and arrive as empty strings
+ *                          in the webhook payload.
  *   data-card-radius       Card border-radius in px (default: 18)
  *   data-card-bg           Card background color hex (default: #ffffff — change for dark sites)
  *   data-card-text         Card body text color hex (default: #333333 — change for dark sites)
@@ -142,6 +151,11 @@
 		reportsHeading:  attr( 'data-reports-heading', 'Your Market Report' ),
 		areaLabel:       attr( 'data-area-label',       'Area of interest' ),
 		areaPlaceholder: attr( 'data-area-placeholder', 'Select an area…' ),
+		/* Form mode: 'full' (first/last/email/phone/area) or 'minimal' (email/area).
+		   Default is 'full' so existing deployed embeds without the attribute keep
+		   their current behavior. New embeds from the v1.1+ generator can opt into
+		   minimal explicitly. Anything other than 'minimal' falls back to 'full'. */
+		formMode:        ( attr( 'data-form-mode', 'full' ) === 'minimal' ? 'minimal' : 'full' ),
 		/* SEC-8 FIX: restrict formId to safe alphanumeric/hyphen/underscore chars */
 		formId:          ( attr( 'data-form-id' ).replace( /[^a-zA-Z0-9\-_]/g, '' ) )
 		                 || ( 'rpr-reports-' + Math.random().toString( 36 ).slice( 2, 8 ) ),
@@ -513,13 +527,19 @@
 		const grid = document.createElement( 'div' );
 		grid.className = 'rpr-r-fields';
 
-		/* Standard fields: first name, last name, email, phone */
-		const FIELDS = [
+		/* Standard fields. In 'minimal' mode only email is rendered (full-width)
+		   and the form layout becomes single-column area-on-top, email-below.
+		   In 'full' mode all four fields render in a 2-column grid. */
+		const ALL_FIELDS = [
 			{ id: 'first_name', label: 'First name',  placeholder: 'First name',        type: 'text',  required: true,  half: true,  error: 'Please enter your first name' },
 			{ id: 'last_name',  label: 'Last name',   placeholder: 'Last name',         type: 'text',  required: true,  half: true,  error: 'Please enter your last name' },
 			{ id: 'email',      label: 'Email',        placeholder: 'you@example.com',   type: 'email', required: true,  half: true,  error: 'Enter a valid email address' },
 			{ id: 'phone',      label: 'Phone',        placeholder: '(555) 555-5555',    type: 'tel',   required: false, half: true,  error: 'Enter a valid phone number' },
 		];
+
+		const FIELDS = CFG.formMode === 'minimal'
+			? [ Object.assign( {}, ALL_FIELDS.find( f => f.id === 'email' ), { half: false } ) ]
+			: ALL_FIELDS;
 
 		FIELDS.forEach( f => {
 			const wrap = document.createElement( 'div' );
@@ -584,7 +604,15 @@
 		areaWrap.appendChild( areaLabel );
 		areaWrap.appendChild( areaSelect );
 		areaWrap.appendChild( areaErr );
-		grid.appendChild( areaWrap );
+
+		/* In minimal mode the area dropdown sits ABOVE the email field
+		   (single-question lead capture pattern). In full mode it stays
+		   at the end of the grid as before. */
+		if ( CFG.formMode === 'minimal' ) {
+			grid.insertBefore( areaWrap, grid.firstChild );
+		} else {
+			grid.appendChild( areaWrap );
+		}
 
 		body.appendChild( grid );
 

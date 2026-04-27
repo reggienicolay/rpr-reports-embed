@@ -7,113 +7,200 @@
 <title>RPR Market Reports — Embed Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── Tokens ── */
+/* ── Tokens (v1.1 redesign) ── */
 :root {
-  --sans:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --sans:    'Work Sans', system-ui, -apple-system, sans-serif;
   --mono:    'JetBrains Mono', ui-monospace, 'Menlo', monospace;
-  --accent:  #0086E6;
-  --surface: #f4f4f5;
-  --white:   #ffffff;
-  --border:  #e4e4e7;
-  --ink:     #18181b;
-  --ink-mid: #52525b;
-  --ink-soft:#a1a1aa;
-  --radius:  8px;
-  --success: #16a34a;
+  --accent:        #0086E6;     /* keep existing RPR brand blue */
+  --accent-deep:   #005798;     /* darker blue for gradients */
+  --accent-glow:   rgba(0,134,230,0.30);
+
+  --surface:       #f8f9fa;
+  --surface-grid:  #e1e3e4;
+  --white:         #ffffff;
+  --border:        #e1e3e4;
+  --border-soft:   #c0c7d3;
+  --ink:           #191c1d;
+  --ink-mid:       #414751;
+  --ink-soft:      #717783;
+  --radius:        8px;
+  --radius-lg:     12px;
+  --success:       #16a34a;
+
+  /* Glass panel styling */
+  --glass-bg:      rgba(255,255,255,0.70);
+  --glass-border:  rgba(255,255,255,0.85);
+  --glass-shadow:  0 4px 30px rgba(0,0,0,0.08);
+  --glass-blur:    20px;
+
+  /* Dark preview stage */
+  --stage-bg-from: #2e3132;
+  --stage-bg-to:   #191c1d;
+  --stage-grid:    rgba(255,255,255,0.10);
 }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: var(--sans);
   color: var(--ink);
-  background: var(--surface);
+  background-color: var(--surface);
+  background-image: radial-gradient(var(--surface-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-/* ── Site header ── */
+/* ── Site header (glass top bar) ── */
 .site-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  height: 56px;
-  background: var(--accent);
-  color: #fff;
+  height: 64px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+  color: var(--ink);
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
-.wordmark { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
-.wordmark em { font-style: italic; font-weight: 400; opacity: 0.85; }
+.wordmark {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+.wordmark em { font-style: normal; font-weight: 700; color: var(--ink); }
 .badge {
   font-size: 11px;
   font-family: var(--mono);
-  color: rgba(255,255,255,0.45);
+  color: var(--ink-soft);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 999px;
 }
 
-/* ── Main layout ── */
+/* ── Main layout: side nav + center config + dark preview stage ── */
 .layout {
   display: grid;
-  grid-template-columns: 420px 1fr;
-  min-height: calc(100vh - 56px);
+  grid-template-columns: 220px 1fr 1fr;
+  min-height: calc(100vh - 64px);
   gap: 0;
 }
 
-/* ── Left panel: generator ── */
+/* ── Side nav ── */
+.side-nav {
+  padding: 24px 16px;
+  border-right: 1px solid rgba(255,255,255,0.6);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.side-nav-workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 24px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.side-nav-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+.side-nav-workspace-info { line-height: 1.2; }
+.side-nav-workspace-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.side-nav-workspace-tier { font-size: 10px; font-family: var(--mono); color: var(--ink-soft); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.side-nav-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.side-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+  transition: background 0.15s, color 0.15s;
+}
+.side-nav-item:hover { background: rgba(255,255,255,0.5); color: var(--ink-mid); }
+.side-nav-item.active {
+  background: rgba(0,134,230,0.10);
+  color: var(--accent);
+  border-right: 3px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+  border-radius: 8px 0 0 8px;
+}
+.side-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ── Center: generator config column ── */
 .gen-panel {
-  background: var(--white);
-  border-right: 1px solid var(--border);
+  background: transparent;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
-.gen-panel-inner { padding: 1.5rem; flex: 1; }
-
-/* ── Collapsible sections ── */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-  user-select: none;
-  -webkit-user-select: none;
+.gen-panel-inner { padding: 32px; flex: 1; max-width: 640px; }
+.section-pane { display: none; }
+.section-pane.active { display: block; }
+.section-pane-header { margin-bottom: 24px; }
+.section-pane-title {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 4px;
+  line-height: 1.15;
 }
-.section-header:not(:first-child) {
-  margin-top: 0.25rem;
-}
-.section-title {
-  font-size: 12px;
-  font-family: var(--mono);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.section-pane-sub {
+  font-size: 16px;
   color: var(--ink-mid);
+  line-height: 1.5;
 }
-.section-title .req { color: #e11d48; margin-left: 2px; }
-.section-chevron {
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-  color: var(--ink-soft);
-  flex-shrink: 0;
+
+/* ── Glass card containers ── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 20px;
 }
-.section-header:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+.glass-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
 }
-.section-header.collapsed .section-chevron {
-  transform: rotate(-90deg);
-}
-.section-body.collapsed {
-  display: none;
-}
+
+/* ── Section headers (legacy collapsible — kept for compat, hidden in v1.1
+       since side nav handles section switching instead of accordion) ── */
+.section-header { display: none; }
+.section-body { display: block !important; }
 
 .field-group { margin-bottom: 1.25rem; }
 .field-group-top { margin-top: 8px; }
@@ -136,17 +223,21 @@ body {
 
 label {
   display: block;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--ink-mid);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-label .req { color: #e11d48; margin-left: 2px; }
+label .req { color: #e11d48; margin-left: 2px; text-transform: none; }
 label .hint {
   font-weight: 400;
   color: var(--ink-soft);
-  font-size: 11px;
-  margin-left: 4px;
+  font-size: 10px;
+  margin-left: 6px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 input[type="text"],
@@ -154,20 +245,24 @@ input[type="url"],
 input[type="color"],
 select {
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink);
-  background: var(--white);
-  transition: border-color 0.15s;
+  background: rgba(255,255,255,0.65);
+  transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
 }
 input[type="text"]:focus,
 input[type="url"]:focus,
-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,134,230,0.12); }
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,134,230,0.12), 0 0 12px var(--accent-glow);
+  background: var(--white);
+}
 
 input[type="color"] {
   padding: 2px 4px;
@@ -232,20 +327,20 @@ input[type="color"] {
 
 .btn-add {
   width: 100%;
-  height: 34px;
-  border: 1px dashed var(--border);
+  height: 44px;
+  border: 1px dashed var(--border-soft);
   border-radius: var(--radius);
   background: transparent;
-  color: var(--ink-mid);
+  color: var(--accent);
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.btn-add:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,134,230,0.04); }
-.btn-add::before { content: '+'; font-size: 16px; line-height: 1; }
+.btn-add:hover { border-color: var(--accent); background: rgba(0,134,230,0.05); }
+.btn-add::before { content: '+'; font-size: 18px; line-height: 1; font-weight: 600; }
 
 /* ── Display mode tabs ── */
 .mode-tabs {
@@ -351,18 +446,18 @@ input[type="color"] {
   line-height: 1.45;
 }
 .btn-reset {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.3);
-  color: rgba(255,255,255,0.85);
-  padding: 4px 12px;
-  border-radius: 6px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+  padding: 6px 14px;
+  border-radius: 8px;
   font-family: var(--sans);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 }
-.btn-reset:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); color: #fff; }
+.btn-reset:hover { background: var(--white); border-color: var(--accent); color: var(--accent); }
 
 .btn-test-webhook {
   margin-top: 8px;
@@ -383,51 +478,155 @@ input[type="color"] {
 .test-webhook-result.success { color: var(--success); }
 .test-webhook-result.error { color: #dc2626; }
 
-/* ── Right panel: preview ── */
+/* ── Right panel: dark "stage" preview ── */
 .preview-panel {
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--stage-bg-from) 0%, var(--stage-bg-to) 100%);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
 }
+.preview-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--stage-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
 .preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--white);
-  font-size: 11px;
-  font-family: var(--mono);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-soft);
+  padding: 1rem 1.5rem;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,0.95);
+  position: relative;
+  z-index: 1;
 }
-.preview-device-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.device-tab {
+.preview-live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(254,128,42,0.15);
+  border: 1px solid rgba(254,128,42,0.5);
+  color: #ffb68e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.preview-live-chip::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #fe802a;
+  box-shadow: 0 0 8px #fe802a;
+  animation: rpr-pulse 1.6s ease-in-out infinite;
+}
+@keyframes rpr-pulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.4; }
+}
+.preview-device-tabs {
+  display: flex; gap: 0;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+}
+.device-tab {
+  padding: 6px 14px;
   font-family: var(--sans);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   border: none;
   cursor: pointer;
-  background: var(--white);
-  color: var(--ink-mid);
+  background: transparent;
+  color: rgba(255,255,255,0.6);
   transition: all 0.15s;
+  letter-spacing: 0.04em;
 }
-.device-tab:first-child { border-right: 1px solid var(--border); }
+.device-tab:first-child { border-right: 1px solid rgba(255,255,255,0.2); }
 .device-tab.active { background: var(--accent); color: #fff; }
 
 .preview-body {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 2rem;
   overflow-y: auto;
   position: relative;
   min-height: 200px;
+  z-index: 1;
+}
+.live-card {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ── Form Mode toggle (radio cards) ── */
+.form-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.form-mode-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-soft);
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--sans);
+}
+.form-mode-tab:hover {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.8);
+}
+.form-mode-tab.active {
+  border-color: var(--accent);
+  background: rgba(0,134,230,0.08);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.form-mode-tab-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-mode-tab-title::before {
+  content: '';
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border-soft);
+  background: var(--white);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.form-mode-tab.active .form-mode-tab-title::before {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 4px, var(--white) 5px);
+}
+.form-mode-tab-desc {
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  padding-left: 22px;
 }
 .preview-frame { transition: width 0.3s; width: 100%; }
 .preview-frame.mobile { width: 375px; }
@@ -435,13 +634,13 @@ input[type="color"] {
 .live-card-wrap { display: flex; justify-content: center; }
 .live-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 420px;
   background: #fff;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-  border: 1px solid #e4e4e7;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-family: 'Work Sans', system-ui, sans-serif;
   font-size: 14px;
   color: #18181b;
 }
@@ -547,11 +746,15 @@ input[type="color"] {
   color: var(--ink-mid);
 }
 
-/* ── Output panel (inside preview) ── */
+/* ── Output panel (sits inside the dark preview stage) ── */
 .output-panel {
-  background: var(--white);
-  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.1);
   padding: 1.25rem 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 .output-header {
   display: flex;
@@ -564,26 +767,26 @@ input[type="color"] {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--ink-soft);
+  color: rgba(255,255,255,0.6);
   font-weight: 500;
 }
 
 .btn-copy {
   padding: 6px 14px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--white);
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
   font-family: var(--sans);
   font-size: 12px;
-  font-weight: 500;
-  color: var(--ink-mid);
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+.btn-copy:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); color: #fff; }
 .btn-copy.copied { background: var(--success); border-color: var(--success); color: #fff; }
 
 .code-block {
@@ -616,50 +819,128 @@ input[type="color"] {
 <body>
 
 <header class="site-header">
-  <div class="wordmark">RPR <em>Market Reports</em> — Embed Generator</div>
+  <div class="wordmark">RPR <em>Widget Builder</em></div>
   <div style="display:flex;align-items:center;gap:12px;">
     <button type="button" class="btn-reset" id="resetBtn" title="Clear all saved fields and start fresh">Reset</button>
-    <div class="badge">v1.0.8</div>
+    <div class="badge">v1.1.0</div>
   </div>
 </header>
 
 <div class="layout">
 
-  <!-- ══ LEFT: Generator form ══ -->
+  <!-- ══ Side nav ══ -->
+  <nav class="side-nav">
+    <div class="side-nav-workspace">
+      <div class="side-nav-avatar">W</div>
+      <div class="side-nav-workspace-info">
+        <div class="side-nav-workspace-name">Widget Builder</div>
+        <div class="side-nav-workspace-tier">v1.1</div>
+      </div>
+    </div>
+    <ul class="side-nav-list">
+      <li><button type="button" class="side-nav-item active" data-pane="market-reports">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12V4M6 12V8M10 12V6M14 12V2"/></svg>
+        Market Reports
+      </button></li>
+      <li><button type="button" class="side-nav-item" data-pane="lead-delivery">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3 3 8l4 1 1 4 6-10z"/></svg>
+        Lead Delivery
+      </button></li>
+      <li><button type="button" class="side-nav-item" data-pane="branding">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="6" cy="6.5" r="0.8" fill="currentColor"/><circle cx="10" cy="6.5" r="0.8" fill="currentColor"/><circle cx="11" cy="9.5" r="0.8" fill="currentColor"/></svg>
+        Branding
+      </button></li>
+      <li><button type="button" class="side-nav-item" data-pane="display">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="9" rx="1"/><path d="M6 14h4"/></svg>
+        Display
+      </button></li>
+      <li><button type="button" class="side-nav-item" data-pane="settings">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3"/></svg>
+        Settings
+      </button></li>
+    </ul>
+  </nav>
+
+  <!-- ══ CENTER: Configurator ══ -->
   <div class="gen-panel">
     <div class="gen-panel-inner">
 
-      <!-- Webhook warning (hidden by default, shown by JS when empty) -->
-      <div class="webhook-warning" id="webhookWarning" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 5.5v3M8 10.5h.007M14 8A6 6 0 112 8a6 6 0 0112 0z" stroke="#f59e0b" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>No webhook URL — leads won't be captured. The form will still display reports but contact info won't be sent anywhere.</span>
-      </div>
+      <!-- Hidden form-mode value (set by the Form Mode tabs) -->
+      <input type="hidden" id="formMode" value="minimal">
 
-      <!-- ── Market Reports ── -->
-      <div class="section-header open" data-section="reports">
-        <span class="section-title">Market reports <span class="req">*</span></span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body" data-section="reports">
-        <div class="field-group">
-          <div class="reports-col-headers">
-            <label class="col-label">Area label</label>
-            <label class="col-label">RPR report URL</label>
-            <span></span>
+      <!-- ════════════ Pane: Market Reports ════════════ -->
+      <div class="section-pane active" data-pane="market-reports">
+        <div class="section-pane-header">
+          <h1 class="section-pane-title">Market Reports</h1>
+          <p class="section-pane-sub">Configure the data areas available to your clients.</p>
+        </div>
+
+        <!-- Target areas -->
+        <div class="glass-card">
+          <h2 class="glass-card-title">Target areas</h2>
+          <div class="section-body" data-section="reports">
+            <div class="field-group">
+              <div class="reports-col-headers">
+                <label class="col-label">Area label</label>
+                <label class="col-label">RPR report URL</label>
+                <span></span>
+              </div>
+              <div class="reports-list" id="reportsList"></div>
+              <button class="btn-add" id="addReport">Add area</button>
+            </div>
           </div>
-          <div class="reports-list" id="reportsList"></div>
-          <button class="btn-add" id="addReport">Add area</button>
+        </div>
+
+        <!-- Widget settings -->
+        <div class="glass-card">
+          <h2 class="glass-card-title">Widget settings</h2>
+
+          <div class="field-group">
+            <label>Widget title</label>
+            <input type="text" id="headline" value="What's happening in your neighborhood?">
+          </div>
+          <div class="field-group">
+            <label>Subheadline</label>
+            <input type="text" id="subheadline" value="Select your area and get a free local market report.">
+          </div>
+          <div class="field-group">
+            <label>Button label</label>
+            <input type="text" id="btnLabel" value="Get My Market Report">
+          </div>
+
+          <!-- Form Mode toggle (writes to #formMode) -->
+          <div class="field-group">
+            <label>Form fields</label>
+            <div class="form-mode-tabs">
+              <button type="button" class="form-mode-tab active" data-form-mode="minimal">
+                <span class="form-mode-tab-title">Minimal</span>
+                <span class="form-mode-tab-desc">Email + area only — lower friction, higher conversions.</span>
+              </button>
+              <button type="button" class="form-mode-tab" data-form-mode="full">
+                <span class="form-mode-tab-title">Full</span>
+                <span class="form-mode-tab-desc">First, last, email, phone + area — richer leads.</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ── Lead Delivery ── -->
-      <div class="section-header open" data-section="delivery">
-        <span class="section-title">Lead delivery</span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body" data-section="delivery">
-        <div class="field-group">
-          <label>How do you want to receive leads?</label>
+      <!-- ════════════ Pane: Lead Delivery ════════════ -->
+      <div class="section-pane" data-pane="lead-delivery">
+        <div class="section-pane-header">
+          <h1 class="section-pane-title">Lead Delivery</h1>
+          <p class="section-pane-sub">Choose where lead data is sent when a visitor submits the form.</p>
+        </div>
+
+        <div class="webhook-warning" id="webhookWarning" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 5.5v3M8 10.5h.007M14 8A6 6 0 112 8a6 6 0 0112 0z" stroke="#f59e0b" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>No webhook URL — leads won't be captured. The form will still display reports but contact info won't be sent anywhere.</span>
+        </div>
+
+        <div class="glass-card">
+          <div class="section-body" data-section="delivery">
+            <div class="field-group">
+              <label>How do you want to receive leads?</label>
           <select id="deliveryMethod">
             <option value="">— Choose a delivery method —</option>
             <option value="none">No notification (leads not captured)</option>
@@ -823,160 +1104,175 @@ input[type="color"] {
             <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test</button>
             <div class="test-webhook-result" id="testWebhookResult"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- ── Branding ── -->
-      <div class="section-header open" data-section="branding">
-        <span class="section-title">Branding</span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body" data-section="branding">
-        <div class="field-group two-col">
-          <div>
-            <label>Agent name</label>
-            <input type="text" id="agentName" placeholder="Sarah Johnson">
-          </div>
-          <div>
-            <label>Brokerage</label>
-            <input type="text" id="brokerage" placeholder="Metro Realty">
-          </div>
-        </div>
-        <div class="field-group">
-          <label>Logo URL <span class="hint">must be https://</span></label>
-          <input type="url" id="logoUrl" placeholder="https://example.com/logo.png">
-        </div>
-        <div class="field-group">
-          <label>Brand color</label>
-          <div class="color-row">
-            <div class="color-swatch"><input type="color" id="colorBrand" value="#0086E6"></div>
-            <input type="text" id="colorBrandHex" value="#0086E6" placeholder="#0086E6" class="mono-sm">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- ── Copy ── -->
-      <div class="section-header collapsed" data-section="copy">
-        <span class="section-title">Copy</span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body collapsed" data-section="copy">
-        <div class="field-group">
-          <label>Headline</label>
-          <input type="text" id="headline" value="What's happening in your neighborhood?">
+      <!-- ════════════ Pane: Branding ════════════ -->
+      <div class="section-pane" data-pane="branding">
+        <div class="section-pane-header">
+          <h1 class="section-pane-title">Branding</h1>
+          <p class="section-pane-sub">Make the widget feel like an extension of your brand.</p>
         </div>
-        <div class="field-group">
-          <label>Subheadline</label>
-          <input type="text" id="subheadline" value="Select your area and get a free local market report.">
-        </div>
-        <div class="field-group">
-          <label>Button label</label>
-          <input type="text" id="btnLabel" value="Get My Market Report">
-        </div>
-      </div>
 
-      <!-- ── Display Mode ── -->
-      <div class="section-header collapsed" data-section="display">
-        <span class="section-title">Display mode</span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body collapsed" data-section="display">
-        <div class="field-group">
-          <div class="mode-tabs">
-            <button class="mode-tab active" data-mode="inline">Inline</button>
-            <button class="mode-tab" data-mode="floating">Floating</button>
-            <button class="mode-tab" data-mode="modal">Modal</button>
-          </div>
-          <div class="mode-detail visible" id="detail-inline">
-            <p class="mode-hint">Form renders inline at the script tag location.</p>
-          </div>
-          <div class="mode-detail" id="detail-floating">
-            <div class="field-group field-group-top">
-              <label>Button label</label>
-              <input type="text" id="floatLabel" value="Get Market Report">
+        <div class="glass-card">
+          <h2 class="glass-card-title">Identity</h2>
+          <div class="section-body" data-section="branding">
+            <div class="field-group two-col">
+              <div>
+                <label>Agent name</label>
+                <input type="text" id="agentName" placeholder="Sarah Johnson">
+              </div>
+              <div>
+                <label>Brokerage</label>
+                <input type="text" id="brokerage" placeholder="Metro Realty">
+              </div>
             </div>
             <div class="field-group">
-              <label>Position</label>
-              <select id="floatPosition">
-                <option value="bottom-right">Bottom right</option>
-                <option value="bottom-left">Bottom left</option>
-              </select>
+              <label>Logo URL <span class="hint">must be https://</span></label>
+              <input type="url" id="logoUrl" placeholder="https://example.com/logo.png">
+            </div>
+            <div class="field-group">
+              <label>Brand color</label>
+              <div class="color-row">
+                <div class="color-swatch"><input type="color" id="colorBrand" value="#0086E6"></div>
+                <input type="text" id="colorBrandHex" value="#0086E6" placeholder="#0086E6" class="mono-sm">
+              </div>
             </div>
           </div>
-          <div class="mode-detail" id="detail-modal">
-            <div class="field-group field-group-top">
-              <label>Trigger selector <span class="hint">CSS selector of your button</span></label>
-              <input type="text" id="modalTrigger" placeholder="#open-reports" class="mono-sm">
+        </div>
+
+        <div class="glass-card">
+          <h2 class="glass-card-title">Typography</h2>
+          <div class="field-group two-col">
+            <div>
+              <label>Heading font <span class="hint">Google Font name</span></label>
+              <input type="text" id="fontHeading" placeholder="Playfair Display">
+            </div>
+            <div>
+              <label>Body font <span class="hint">Google Font name</span></label>
+              <input type="text" id="fontBody" placeholder="Lato">
+            </div>
+          </div>
+          <p class="field-hint" style="margin-top:-8px">Browse available fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">fonts.google.com</a></p>
+        </div>
+      </div>
+
+      <!-- ════════════ Pane: Display ════════════ -->
+      <div class="section-pane" data-pane="display">
+        <div class="section-pane-header">
+          <h1 class="section-pane-title">Display</h1>
+          <p class="section-pane-sub">How the form appears on your visitor's page.</p>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="glass-card-title">Display mode</h2>
+          <div class="section-body" data-section="display">
+            <div class="field-group">
+              <div class="mode-tabs">
+                <button class="mode-tab active" data-mode="inline">Inline</button>
+                <button class="mode-tab" data-mode="floating">Floating</button>
+                <button class="mode-tab" data-mode="modal">Modal</button>
+              </div>
+              <div class="mode-detail visible" id="detail-inline">
+                <p class="mode-hint">Form renders inline at the script tag location.</p>
+              </div>
+              <div class="mode-detail" id="detail-floating">
+                <div class="field-group field-group-top">
+                  <label>Button label</label>
+                  <input type="text" id="floatLabel" value="Get Market Report">
+                </div>
+                <div class="field-group">
+                  <label>Position</label>
+                  <select id="floatPosition">
+                    <option value="bottom-right">Bottom right</option>
+                    <option value="bottom-left">Bottom left</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mode-detail" id="detail-modal">
+                <div class="field-group field-group-top">
+                  <label>Trigger selector <span class="hint">CSS selector of your button</span></label>
+                  <input type="text" id="modalTrigger" placeholder="#open-reports" class="mono-sm">
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── Advanced Options ── -->
-      <div class="section-header collapsed" data-section="advanced">
-        <span class="section-title">Advanced options</span>
-        <span class="section-chevron" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      </div>
-      <div class="section-body collapsed" data-section="advanced">
-        <div class="field-group two-col">
-          <div>
-            <label>Font — heading<br><span class="hint">Google Font name</span></label>
-            <input type="text" id="fontHeading" placeholder="Playfair Display">
+      <!-- ════════════ Pane: Settings ════════════ -->
+      <div class="section-pane" data-pane="settings">
+        <div class="section-pane-header">
+          <h1 class="section-pane-title">Settings</h1>
+          <p class="section-pane-sub">Privacy, advanced styling, and labels.</p>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="glass-card-title">Privacy</h2>
+          <div class="field-group checkbox-row">
+            <input type="checkbox" id="gdprEnabled" class="checkbox-input">
+            <label for="gdprEnabled" class="checkbox-label">Enable GDPR consent checkbox</label>
           </div>
-          <div>
-            <label>Font — body<br><span class="hint">Google Font name</span></label>
-            <input type="text" id="fontBody" placeholder="Lato">
+          <div class="field-group" id="gdprTextField" style="display:none">
+            <label>GDPR label text</label>
+            <input type="text" id="gdprText" value="I agree to receive communications about local real estate market activity.">
           </div>
         </div>
-        <p class="field-hint" style="margin-top:-8px">Browse available fonts at <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">fonts.google.com</a></p>
-        <div class="field-group two-col">
-          <div>
-            <label>Card background</label>
-            <div class="color-row">
-              <div class="color-swatch"><input type="color" id="cardBgPicker" value="#ffffff"></div>
-              <input type="text" id="cardBg" placeholder="#ffffff" class="mono-sm">
+
+        <div class="glass-card">
+          <h2 class="glass-card-title">Card styling</h2>
+          <div class="section-body" data-section="advanced">
+            <div class="field-group two-col">
+              <div>
+                <label>Card background</label>
+                <div class="color-row">
+                  <div class="color-swatch"><input type="color" id="cardBgPicker" value="#ffffff"></div>
+                  <input type="text" id="cardBg" placeholder="#ffffff" class="mono-sm">
+                </div>
+              </div>
+              <div>
+                <label>Card text color</label>
+                <div class="color-row">
+                  <div class="color-swatch"><input type="color" id="cardTextPicker" value="#333333"></div>
+                  <input type="text" id="cardText" placeholder="#333333" class="mono-sm">
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label>Card border radius <span class="hint">px</span></label>
+              <input type="text" id="cardRadius" placeholder="18" class="mono-sm" style="width:80px;">
             </div>
           </div>
-          <div>
-            <label>Card text color</label>
-            <div class="color-row">
-              <div class="color-swatch"><input type="color" id="cardTextPicker" value="#333333"></div>
-              <input type="text" id="cardText" placeholder="#333333" class="mono-sm">
-            </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="glass-card-title">Labels</h2>
+          <div class="field-group">
+            <label>Area dropdown label</label>
+            <input type="text" id="areaLabel" placeholder="Area of interest">
           </div>
-        </div>
-        <div class="field-group">
-          <label>Card border radius <span class="hint">px</span></label>
-          <input type="text" id="cardRadius" placeholder="18" class="mono-sm" style="width:80px;">
-        </div>
-        <div class="field-group">
-          <label>Area dropdown label</label>
-          <input type="text" id="areaLabel" placeholder="Area of interest">
-        </div>
-        <div class="field-group">
-          <label>Step 2 heading</label>
-          <input type="text" id="reportsHeading" placeholder="Your Market Report">
-        </div>
-        <div class="field-group checkbox-row">
-          <input type="checkbox" id="gdprEnabled" class="checkbox-input">
-          <label for="gdprEnabled" class="checkbox-label">Enable GDPR consent checkbox</label>
-        </div>
-        <div class="field-group" id="gdprTextField" style="display:none">
-          <label>GDPR label text</label>
-          <input type="text" id="gdprText" value="I agree to receive communications about local real estate market activity.">
+          <div class="field-group">
+            <label>Step 2 heading</label>
+            <input type="text" id="reportsHeading" placeholder="Your Market Report">
+          </div>
         </div>
       </div>
 
     </div><!-- /gen-panel-inner -->
   </div><!-- /gen-panel -->
 
-  <!-- ══ RIGHT: Preview ══ -->
+  <!-- ══ RIGHT: Dark preview stage ══ -->
   <div class="preview-panel">
     <div class="preview-header">
-      <span>Live preview</span>
-      <div class="preview-device-tabs">
-        <button class="device-tab active" data-device="desktop">Desktop</button>
-        <button class="device-tab" data-device="mobile">Mobile</button>
+      <span>Live Preview</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="preview-device-tabs">
+          <button class="device-tab active" data-device="desktop">Desktop</button>
+          <button class="device-tab" data-device="mobile">Mobile</button>
+        </div>
+        <span class="preview-live-chip">Live</span>
       </div>
     </div>
     <div class="preview-body" id="previewBody">
@@ -988,7 +1284,6 @@ input[type="color"] {
         </div>
       </div>
     </div>
-    <!-- ── Output code (below preview) ── -->
     <div class="output-panel">
       <div class="output-header">
         <h2>Embed code</h2>
