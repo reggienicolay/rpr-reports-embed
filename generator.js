@@ -499,6 +499,14 @@ function setDevice(device, btn) {
 /* ─────────────────────────────────────────────
    Read all values
 ───────────────────────────────────────────── */
+/* Strip everything that's not a letter, digit, space, or hyphen.
+   Mirrors the embed widget's sanitizeFontName so the generator preview
+   can't be tricked by a malicious shared URL hash into emitting
+   attacker-controlled CSS via inline style="font-family:...". */
+function sanitizeFontName(name) {
+  return String(name || '').replace(/[^a-zA-Z0-9 -]/g, '').trim();
+}
+
 function vals() {
   const method = v('deliveryMethod');
   const url    = (!method || method === 'none' || method === 'sheets') ? '' : v('deliveryUrl');
@@ -512,8 +520,8 @@ function vals() {
     brokerage:      v('brokerage'),
     logoUrl:        v('logoUrl'),
     colorBrand:     v('colorBrandHex') || DEFAULTS.colorBrand,
-    fontHeading:    v('fontHeading'),
-    fontBody:       v('fontBody'),
+    fontHeading:    sanitizeFontName(v('fontHeading')),
+    fontBody:       sanitizeFontName(v('fontBody')),
     headline:       v('headline'),
     subheadline:    v('subheadline'),
     btnLabel:       v('btnLabel'),
@@ -565,6 +573,8 @@ function configToHash() {
     if (!el) return;
     const val = el.value.trim();
     if (!val) return;
+    /* formMode default is 'minimal' — skip to keep generator links short */
+    if (key === 'formMode' && val === 'minimal') return;
     params.set(key, val);
   });
 
