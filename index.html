@@ -7,7 +7,7 @@
 <title>RPR Market Reports — Embed Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;900&family=Roboto:wght@900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── Tokens (v1.1 redesign) ── */
 :root {
@@ -165,6 +165,7 @@ body {
 .section-pane.active { display: block; }
 .section-pane-header { margin-bottom: 24px; }
 .section-pane-title {
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
   font-size: 36px;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -819,10 +820,9 @@ input[type="color"] {
 <body>
 
 <header class="site-header">
-  <div class="wordmark">RPR <em>Widget Builder</em></div>
+  <div></div>
   <div style="display:flex;align-items:center;gap:12px;">
     <button type="button" class="btn-reset" id="resetBtn" title="Clear all saved fields and start fresh">Reset</button>
-    <div class="badge">v1.1.0</div>
   </div>
 </header>
 
@@ -830,13 +830,6 @@ input[type="color"] {
 
   <!-- ══ Side nav ══ -->
   <nav class="side-nav">
-    <div class="side-nav-workspace">
-      <div class="side-nav-avatar">W</div>
-      <div class="side-nav-workspace-info">
-        <div class="side-nav-workspace-name">Widget Builder</div>
-        <div class="side-nav-workspace-tier">v1.1</div>
-      </div>
-    </div>
     <ul class="side-nav-list">
       <li><button type="button" class="side-nav-item active" data-pane="market-reports">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12V4M6 12V8M10 12V6M14 12V2"/></svg>

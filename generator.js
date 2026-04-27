@@ -707,6 +707,17 @@ function renderPreview(cfg) {
   const btnTextC = isLight(brand) ? '#18181b' : '#ffffff';
   const card     = document.getElementById('liveCard');
 
+  /* Card-level styling (cardBg / cardText / cardRadius) applied directly
+     to the preview element. The embed widget reads the same values from
+     data-card-* attributes, so the preview matches what visitors will see. */
+  const validHex = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
+  const cardBgVal     = validHex.test(cfg.cardBg)   ? cfg.cardBg   : DEFAULTS.cardBg;
+  const cardTextVal   = validHex.test(cfg.cardText) ? cfg.cardText : DEFAULTS.cardText;
+  const cardRadiusVal = parseInt(cfg.cardRadius, 10) || parseInt(DEFAULTS.cardRadius, 10);
+  card.style.background   = cardBgVal;
+  card.style.color        = cardTextVal;
+  card.style.borderRadius = cardRadiusVal + 'px';
+
   /* Load and apply Google Fonts in preview */
   loadPreviewFonts(cfg.fontHeading, cfg.fontBody);
   const headingFont = cfg.fontHeading ? '"' + cfg.fontHeading + '", serif' : '';
