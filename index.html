@@ -450,6 +450,26 @@ input[type="color"] {
   margin-top: 6px;
   line-height: 1.45;
 }
+.btn-template-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #ffffff !important;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px var(--accent-glow);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-template-copy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px var(--accent-glow);
+  text-decoration: none !important;
+}
 .btn-reset {
   background: rgba(255,255,255,0.6);
   border: 1px solid var(--border);
@@ -1033,18 +1053,21 @@ input[type="color"] {
             </div>
 
             <div class="delivery-panel" id="panel-sheets" hidden>
-              <div class="panel-title">How to set up Google Sheets (free, 10 minutes):</div>
+              <div class="panel-title">How to set up Google Sheets (free, ~3 minutes):</div>
+              <p>We've published a Google Sheets template with the receiver script already attached. You don't need to paste any code.</p>
+              <p style="margin: 12px 0;">
+                <a href="https://docs.google.com/spreadsheets/d/REPLACE_WITH_TEMPLATE_ID/copy" target="_blank" rel="noopener noreferrer" class="btn-template-copy">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="9" height="12" rx="1"/><path d="M5 5h5M5 8h5M5 11h3"/></svg>
+                  Make a copy of the RPR template
+                </a>
+              </p>
               <ol>
-                <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener noreferrer">sheets.new</a> to create a new Google Sheet</li>
-                <li>Name the first row columns: <code>Timestamp | First Name | Last Name | Email | Phone | Area | Report URL</code></li>
-                <li>Click <strong>Extensions &gt; Apps Script</strong></li>
-                <li>Delete all existing code and paste the RPR script (see link below)</li>
-                <li>Click <strong>Deploy &gt; New Deployment &gt; Web App</strong></li>
-                <li>Set "Who has access" to <strong>Anyone</strong></li>
-                <li>Click <strong>Deploy</strong> and authorize when prompted</li>
-                <li>Copy the web app URL and paste it below</li>
+                <li>Click the button above — Google will prompt you to make a copy in your Drive</li>
+                <li>In the copy: <strong>Extensions &gt; Apps Script</strong></li>
+                <li><strong>Deploy &gt; New deployment &gt; Web app</strong>; set <em>Who has access</em> to <strong>Anyone</strong>; click <strong>Deploy</strong> and authorize</li>
+                <li>Copy the web app URL Google gives you and paste it below</li>
               </ol>
-              <p class="panel-foot">Full setup guide: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener noreferrer">blog.narrpr.com/google-sheets-setup</a>. Free. Leads stored as rows. Enable email notifications in Tools &gt; Notification Rules.</p>
+              <p class="panel-foot">Full setup guide with screenshots: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener noreferrer">blog.narrpr.com/google-sheets-setup</a>. Optional email notifications: Tools &gt; Notification settings.</p>
             </div>
 
             <div class="delivery-panel" id="panel-ghl" hidden>
