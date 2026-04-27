@@ -25,7 +25,7 @@ You don't need to write any code. We've published a Google Sheets template with 
 
 Click the link below. Google will open a "Copy document?" prompt. Click **Make a copy**.
 
-**[Make a copy of the RPR Lead Capture template →](https://docs.google.com/spreadsheets/d/REPLACE_WITH_TEMPLATE_ID/copy)**
+**[Make a copy of the RPR Lead Capture template →](https://docs.google.com/spreadsheets/d/1idAudX9UPqkYLvlMXK8TZcnBLKwKQQZzCA0y3U4ZoCE/copy)**
 
 You'll get your own private copy in your Google Drive. The receiver script is already attached — you don't need to paste any code.
 
