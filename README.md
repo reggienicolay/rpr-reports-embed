@@ -138,7 +138,7 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 | `data-font-heading` | inherit | Google Font name for headings. Loaded automatically if provided. Only letters, numbers, spaces, and hyphens are accepted |
 | `data-font-body` | inherit | Google Font name for body text and form inputs |
 | `data-card-bg` | `#ffffff` | Card background color. Change for dark-themed host pages |
-| `data-card-text` | `#333333` | Card body text color |
+| `data-card-text` | `#333333` | Card body text color (primary / headline). Subdued text — subheadlines, field labels, the disclaimer footer — keeps a fixed muted color independent of this value, both in the live preview and in the deployed widget. To restyle muted text, override the `.rpr-rep-embed` CSS in your host page. |
 | `data-card-radius` | `18` | Card corner radius in pixels. Must be numeric; non-numeric values fall back to `18` |
 
 ### Copy

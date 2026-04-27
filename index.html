@@ -59,8 +59,11 @@ body {
   padding: 0 1.5rem;
   height: 64px;
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  /* Lighter blur than glass-cards — chrome doesn't need the same focal depth
+     and stacking 20px blurs across header + nav + cards causes scroll jank
+     on low-end Windows. */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255,255,255,0.6);
   box-shadow: 0 4px 30px rgba(0,0,0,0.06);
   color: var(--ink);
@@ -100,8 +103,9 @@ body {
   padding: 24px 16px;
   border-right: 1px solid rgba(255,255,255,0.6);
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  /* Lighter blur than glass-cards — see note in .site-header */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .side-nav-workspace {
   display: flex;
