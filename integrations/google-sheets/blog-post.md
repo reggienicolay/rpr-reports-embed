@@ -45,16 +45,27 @@ In the top-right corner of the script editor, click **Deploy → New deployment*
 
 [SCREENSHOT: the Deploy button with "New deployment" expanded]
 
-In the dialog:
+A dialog opens. **The "Configuration" panel will be blank until you pick a deployment type — this is normal.**
 
-1. Click the **gear icon** (⚙) next to "Select type" and choose **Web app**
-2. Set **Execute as** to **Me (your-email@gmail.com)**
-3. Set **Who has access** to **Anyone**
-4. Click **Deploy**
+1. Click the **gear icon ⚙** in the top-left of the dialog, next to the words "Select type". A small dropdown appears.
+2. Choose **Web app** from the dropdown. The Configuration panel now fills in.
+3. Set **Execute as** to **Me (your-email@gmail.com)** (the default).
+4. Set **Who has access** to **Anyone** — this is the most important setting and the one most people get wrong. See the warning below if you're on Google Workspace.
+5. Click **Deploy**.
 
-[SCREENSHOT: the New deployment dialog with the three settings filled in]
+[SCREENSHOT: the New deployment dialog with the gear icon highlighted, Web app selected, and the three configuration fields filled in]
 
-> **About "Anyone".** This means anyone with the URL can POST data to your Sheet. The URL Google gives you is randomly generated and unguessable. Don't share it publicly — treat it like a password. Only the embed widget on your website needs to know it.
+> **⚠ If you're on Google Workspace, the "Who has access" dropdown will show three options, and only one of them is correct.**
+>
+> - ✅ **Anyone** — public access. **This is what you want.** Anyone with the URL can POST to it; the URL is unguessable so this is safe.
+> - ❌ **Anyone with Google account** — requires the visitor to be signed into any Google account when they submit. Most aren't.
+> - ❌ **Anyone within \<your-org\>** (e.g. "Anyone at Realtors Property Resource") — accepts only POSTs from people signed into your Workspace. Your website visitors are not, so every submission gets silently rejected. The widget can't tell the difference (it uses `mode: 'no-cors'` for browser compatibility) so it'll appear to work in the test, but no rows will land.
+>
+> If your dropdown doesn't include a true "Anyone" option, your Workspace admin has disabled external Apps Script publishing. Either ask your admin to enable it for your account, or move the Sheet to a personal Google account outside the Workspace.
+
+The first time you deploy, Google will ask you to **authorize access**. This is normal — you're granting your own script permission to write to your own Sheet. Click through the consent screens. If Google warns "This app isn't verified," click **Advanced → Go to (your project name) (unsafe)** — it's only "unverified" because it's a private project, not a public Marketplace add-on.
+
+[SCREENSHOT: the authorization warning + Advanced link]
 
 The first time you deploy, Google will ask you to **authorize access**. This is normal — you're granting your own script permission to write to your own Sheet. Click through the consent screens. If Google warns "This app isn't verified," click **Advanced → Go to (your project name) (unsafe)** — it's only "unverified" because it's a private project, not a public Marketplace add-on.
 
@@ -97,11 +108,14 @@ Click **Save**. You'll now get a short email every time a row is added to the Sh
 
 **The test row never appears.**
 
-Three things to check, in order:
+Four things to check, in order:
 
 1. The URL you pasted ends in `/exec` (not `/dev`). The `/dev` URL is the development sandbox — only `/exec` actually runs.
-2. **Who has access** is set to **Anyone**, not "Anyone with Google account". The latter requires the visitor to be logged into Google, which most aren't.
-3. The deployment is **active** — open Apps Script → **Deploy → Manage deployments** and confirm there's an active "Web app" deployment.
+2. **The URL doesn't contain `/a/macros/<your-domain>/`** — for example `https://script.google.com/a/macros/yourcompany.com/s/.../exec` is the **Workspace-restricted** version. The widget's POSTs are unauthenticated, so this URL silently rejects every submission. Redeploy with **Who has access: Anyone** (not "Anyone at \<your org\>"); the new URL should look like `https://script.google.com/macros/s/.../exec` with no `/a/macros/` segment.
+3. **Who has access** is set to **Anyone**, not "Anyone with Google account". The latter requires the visitor to be logged into Google, which most aren't.
+4. The deployment is **active** — open Apps Script → **Deploy → Manage deployments** and confirm there's an active "Web app" deployment.
+
+**Quick way to verify whether POSTs are reaching the script:** in Apps Script, click the **clock icon** in the left sidebar ("Executions"). Every POST that hits your `doPost` shows up there with status `Completed` or `Failed`. If the log is empty after you click "Send test" in the embed generator, your URL or access setting is wrong (POSTs aren't even reaching the script). If you see executions there but the Sheet is empty, the script ran but errored — click the failed entry to see the stack trace.
 
 **Some columns are empty.**
 

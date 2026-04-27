@@ -1064,8 +1064,9 @@ input[type="color"] {
               <ol>
                 <li>Click the button above — Google will prompt you to make a copy in your Drive</li>
                 <li>In the copy: <strong>Extensions &gt; Apps Script</strong></li>
-                <li><strong>Deploy &gt; New deployment &gt; Web app</strong>; set <em>Who has access</em> to <strong>Anyone</strong>; click <strong>Deploy</strong> and authorize</li>
-                <li>Copy the web app URL Google gives you and paste it below</li>
+                <li><strong>Deploy &gt; New deployment</strong>, click the <strong>⚙ gear icon</strong> next to "Select type" → <strong>Web app</strong></li>
+                <li>Set <em>Who has access</em> to <strong>Anyone</strong> — <em>not</em> "Anyone at &lt;your org&gt;" if you're on Google Workspace; that one rejects submissions from your website visitors</li>
+                <li>Click <strong>Deploy</strong>, authorize when prompted, copy the URL ending in <code>/exec</code> and paste it below</li>
               </ol>
               <p class="panel-foot">Full setup guide with screenshots: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener noreferrer">blog.narrpr.com/google-sheets-setup</a>. Optional email notifications: Tools &gt; Notification settings.</p>
             </div>
