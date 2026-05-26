@@ -1,10 +1,16 @@
 /**
- * rpr-reports-embed.js  v1.1.0
+ * rpr-reports-embed.js  v1.2.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.2.0: Phase 1 bug fixes + security hardening. Fix silent lead loss on
+ * HTTP errors, fix duplicate webhook race condition, fix Back button dead-end,
+ * fix Escape key resetting closed overlay, validate card colors, align brand
+ * color default with generator (#0086E6), add phone validation + maxlength,
+ * add localStorage retry queue for failed submissions.
  *
  * v1.1.0: data-form-mode="minimal" renders an email-only lead form (area
  * dropdown + email + button). Default remains "full" (first/last/email/phone
@@ -19,7 +25,7 @@
  *   data-agent-name        Agent display name
  *   data-brokerage         Brokerage name
  *   data-logo-url          Logo image URL (must be https://)
- *   data-color-brand       Primary brand color (hex, default #1a1a2e)
+ *   data-color-brand       Primary brand color (hex, default #0086E6)
  *   data-color-brand-hover Hover state (hex, auto-derived if omitted)
  *   data-font-heading      Google Font name for headings (default: inherit)
  *   data-font-body         Google Font name for body text (default: inherit)
@@ -131,7 +137,7 @@
 		brokerage:       attr( 'data-brokerage' ),
 		/* SEC-5 FIX: only allow https:// logo URLs to prevent credential-bearing requests */
 		logoUrl:         ( () => { const u = attr( 'data-logo-url' ); return /^https:\/\//i.test( u ) ? u : ''; } )(),
-		colorBrand:      attr( 'data-color-brand',       '#1a1a2e' ),
+		colorBrand:      attr( 'data-color-brand',       '#0086E6' ),
 		colorBrandHover: attr( 'data-color-brand-hover', '' ),
 		fontHeading:     sanitizeFontName( attr( 'data-font-heading' ) ),
 		fontBody:        sanitizeFontName( attr( 'data-font-body' ) ),
@@ -173,13 +179,23 @@
 	function isValidHex( hex ) {
 		return /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test( ( hex || '' ).trim() );
 	}
+	/* BUG 10 FIX: default aligned with generator (#0086E6) */
 	if ( ! isValidHex( CFG.colorBrand ) ) {
-		console.warn( 'RPR Reports Embed: data-color-brand is not a valid hex color. Falling back to #1a1a2e.' );
-		CFG.colorBrand = '#1a1a2e';
+		console.warn( 'RPR Reports Embed: data-color-brand is not a valid hex color. Falling back to #0086E6.' );
+		CFG.colorBrand = '#0086E6';
 	}
 	if ( CFG.colorBrandHover && ! isValidHex( CFG.colorBrandHover ) ) {
 		console.warn( 'RPR Reports Embed: data-color-brand-hover is not a valid hex color. It will be auto-derived.' );
 		CFG.colorBrandHover = '';
+	}
+	/* SEC-8 FIX: validate card colors before CSS injection */
+	if ( ! isValidHex( CFG.cardBg ) ) {
+		console.warn( 'RPR Reports Embed: data-card-bg is not a valid hex color. Falling back to #ffffff.' );
+		CFG.cardBg = '#ffffff';
+	}
+	if ( ! isValidHex( CFG.cardText ) ) {
+		console.warn( 'RPR Reports Embed: data-card-text is not a valid hex color. Falling back to #333333.' );
+		CFG.cardText = '#333333';
 	}
 
 	function hexToRgba( hex, alpha ) {
@@ -531,10 +547,10 @@
 		   and the form layout becomes single-column area-on-top, email-below.
 		   In 'full' mode all four fields render in a 2-column grid. */
 		const ALL_FIELDS = [
-			{ id: 'first_name', label: 'First name',  placeholder: 'First name',        type: 'text',  required: true,  half: true,  error: 'Please enter your first name' },
-			{ id: 'last_name',  label: 'Last name',   placeholder: 'Last name',         type: 'text',  required: true,  half: true,  error: 'Please enter your last name' },
-			{ id: 'email',      label: 'Email',        placeholder: 'you@example.com',   type: 'email', required: true,  half: true,  error: 'Enter a valid email address' },
-			{ id: 'phone',      label: 'Phone',        placeholder: '(555) 555-5555',    type: 'tel',   required: false, half: true,  error: 'Enter a valid phone number' },
+			{ id: 'first_name', label: 'First name',  placeholder: 'First name',        type: 'text',  required: true,  half: true,  maxlen: 100, error: 'Please enter your first name' },
+			{ id: 'last_name',  label: 'Last name',   placeholder: 'Last name',         type: 'text',  required: true,  half: true,  maxlen: 100, error: 'Please enter your last name' },
+			{ id: 'email',      label: 'Email',        placeholder: 'you@example.com',   type: 'email', required: true,  half: true,  maxlen: 254, error: 'Enter a valid email address' },
+			{ id: 'phone',      label: 'Phone',        placeholder: '(555) 555-5555',    type: 'tel',   required: false, half: true,  maxlen: 20,  error: 'Please enter a valid phone number' },
 		];
 
 		const FIELDS = CFG.formMode === 'minimal'
@@ -557,6 +573,7 @@
 			input.placeholder = f.placeholder;
 			input.dataset.fieldId = f.id;
 			if ( f.required ) input.setAttribute( 'required', '' );
+			if ( f.maxlen ) input.setAttribute( 'maxlength', String( f.maxlen ) );
 
 			const err = document.createElement( 'div' );
 			err.className = 'rpr-r-error-msg';
@@ -808,7 +825,7 @@
 		const status = step1.querySelector( '.rpr-r-status' );
 
 		btn.addEventListener( 'click', async () => {
-			/* SEC-7 FIX: block re-submission after a successful submit */
+			/* BUG 5 FIX: lock immediately to prevent duplicate submissions */
 			if ( wrap._rprSubmitted ) return;
 
 			if ( ! validateStep1( step1 ) ) return;
@@ -821,57 +838,63 @@
 			const selectedIndex = parseInt( step1.querySelector( '[data-field-id="area"]' ).value, 10 );
 			if ( isNaN( selectedIndex ) || ! CFG.reports[ selectedIndex ] ) return;
 
+			/* BUG 5 FIX: lock BEFORE fetch to close the double-click race window */
+			wrap._rprSubmitted = true;
 			btn.disabled = true;
 			status.textContent = 'Sending…';
 			status.style.color = '';
 
-			let webhookError = false;
+			let webhookOk = true;
+			let webhookPayload = null;
 
-			/* Fire webhook — non-fatal, we still show the report */
 			if ( CFG.webhook ) {
 				try {
-					const payload = collectPayload( step1, selectedIndex );
+					webhookPayload = collectPayload( step1, selectedIndex );
 					const res = await fetch( CFG.webhook, {
 						method:  'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body:    JSON.stringify( payload ),
+						body:    JSON.stringify( webhookPayload ),
 					} );
 					if ( ! res.ok ) {
+						/* BUG 8 FIX: treat non-OK HTTP as failure — distinguish retriable vs non-retriable */
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
+						webhookOk = false;
+						if ( res.status >= 500 ) {
+							enqueueRetry( webhookPayload, CFG.webhook );
+							status.textContent = 'Something went wrong \u2014 please try again.';
+						} else {
+							status.textContent = 'Lead could not be delivered \u2014 please contact the site owner.';
+						}
+						status.style.color = '#d0021b';
 					}
 				} catch ( e ) {
-					/* BUG 4 FIX: surface network errors to user rather than silently swallowing */
+					/* BUG 4 FIX: surface network errors to user */
 					console.warn( 'RPR Reports Embed: Webhook error', e );
-					webhookError = true;
-				} finally {
-					/* BUG 4 FIX: always re-enable button so user is never stuck */
-					btn.disabled = false;
+					webhookOk = false;
+					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), CFG.webhook );
+					status.textContent = 'Something went wrong \u2014 please try again.';
+					status.style.color = '#d0021b';
 				}
-			} else {
-				btn.disabled = false;
-				status.textContent = '';
 			}
 
-			if ( webhookError ) {
-				status.textContent = 'Something went wrong — please try again.';
-				status.style.color = '#d0021b';
-				setTimeout( () => { status.textContent = ''; status.style.color = ''; }, 4000 );
+			if ( ! webhookOk ) {
+				/* Unlock so user can retry */
+				wrap._rprSubmitted = false;
+				btn.disabled = false;
+				setTimeout( () => { status.textContent = ''; status.style.color = ''; }, 5000 );
 				return;
 			}
 
 			status.textContent = '';
 
 			/* Show step 2 */
-			wrap._rprSubmitted = true;   /* SEC-7 FIX: lock against re-submission */
 			step1.hidden = true;
 			step2.hidden = false;
 			const backBtn = populateStep2( step2, selectedIndex );
 
-			/* Back link */
+			/* BUG 6 FIX: Back button fully resets form so user can resubmit */
 			backBtn.addEventListener( 'click', () => {
-				step2.hidden = true;
-				step1.hidden = false;
-				step2.innerHTML = '';
+				if ( typeof wrap._rprReset === 'function' ) wrap._rprReset();
 			} );
 		} );
 
@@ -924,6 +947,13 @@
 		const emailEl = step1.querySelector( '[data-field-id="email"]' );
 		if ( emailEl && ! /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test( emailEl.value.trim() ) ) {
 			setError( emailEl, 'Enter a valid email address' );
+			ok = false;
+		}
+
+		/* SEC-9 FIX: phone validation — permissive international pattern */
+		const phoneEl = step1.querySelector( '[data-field-id="phone"]' );
+		if ( phoneEl && phoneEl.value.trim() && ! /^\+?[\d\s\-().]{7,20}$/.test( phoneEl.value.trim() ) ) {
+			setError( phoneEl, 'Please enter a valid phone number' );
 			ok = false;
 		}
 
@@ -986,6 +1016,72 @@
 	}
 
 	/* ================================================================
+	   §6b LOCALSTORAGE RETRY QUEUE
+	   ================================================================ */
+	const RETRY_KEY     = 'rpr_retry_queue';
+	const RETRY_MAX     = 10;
+	const RETRY_ATTEMPTS = 3;
+	const RETRY_TTL     = 86400000; /* 24 hours */
+	const RETRY_BACKOFF = [ 1000, 5000, 30000 ];
+
+	function getRetryQueue() {
+		try {
+			return JSON.parse( localStorage.getItem( RETRY_KEY ) || '[]' );
+		} catch ( e ) { return []; }
+	}
+
+	function saveRetryQueue( queue ) {
+		try {
+			localStorage.setItem( RETRY_KEY, JSON.stringify( queue ) );
+		} catch ( e ) { /* private browsing / quota — silently skip */ }
+	}
+
+	function enqueueRetry( payload, url ) {
+		if ( ! payload || ! url ) return;
+		try {
+			let queue = getRetryQueue();
+			queue.push( { url: url, payload: payload, timestamp: Date.now(), attempts: 0 } );
+			if ( queue.length > RETRY_MAX ) queue = queue.slice( -RETRY_MAX );
+			saveRetryQueue( queue );
+		} catch ( e ) { /* silently skip */ }
+	}
+
+	function processRetryQueue() {
+		let queue = getRetryQueue();
+		if ( ! queue.length ) return;
+
+		const now = Date.now();
+		queue = queue.filter( entry => ( now - entry.timestamp ) < RETRY_TTL );
+
+		const pending = [];
+		queue.forEach( entry => {
+			if ( entry.attempts >= RETRY_ATTEMPTS ) return;
+			const delay = RETRY_BACKOFF[ entry.attempts ] || RETRY_BACKOFF[ RETRY_BACKOFF.length - 1 ];
+			entry.attempts++;
+			pending.push( { entry: entry, delay: delay } );
+		} );
+
+		saveRetryQueue( queue );
+
+		pending.forEach( item => {
+			setTimeout( () => {
+				fetch( item.entry.url, {
+					method:  'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body:    JSON.stringify( item.entry.payload ),
+				} ).then( res => {
+					if ( res.ok ) {
+						const q = getRetryQueue().filter( e =>
+							e.timestamp !== item.entry.timestamp || e.url !== item.entry.url
+						);
+						saveRetryQueue( q );
+					}
+				} ).catch( () => { /* will retry on next load */ } );
+			}, item.delay );
+		} );
+	}
+
+	/* ================================================================
 	   §7  UTILITY
 	   ================================================================ */
 	function escHtml( str ) {
@@ -1041,7 +1137,8 @@
 
 		floatBtn.addEventListener( 'click', () => overlay.classList.add( 'open' ) );
 		overlay.addEventListener( 'click', e => { if ( e.target === overlay ) closeOverlay(); } );
-		document.addEventListener( 'keydown', e => { if ( e.key === 'Escape' ) closeOverlay(); } );
+		/* BUG 9 FIX: only close when overlay is actually open */
+		document.addEventListener( 'keydown', e => { if ( e.key === 'Escape' && overlay.classList.contains( 'open' ) ) closeOverlay(); } );
 	}
 
 	/** MODAL — external trigger element opens the overlay */
@@ -1095,7 +1192,8 @@
 		}
 
 		overlay.addEventListener( 'click', e => { if ( e.target === overlay ) closeOverlay(); } );
-		document.addEventListener( 'keydown', e => { if ( e.key === 'Escape' ) closeOverlay(); } );
+		/* BUG 9 FIX: only close when overlay is actually open */
+		document.addEventListener( 'keydown', e => { if ( e.key === 'Escape' && overlay.classList.contains( 'open' ) ) closeOverlay(); } );
 	}
 
 	/* ================================================================
@@ -1107,6 +1205,7 @@
 			case 'modal':    initModal();    break;
 			default:         initInline();   break;
 		}
+		processRetryQueue();
 	}
 
 	if ( document.readyState === 'loading' ) {

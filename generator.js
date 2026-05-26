@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    RPR Market Reports — Embed Generator JS
-   v1.1.0 (redesign branch — side nav + form-mode toggle)
+   v1.2.0 (Phase 1: unified escaping, empty-reports guard)
 ═══════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────
@@ -844,7 +844,18 @@ function renderPreview(cfg) {
 ───────────────────────────────────────────── */
 function renderCode(cfg) {
   const reports = cfg.reports.filter(r => r.label && r.url);
-  const lines   = [];
+  const copyBtn = document.getElementById('copyBtn');
+  const codeWarn = document.getElementById('codeWarning');
+
+  if (!reports.length) {
+    if (copyBtn) { copyBtn.disabled = true; copyBtn.title = 'Add at least one complete report row'; }
+    if (codeWarn) { codeWarn.textContent = 'Add at least one area with a label and RPR report URL.'; codeWarn.hidden = false; }
+  } else {
+    if (copyBtn) { copyBtn.disabled = false; copyBtn.title = ''; }
+    if (codeWarn) { codeWarn.textContent = ''; codeWarn.hidden = true; }
+  }
+
+  const lines = [];
 
   lines.push('<script');
   lines.push('  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"');
@@ -961,7 +972,7 @@ function syntaxHighlight(raw) {
 }
 
 function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
 }
 
 /* ─────────────────────────────────────────────
@@ -982,8 +993,9 @@ function resetConfig() {
    Copy embed code
 ───────────────────────────────────────────── */
 function copyCode() {
-  const raw = document.getElementById('codeBlock').dataset.raw || '';
   const btn = document.getElementById('copyBtn');
+  if (btn && btn.disabled) return;
+  const raw = document.getElementById('codeBlock').dataset.raw || '';
   clipboardWrite(raw, btn, 'Copy');
 }
 
@@ -1053,7 +1065,7 @@ function esc(str) {
 }
 
 function av(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#x27;');
 }
 
 function isLight(hex) {
