@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  Project: RPR Market Reports Embed Widget (v1.1.0)
+  Type: Zero-dependency client-side lead capture widget for real estate agents
+  
+  Tech stack: Vanilla JavaScript (ES6+), inline CSS (custom properties, container queries),
+  Google Apps Script (Sheets integration). No npm, no bundler, no framework.
+  
+  Architecture:
+  - Widget (rpr-reports-embed.js): Single IIFE, config via data-* attributes on <script> tag,
+    uses document.currentScript (requires synchronous loading)
+  - Generator (index.html + generator.js): Static SPA on GitHub Pages
+  - CDN: Cloudflare R2 for widget distribution
+  - Lead delivery: HTTPS webhooks to agent's automation platform
+  
+  Key constraints:
+  - Zero external runtime dependencies (no npm packages, no CDN libraries)
+  - DOM API only — never innerHTML with user-controlled data
+  - Backwards compatible — new data-* attributes must default to previous behavior
+  - HTTPS-only webhooks
+  - CSS scoped under .rpr-rep-embed with .rpr-r-* prefix
+  
+  Conventions:
+  - Conventional commits (feat/fix/sec/refactor/style/docs/chore)
+  - Semantic versioning (MAJOR.MINOR.PATCH)
+  - Section headers: /* === §N TITLE === */
+  - Bug/security fix IDs: BUG N, SEC-N
+  - Tabs for indentation in widget, single quotes, semicolons always
+  
+  Existing documentation: docs/ contains PRD, FRD, ADR, design, guidelines, infra, context, rules
+  AI rules: .cursor/rules/ and .claude/rules/ (always-apply project + workflow rules, glob-activated conventions)
+  AI skills: .cursor/skills/ and .claude/skills/ (widget-dev, generator-dev, git-workflow, testing, docs-management)
+  
+  Active improvement plan (4 phases):
+  - Phase 1: Critical bug fixes + security hardening (approved, ready to start)
+  - Phase 2: Cloudflare Worker lead proxy (approved)
+  - Phase 3: Infrastructure hardening (pending)
+  - Phase 4: Accessibility, UX, CRM integrations (pending review)
+
+rules:
+  proposal:
+    - Trace to FRD requirement IDs (FR-N.N) when applicable
+    - Reference the improvement plan phase if the change maps to an existing plan item
+    - Flag any backwards compatibility implications
+  design:
+    - Respect zero-dependency constraint — no external libraries
+    - Use DOM API for element creation, never innerHTML with user data
+    - Follow existing CSS scoping (.rpr-rep-embed, .rpr-r-* prefix, --rpr-r-* custom properties)
+  tasks:
+    - One task per logical change — small enough for a single commit
+    - Include documentation updates as explicit tasks
+    - Include testing verification as the final task

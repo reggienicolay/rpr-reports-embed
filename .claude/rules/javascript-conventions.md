@@ -1,0 +1,93 @@
+
+# JavaScript Conventions
+
+## Widget Pattern (`rpr-reports-embed.js`)
+
+The widget is a single IIFE with `'use strict'`. All code lives inside the closure.
+
+```javascript
+(function() {
+    'use strict';
+    const scriptTag = document.currentScript;
+    // All widget logic here — nothing escapes the IIFE
+})();
+```
+
+Configuration is read from the `<script>` tag's `data-*` attributes via `scriptTag.getAttribute()` or `scriptTag.dataset`.
+
+## Generator Pattern (`generator.js`)
+
+Module-level functions with no global exports. All interaction is via DOM event listeners and `document.getElementById()`.
+
+```javascript
+'use strict';
+// Module-level state
+let currentConfig = {};
+
+// Functions
+function updatePreview() { /* ... */ }
+
+// Event binding
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('colorBrand').addEventListener('input', updatePreview);
+});
+```
+
+## Naming
+
+- Functions: `camelCase` (`validateEmail`, `showStep`, `closeOverlay`)
+- Constants: `UPPER_SNAKE_CASE` for true constants (`REPORTS`, `STYLE_ID`, `COLUMNS`)
+- Config object: `CFG` (widget), descriptive names (generator)
+- Generator IDs: `camelCase` matching `document.getElementById()` calls
+
+## Variables
+
+- `const` by default; `let` only when reassignment is needed
+- Never introduce new `var` declarations
+
+## DOM Safety (Critical)
+
+- Always `escHtml()` user-supplied strings before inserting into the DOM
+- Prefer DOM API (`createElement`, `textContent`, `setAttribute`) over string interpolation
+- Never use `innerHTML` with user-controlled data
+
+```javascript
+// BAD — XSS risk
+el.innerHTML = '<p>' + userData + '</p>';
+
+// GOOD — DOM API
+const p = document.createElement('p');
+p.textContent = userData;
+el.appendChild(p);
+
+// ACCEPTABLE — pre-escaped content
+el.innerHTML = '<p>' + escHtml(userData) + '</p>';
+```
+
+## URL Validation
+
+Always validate URL schemes before use:
+
+```javascript
+// Webhook: HTTPS only
+if (!/^https:\/\//i.test(url)) { /* reject */ }
+
+// Report URLs: HTTP(S) only
+if (!/^https?:\/\//i.test(url)) { /* reject */ }
+```
+
+## Error Handling
+
+- Widget config errors: `console.warn('[RPR Embed]', message)` — never `console.log` or `console.error`
+- Form validation: show inline error messages, never `alert()`
+- Network errors (fetch): catch and show user-friendly retry message
+- Never expose raw error objects or stack traces to the user
+
+## Style
+
+- **Indentation**: Tabs in the widget file; consistent within the generator
+- **Quotes**: Single quotes for JS strings; template literals only with interpolation
+- **Semicolons**: Always
+- **Line length**: Soft limit 120 characters
+- **Section headers**: `/* === §N TITLE === */` format in the widget
+- **Fix comments**: Reference fix IDs (`/* BUG 4 FIX: ... */`, `/* SEC-1 FIX: ... */`)
