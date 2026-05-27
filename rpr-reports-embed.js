@@ -1125,6 +1125,8 @@
 		root.appendChild( overlay );
 
 		const wrap = document.createElement( 'div' );
+		wrap.style.width = '100%';
+		wrap.style.maxWidth = '520px';
 		applyTokens( wrap );
 		overlay.appendChild( wrap );
 		buildCard( wrap );
@@ -1154,6 +1156,8 @@
 		root.appendChild( overlay );
 
 		const wrap = document.createElement( 'div' );
+		wrap.style.width = '100%';
+		wrap.style.maxWidth = '520px';
 		applyTokens( wrap );
 		overlay.appendChild( wrap );
 		buildCard( wrap );
