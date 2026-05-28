@@ -3,7 +3,7 @@
 ## Project Context
 
 **Project:** RPR Market Reports Embed Widget
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Type:** Zero-dependency client-side lead capture widget for real estate agents
 **Tech Stack:** Vanilla JavaScript (ES6+), inline CSS (custom properties, container queries), optional Google Fonts, Google Apps Script (Sheets integration)
 

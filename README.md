@@ -1,6 +1,6 @@
 # RPR Market Reports — Embed Widget
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
@@ -268,6 +268,8 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 ---
 
 ## Changelog
+
+**v1.2.0** — Phase 1: Bug fixes + security hardening. Fix silent lead loss on HTTP errors (4xx/5xx now shown to user instead of fake success). Fix duplicate webhook race condition (submission locked before fetch). Fix Back button dead-end (full form reset on Back). Fix Escape key resetting closed overlays. Validate `data-card-bg` and `data-card-text` with `isValidHex()`. Align widget default brand color with generator (`#0086E6`). Add phone validation (permissive international pattern) and `maxlength` on all form fields. Add localStorage retry queue for failed webhook submissions (up to 3 retries with exponential backoff). Generator: unify HTML escaping to 5 entities, block Copy button when no valid report rows exist.
 
 **v1.1.0** — Builder redesign + Form Mode toggle. New embed-widget attribute `data-form-mode` with values `"minimal"` (area + email only — single-question lead capture) and `"full"` (first/last/email/phone + area — current behavior). Widget runtime default stays `"full"` so existing deployed embeds without the attribute keep working unchanged; the v1.1 generator emits `data-form-mode="minimal"` by default for newly-created embeds. Generator UI rebuilt: side-nav driven panes (Market Reports / Lead Delivery / Branding / Display / Settings), glass-card containers, Work Sans typography, immersive dark preview stage with dot-grid background. The collapsible-accordion pattern from v1.0.x is gone; one section is visible at a time via the side nav. All existing IDs, persistence behavior, syntax highlighting, Reset, Send-test webhook, HTTPS validation, and 12-method delivery dropdown intact.
 **v1.0.8** — Generator hardening: HTTPS validation surfaced inline (warns before the embed widget rejects it at runtime), Reset button in the site header to clear localStorage + URL hash, privacy note under the URL input ("webhook URLs grant write access — don't share the generator link publicly"), `rel="noopener noreferrer"` on all instruction-panel links, Zapier panel notes the no-cors test-button quirk.

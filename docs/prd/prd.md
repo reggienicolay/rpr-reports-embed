@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD)
 
 **Product:** RPR Market Reports Embed Widget
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Last Updated:** 2026-05-21
 **Owner:** Reggie Nicolay
 **Status:** Active — In Production

@@ -16,5 +16,8 @@ Desktop.ini
 .env
 .env.local
 
+# Test pages
+test*.html
+
 # OpenSpec temp
 openspec/.cache/
