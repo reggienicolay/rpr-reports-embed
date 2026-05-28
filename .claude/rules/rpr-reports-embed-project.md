@@ -1,0 +1,102 @@
+# RPR Market Reports Embed Widget - Development Rules
+
+## Project Context
+
+**Project:** RPR Market Reports Embed Widget
+**Version:** 1.1.0
+**Type:** Zero-dependency client-side lead capture widget for real estate agents
+**Tech Stack:** Vanilla JavaScript (ES6+), inline CSS (custom properties, container queries), optional Google Fonts, Google Apps Script (Sheets integration)
+
+The widget gates RPR market report links behind a lead capture form. Visitors pick an area, submit contact info, and receive a report link. Leads are delivered via HTTPS webhooks to the agent's preferred automation platform (Zapier, Make, Slack, Google Sheets, etc.). The widget loads as a single `<script>` tag with configuration via `data-*` attributes.
+
+## Architecture Constraints (Non-Negotiable)
+
+- **Zero dependencies.** The widget (`rpr-reports-embed.js`) must remain a single-file script with no external runtime dependencies. No npm packages, no CDN-loaded libraries, no polyfills.
+- **Single IIFE encapsulation.** No module imports, no ES modules, no code splitting. All widget code lives inside `(function() { ... })();`.
+- **`document.currentScript` for config.** The widget reads `data-*` attributes from its own `<script>` tag. This requires synchronous loading — never add `async` or `defer` to documentation examples.
+- **DOM API only.** Never use `innerHTML` with user-controlled data. Use `textContent`, `setAttribute`, `createElement`. Exception: content pre-escaped via `escHtml()`.
+- **Static generator.** `index.html` + `generator.js` is a static single-page app. No backend, no build step, no framework.
+- **Self-contained integrations.** The Google Sheets integration in `integrations/google-sheets/` must not depend on any other project files.
+
+## File Structure
+
+```
+rpr-reports-embed/
+├── rpr-reports-embed.js          # Embed widget — single IIFE, deployed to Cloudflare R2 CDN
+├── generator.js                   # Generator logic — static app, deployed to GitHub Pages
+├── index.html                     # Generator UI — HTML + inline CSS + CSP meta tag
+├── README.md                      # User-facing docs (setup, config reference, changelog)
+├── CLAUDE.md                      # Shared AI workflow master (Cursor + Claude Code)
+├── docs/                          # Internal documentation
+│   ├── prd/prd.md                 #   Product Requirements Document
+│   ├── frd/frd.md                 #   Functional Requirements Document
+│   ├── adr/adr.md                 #   Architectural Decision Records
+│   ├── design/design.md           #   System Design (C4, flows, components)
+│   ├── guidelines/guidelines.md   #   Development Guidelines & code style
+│   ├── infra/infra.md             #   Infrastructure & Deployment
+│   ├── context/context.md         #   Technical Context & Project Background
+│   ├── rules.md                   #   AI behavioral rules (human-readable mirror)
+│   └── RPR_Widget_Improvement_Plan.md  # Phased roadmap
+├── integrations/
+│   └── google-sheets/
+│       ├── Code.gs                #   Apps Script webhook receiver
+│       └── blog-post.md           #   Setup guide
+├── openspec/                      # OpenSpec spec-driven development
+│   ├── config.yaml                #   Project context + artifact rules
+│   └── changes/                   #   Active and archived change proposals
+├── .cursor/rules/                 # Cursor AI rules (*.mdc)
+├── .cursor/skills/                # Cursor AI skills (*/SKILL.md)
+├── .cursor/commands/              # Cursor slash commands (/opsx:*)
+├── .claude/rules/                 # Claude Code rules (*.md, mirrored from .cursor/)
+├── .claude/skills/                # Claude Code skills (mirrored from .cursor/)
+└── .claude/commands/              # Claude Code slash commands (mirrored from .cursor/)
+```
+
+## Security Rules (Non-Negotiable)
+
+| # | Rule |
+|---|------|
+| S1 | Never use `innerHTML` with user-controlled data. Use `textContent`, `setAttribute`, `createElement`, or `createElementNS`. |
+| S2 | All external URLs must be scheme-validated. Webhook: `https://` only. Logo: `https://` only. Report URLs: `http(s)://` only. Reject `javascript:`, `data:`, `vbscript:`. |
+| S3 | `escHtml()` must escape all five entities: `&`, `<`, `>`, `"`, `'`. |
+| S4 | Font names must be sanitized to `[a-zA-Z0-9 -]` before use in CSS. |
+| S5 | Form IDs must be sanitized to `[a-zA-Z0-9-_]`. |
+| S6 | CSS selectors from `data-modal-trigger` must be wrapped in try/catch. |
+| S7 | Honeypot field must be offscreen, `tabindex="-1"`, `autocomplete="off"`. |
+| S8 | Validate hex colors with `isValidHex()` before passing to CSS custom properties. |
+
+## Backwards Compatibility Rules
+
+- New `data-*` attributes must default to previous behavior. Zero change for agents who don't update their embed code.
+- Never rename or remove an existing `data-*` attribute. Deprecate and add a new one.
+- Never change the webhook payload schema without incrementing the MAJOR version.
+- The generator must handle legacy URL hash configs.
+
+## Deployment
+
+- **Widget CDN:** Cloudflare R2 (`pub-660...r2.dev/rpr-reports-embed.js`)
+- **Generator:** GitHub Pages (`reggienicolay.github.io/rpr-reports-embed/`)
+- **Staging:** WP Engine (`rprblogstaging.wpengine.com/reports-widget/`)
+- **Git remote:** `reggienicolay/rpr-reports-embed` (GitHub)
+- Never upload to R2 without testing on staging first — a bad upload breaks all deployed widgets worldwide.
+
+## Key Technical Details
+
+- **Display modes:** inline, floating (FAB + overlay), modal (trigger + overlay)
+- **Form modes:** minimal (email + area), full (name + email + phone + area)
+- **CSS scoping:** All selectors under `.rpr-rep-embed`, class prefix `.rpr-r-*`, custom properties `--rpr-r-*`
+- **Section headers:** `/* === §N TITLE === */` format in widget
+- **Bug/security comments:** Reference fix IDs (`/* BUG 4 FIX: ... */`, `/* SEC-1 FIX: ... */`)
+
+## Reference Documentation
+
+| Doc | Purpose | When to read |
+|-----|---------|-------------|
+| `docs/prd/prd.md` | Product scope, users, goals | Before new features |
+| `docs/frd/frd.md` | Functional requirements (FR-IDs) | Before any implementation |
+| `docs/adr/adr.md` | Architectural decisions | Before architectural changes |
+| `docs/design/design.md` | System design, data flows | Before structural changes |
+| `docs/guidelines/guidelines.md` | Code style, testing, versioning | Before writing code |
+| `docs/infra/infra.md` | Hosting, CDN, deployment | Before deployment changes |
+| `docs/context/context.md` | Project background, tech stack | For orientation |
+| `docs/rules.md` | AI behavioral constraints | Always |

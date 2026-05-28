@@ -1,0 +1,39 @@
+
+# Google Apps Script Conventions
+
+## Location
+
+All Apps Script code lives in `integrations/google-sheets/Code.gs`. This file is self-contained and has no dependencies on other project files.
+
+## Pattern
+
+```javascript
+function doPost(e) {
+    // Parse incoming webhook JSON
+    // Validate required fields
+    // Append to sheet
+    // Return success/error response
+}
+```
+
+## Key Rules
+
+- `doPost(e)` is the webhook entry point — deployed as a Google Apps Script web app
+- Always parse `e.postData.contents` with `JSON.parse()` inside try/catch
+- Always validate expected fields before accessing them
+- Use `SpreadsheetApp.getActiveSpreadsheet().getSheetByName()` to target specific sheets
+- Return `ContentService.createTextOutput()` with appropriate status
+- Lock with `LockService.getScriptLock()` to prevent concurrent write conflicts
+
+## Constraints
+
+- Google Apps Script has a 90-minute daily execution quota for free accounts
+- `appendRow()` has concurrency limitations under heavy load
+- Sheet size cap: 50MB per spreadsheet, 10M cells
+- These quotas are documented in `docs/design/design.md` as scalability limitations
+
+## Style
+
+- **Indentation**: 2 spaces (Google Apps Script convention)
+- **Naming**: `camelCase` for functions, `UPPER_SNAKE` for constants
+- **No ES6 modules** — Apps Script uses its own module system (files are concatenated)

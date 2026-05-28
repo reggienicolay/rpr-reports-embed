@@ -1,0 +1,186 @@
+---
+description: 7-phase development lifecycle orchestrator — context, analyze, plan, implement, verify, document, commit — with automatic OpenSpec spec-driven artifacts
+globs: 
+alwaysApply: true
+---
+# AI Development Workflow — RPR Reports Embed
+
+This rule defines HOW the AI assistant works on this project. It is the master orchestrator for all development activity. OpenSpec is integrated natively — the AI automatically creates spec artifacts for non-trivial changes.
+
+## Task Classification (Automatic)
+
+On every new task, classify it before starting:
+
+| Classification | Criteria | Workflow |
+|----------------|----------|----------|
+| **Trivial** | Single-file fix, typo, style tweak, doc-only change | Phases 1-7 directly, no OpenSpec |
+| **Standard** | Bug fix, small feature, 1-3 files touched | OpenSpec proposal + Phases 4-7 |
+| **Complex** | New feature, multi-file change, architectural decision, improvement plan item | Full OpenSpec (proposal + design + tasks) + Phases 4-7 |
+
+When in doubt, use **Standard**. The user can say "skip the proposal" to go direct, or "let's explore this first" to enter explore mode.
+
+## Phase 1: Context
+
+- Read relevant docs before touching code
+- For features: `docs/prd/prd.md`, `docs/frd/frd.md`, `docs/adr/adr.md`
+- For standards: `docs/guidelines/guidelines.md`, relevant convention rule (auto-loaded by glob)
+- For architecture: `docs/design/design.md`, `docs/context/context.md`
+- Verify current version in widget header matches docs
+- Check for active OpenSpec changes: `openspec list --json` — if the task relates to an existing change, resume it instead of creating a new one
+
+## Phase 2: Analyze + Propose
+
+### For Trivial tasks:
+- Trace the requirement to an FRD ID or propose one
+- Propose 2 approaches, wait for approval (same as before)
+
+### For Standard/Complex tasks (automatic OpenSpec):
+1. Derive a kebab-case change name from the task (e.g., "fix silent lead loss" -> `fix-silent-lead-loss`)
+2. Create the change: `openspec new change "<name>"`
+3. Get artifact instructions: `openspec status --change "<name>" --json`
+4. Generate artifacts in dependency order:
+   - **proposal.md** — what & why (traces to FRD IDs, references improvement plan phase if applicable)
+   - **design.md** — how (2 approaches with pros/cons, recommendation) — replaces the old "propose 2 approaches" text block
+   - **tasks.md** — implementation steps (commit-sized, includes doc + test tasks)
+5. For each artifact: `openspec instructions <artifact-id> --change "<name>" --json` to get templates and rules
+6. Show the proposal summary and wait for user approval before proceeding
+
+**The user sees the same analysis they're used to** (approaches, recommendation, task list) — it's just persisted as OpenSpec artifacts in `openspec/changes/<name>/` instead of ephemeral chat text.
+
+## Phase 3: Plan
+
+- Use TodoWrite to track the tasks from `tasks.md`
+- One task `in_progress` at a time
+- **Branch readiness** (activate `git-workflow` skill):
+  1. Run `git branch --show-current` and `git fetch origin`
+  2. If on the correct feature branch -> verify it includes latest `main`
+  3. If behind `main` -> merge `origin/main` into the feature branch
+  4. If on `main` or wrong branch -> pull latest `main`, create new feature branch
+  5. Report branch name and status to user before proceeding
+
+## Phase 4: Implement
+
+- One feature per development cycle
+- Follow code convention rules (auto-loaded by file type)
+- Mark tasks `completed` in both TodoWrite AND the OpenSpec `tasks.md` (`- [ ]` -> `- [x]`)
+- Widget changes: activate `widget-development` skill
+- Generator changes: activate `generator-development` skill
+
+## Phase 5: Verify
+
+- Run ReadLints on all edited files
+- Check for regressions (no broken references, no removed functions still called)
+- Ensure no `console.log` in production code (widget `console.warn` for config errors is acceptable)
+- Ensure no exposed API keys or secrets
+- Activate `testing` skill for the verification checklist
+
+## Phase 6: Document
+
+- Activate the `documentation-management` skill
+- Update all docs affected by the change BEFORE committing
+- Check version numbers are consistent across all versioned files
+- Include doc updates in the same commit as code changes
+
+## Phase 7: Commit + Archive
+
+- Activate the `git-workflow` skill
+- Run the pre-commit gate checklist
+- Use conventional commit format
+- NEVER push without explicit user approval
+- **After successful commit**: archive the OpenSpec change automatically
+  ```bash
+  mkdir -p openspec/changes/archive
+  mv openspec/changes/<name> openspec/changes/archive/$(date +%Y-%m-%d)-<name>
+  ```
+
+## Explore Mode
+
+When the user wants to think before acting (says things like "let's think about", "I'm not sure how to", "what if we", "explore this"):
+
+1. Run `openspec list --json` to check for active changes
+2. Enter explore mode — read code, draw diagrams, compare options
+3. Do NOT write code or implement anything
+4. When thinking crystallizes, offer: "This feels ready. Want me to create a proposal?"
+5. If yes, flow into Phase 2 (Standard/Complex path)
+
+## Progress Tracking Protocol
+
+- Use TodoWrite for any task with 3+ steps
+- OpenSpec `tasks.md` is the source of truth for what needs doing
+- TodoWrite mirrors the current session's active tasks
+- Update both in real-time: `pending` -> `in_progress` -> `completed`
+- Report summary after completing each phase
+- For multi-session work: check `openspec list --json` at session start to find active changes and resume
+
+## Documentation Sync Gate
+
+### Before Every Commit
+
+1. Review `docs/` for sections affected by the change
+2. Update any docs that reference modified behavior, file structure, dependencies, versions
+3. Verify `.cursor/rules/` files still reflect the codebase accurately
+4. Include documentation updates in the same commit as code changes
+
+### After Pulling Remote Changes
+
+1. Analyze incoming changes — new files, removed files, renamed functions, version bumps
+2. Cross-reference with docs:
+   - `context.md` (file tree, tech stack, features)
+   - `prd.md` and `frd.md` (requirements, content types)
+   - `design.md` (system design, data flows)
+   - `adr.md` (new architectural decisions)
+   - `guidelines.md` (conventions, file tree)
+   - `infra.md` (services, infrastructure)
+   - `rules.md` (AI behavioral constraints)
+   - `.cursor/rules/*.mdc` (version, key files, conventions)
+3. Report discrepancies to the user before proceeding
+4. Update docs on a dedicated branch or alongside the next feature commit
+
+### Documentation Quick Reference
+
+| File | What to check |
+|------|--------------|
+| `context.md` | File tree, tech stack, feature list |
+| `prd.md` | Product scope, dependencies, version |
+| `frd.md` | Functional requirements, data attributes, webhook payload |
+| `design.md` | Architecture, data flows, component diagram |
+| `adr.md` | New decisions need new ADR entries |
+| `guidelines.md` | Code style, testing checklist, release process |
+| `infra.md` | CDN, deployment, staging |
+| `rules.md` | AI behavioral constraints |
+| `README.md` | Feature summary, config reference, changelog |
+
+## Skill Activation
+
+Activate the appropriate skill based on the task:
+
+| Task Type | Skill |
+|-----------|-------|
+| Widget JS, inline CSS, display modes, form logic | `widget-development` |
+| Generator HTML, generator JS, preview, embed code | `generator-development` |
+| Branch, commit, push, PR | `git-workflow` |
+| Review, verify, test, regression check | `testing` |
+| Doc creation, update, sync, ADR, FRD | `documentation-management` |
+
+OpenSpec skills (`openspec-propose`, `openspec-apply-change`, `openspec-explore`, `openspec-archive-change`) are activated automatically by the workflow phases above. The user can also invoke them directly via `/opsx:*` slash commands if preferred.
+
+## Decision Protocol
+
+- **Architectural decision** (new pattern, new integration, structural change): create/update ADR in `docs/adr/adr.md`
+- **New functionality**: trace to existing FR-ID in `docs/frd/frd.md` or propose new one
+- **Breaking change**: document in commit body with `BREAKING CHANGE:` footer
+- **Deprecation**: mark old ADR as Superseded, add new ADR referencing it
+
+## Configuration Sync (Cursor + Claude Code)
+
+This project maintains parallel AI configurations:
+
+| Cursor | Claude Code | Content |
+|--------|------------|---------|
+| `.cursor/rules/*.mdc` | `.claude/rules/*.md` | Same body, tool-specific frontmatter |
+| `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md` | Identical content |
+
+**When updating any rule or skill, you MUST update BOTH versions:**
+- `.cursor/rules/<name>.mdc` <-> `.claude/rules/<name>.md`
+- `.cursor/skills/<name>/SKILL.md` <-> `.claude/skills/<name>/SKILL.md`
+- Root `CLAUDE.md` is the shared workflow master — changes apply to both tools
