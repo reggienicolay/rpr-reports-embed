@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 4: Floating Mode</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Floating Mode</h2>
+  <p>Look for the button in the bottom-right corner.</p>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Malibu 90265","url":"https://www.narrpr.com/test-malibu"},{"label":"Pacific Palisades","url":"https://www.narrpr.com/test-pp"}]'
+    data-webhook="https://httpbin.org/post"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="floating"
+    data-float-label="Get Market Report"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Click the floating button — overlay opens with form</li>
+      <li>Press Escape WITHOUT opening overlay first — nothing should happen</li>
+      <li>Open overlay, press Escape — overlay closes, form resets</li>
+      <li>Open overlay, submit, click Back — form resets for resubmission</li>
+      <li>Click on the dark backdrop — overlay closes</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 1: Inline — 200 OK</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Inline Mode — 200 OK webhook</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Beverly Hills 90210","url":"https://www.narrpr.com/test-beverly-hills"},{"label":"Santa Monica 90401","url":"https://www.narrpr.com/test-santa-monica"}]'
+    data-webhook="https://httpbin.org/post"
+    data-agent-name="Test Agent"
+    data-brokerage="Test Brokerage"
+    data-form-mode="full"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Fill form, submit — should show step 2 with report card</li>
+      <li>Click Back — form should reset and allow resubmission</li>
+      <li>Double-click submit fast — check Network tab for only 1 POST</li>
+      <li>Enter "abc" in phone — should show validation error</li>
+      <li>Enter "+1 (555) 123-4567" in phone — should pass</li>
+      <li>Leave phone empty — should pass (optional field)</li>
+      <li>Brand color should be RPR blue (#0086E6)</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -19,8 +19,8 @@ Desktop.ini
 .env
 .env.local
 
-# Test pages
-test*.html
+# Test pages (root-level only; test/ folder is tracked)
+/test*.html
 
 # OpenSpec temp
 openspec/.cache/
