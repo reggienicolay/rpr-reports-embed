@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-  Project: RPR Market Reports Embed Widget (v1.1.0)
+  Project: RPR Market Reports Embed Widget (v1.3.0)
   Type: Zero-dependency client-side lead capture widget for real estate agents
   
   Tech stack: Vanilla JavaScript (ES6+), inline CSS (custom properties, container queries),
@@ -33,8 +33,8 @@ context: |
   AI skills: .cursor/skills/ and .claude/skills/ (widget-dev, generator-dev, git-workflow, testing, docs-management)
   
   Active improvement plan (4 phases):
-  - Phase 1: Critical bug fixes + security hardening (approved, ready to start)
-  - Phase 2: Cloudflare Worker lead proxy (approved)
+  - Phase 1: Critical bug fixes + security hardening (completed, v1.2.0)
+  - Phase 2: Cloudflare Worker lead proxy (completed, v1.3.0)
   - Phase 3: Infrastructure hardening (pending)
   - Phase 4: Accessibility, UX, CRM integrations (pending review)
 

@@ -1,10 +1,15 @@
 /**
- * rpr-reports-embed.js  v1.2.0
+ * rpr-reports-embed.js  v1.3.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.3.0: Phase 2 — Cloudflare Worker lead proxy support. New data-proxy
+ * attribute for secure lead delivery via RPR proxy (hides webhook URL,
+ * enables server-side retry + rate limiting). Backward compatible —
+ * existing data-webhook deploys continue working unchanged.
  *
  * v1.2.0: Phase 1 bug fixes + security hardening. Fix silent lead loss on
  * HTTP errors, fix duplicate webhook race condition, fix Back button dead-end,
@@ -19,7 +24,11 @@
  *
  * Required attributes:
  *   data-reports   JSON array: [{"label":"Area Name","url":"https://narrpr.com/..."},…]
- *   data-webhook   HTTPS URL to receive lead payload (Zapier / Make / GHL / HubSpot)
+ *
+ * Lead delivery (at least one required):
+ *   data-proxy     RPR proxy URL with agent token (e.g. https://rpr-lead-proxy.workers.dev/agt_xxx)
+ *   data-webhook   Direct HTTPS webhook URL (Zapier / Make / GHL / HubSpot)
+ *                  If both are present, data-proxy takes priority.
  *
  * Optional attributes (all have sensible defaults):
  *   data-agent-name        Agent display name
@@ -132,6 +141,7 @@
 	/* ── Config object ───────────────────────────────────────────── */
 	const CFG = {
 		reports:         REPORTS,
+		proxy:           attr( 'data-proxy' ),
 		webhook:         attr( 'data-webhook' ),
 		agentName:       attr( 'data-agent-name' ),
 		brokerage:       attr( 'data-brokerage' ),
@@ -167,7 +177,11 @@
 		                 || ( 'rpr-reports-' + Math.random().toString( 36 ).slice( 2, 8 ) ),
 	};
 
-	/* SEC-6 FIX: block non-HTTPS webhooks entirely — don't transmit PII unencrypted */
+	/* SEC-6 FIX: block non-HTTPS URLs entirely — don't transmit PII unencrypted */
+	if ( CFG.proxy && ! CFG.proxy.startsWith( 'https://' ) && ! CFG.proxy.startsWith( 'http://localhost' ) ) {
+		console.error( 'RPR Reports Embed: data-proxy must be an HTTPS URL (http://localhost allowed for dev). Proxy disabled.' );
+		CFG.proxy = '';
+	}
 	if ( CFG.webhook && ! CFG.webhook.startsWith( 'https://' ) ) {
 		console.error( 'RPR Reports Embed: data-webhook must be an HTTPS URL. Webhook disabled.' );
 		CFG.webhook = '';
@@ -844,23 +858,46 @@
 			status.textContent = 'Sending…';
 			status.style.color = '';
 
-			let webhookOk = true;
+			let deliveryOk = true;
 			let webhookPayload = null;
+			const deliveryUrl = CFG.proxy || CFG.webhook;
 
-			if ( CFG.webhook ) {
+			if ( deliveryUrl ) {
 				try {
 					webhookPayload = collectPayload( step1, selectedIndex );
-					const res = await fetch( CFG.webhook, {
+					if ( CFG.proxy ) {
+						webhookPayload._meta = {
+							widget_version: '1.3.0',
+							source_url:     window.location.href,
+							timestamp:      new Date().toISOString(),
+						};
+					}
+					const res = await fetch( deliveryUrl, {
 						method:  'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body:    JSON.stringify( webhookPayload ),
 					} );
-					if ( ! res.ok ) {
-						/* BUG 8 FIX: treat non-OK HTTP as failure — distinguish retriable vs non-retriable */
+					if ( CFG.proxy ) {
+						if ( res.status === 202 || res.status === 200 ) {
+							deliveryOk = true;
+						} else {
+							deliveryOk = false;
+							let errMsg = 'Something went wrong \u2014 please try again.';
+							try {
+								const body = await res.json();
+								if ( body && body.error ) errMsg = body.error;
+							} catch ( _ignored ) { /* use default message */ }
+							if ( res.status >= 500 ) {
+								enqueueRetry( webhookPayload, deliveryUrl );
+							}
+							status.textContent = errMsg;
+							status.style.color = '#d0021b';
+						}
+					} else if ( ! res.ok ) {
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
-						webhookOk = false;
+						deliveryOk = false;
 						if ( res.status >= 500 ) {
-							enqueueRetry( webhookPayload, CFG.webhook );
+							enqueueRetry( webhookPayload, deliveryUrl );
 							status.textContent = 'Something went wrong \u2014 please try again.';
 						} else {
 							status.textContent = 'Lead could not be delivered \u2014 please contact the site owner.';
@@ -868,16 +905,15 @@
 						status.style.color = '#d0021b';
 					}
 				} catch ( e ) {
-					/* BUG 4 FIX: surface network errors to user */
-					console.warn( 'RPR Reports Embed: Webhook error', e );
-					webhookOk = false;
-					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), CFG.webhook );
+					console.warn( 'RPR Reports Embed: Delivery error', e );
+					deliveryOk = false;
+					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), deliveryUrl );
 					status.textContent = 'Something went wrong \u2014 please try again.';
 					status.style.color = '#d0021b';
 				}
 			}
 
-			if ( ! webhookOk ) {
+			if ( ! deliveryOk ) {
 				/* Unlock so user can retry */
 				wrap._rprSubmitted = false;
 				btn.disabled = false;
