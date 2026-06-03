@@ -1,15 +1,22 @@
 /**
- * rpr-reports-embed.js  v1.2.1
+ * rpr-reports-embed.js  v1.2.2
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
  *
+ * v1.2.2: Hotfix for v1.2.1 — em-dash (U+2014) in the ntfy Title header
+ * caused fetch() to throw "String contains non ISO-8859-1 code point",
+ * blocking all submissions when the destination was ntfy. Replaced em-dash
+ * with colon and added headerSafe() to strip non-Latin-1 codepoints from
+ * every header value so visitor names with accented chars, CJK, or emoji
+ * don't break the submit either.
+ *
  * v1.2.1: ntfy.sh integration formatting. When the configured webhook URL
  * is ntfy.sh, the widget now sends a plain-text body with Title/Click/Tags
  * HTTP headers so the agent's phone notification arrives nicely formatted
- * ("New RPR Lead — Sarah Johnson", body shows name/email/phone/area, tap
+ * ("New RPR Lead: Sarah Johnson", body shows name/email/phone/area, tap
  * opens the report URL). All other webhook destinations continue to receive
  * the standard JSON payload unchanged.
  *
@@ -867,25 +874,30 @@
 					let fetchOpts;
 					if ( /^https:\/\/ntfy\.sh\//i.test( CFG.webhook ) ) {
 						/* ntfy.sh — Title/Click/Tags as HTTP headers, plain text body.
-						   Strip CR/LF defensively (fetch would reject them anyway). */
-						const stripCrlf = s => String( s || '' ).replace( /[\r\n]+/g, ' ' ).trim();
+						   v1.2.2 fix: HTTP headers must be ISO-8859-1 (Latin-1) per spec
+						   — fetch() throws on any code point > 255 (em-dash, CJK chars,
+						   emoji, etc.). The body has no such restriction; full UTF-8 OK
+						   there. headerSafe() replaces non-Latin-1 with '?' so visitor
+						   names with CJK/emoji don't break the submit. */
+						const stripCrlf  = s => String( s || '' ).replace( /[\r\n]+/g, ' ' ).trim();
+						const headerSafe = s => stripCrlf( s ).replace( /[^\x00-\xFF]/g, '?' );
 						const name = [ webhookPayload.first_name, webhookPayload.last_name ]
 							.map( stripCrlf ).filter( Boolean ).join( ' ' );
 						const title = name
-							? 'New RPR Lead — ' + name
-							: 'New RPR Lead — ' + stripCrlf( webhookPayload.selected_area );
+							? 'New RPR Lead: ' + name
+							: 'New RPR Lead: ' + stripCrlf( webhookPayload.selected_area );
 						const bodyLines = [];
 						if ( name )                       bodyLines.push( 'Name:  ' + name );
 						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + stripCrlf( webhookPayload.email ) );
 						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + stripCrlf( webhookPayload.phone ) );
 						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + stripCrlf( webhookPayload.selected_area ) );
 						const headers = {
-							'Title':        title,
+							'Title':        headerSafe( title ),
 							'Tags':         'house',
 							'Content-Type': 'text/plain',
 						};
 						if ( webhookPayload.report_url ) {
-							headers[ 'Click' ] = stripCrlf( webhookPayload.report_url );
+							headers[ 'Click' ] = headerSafe( webhookPayload.report_url );
 						}
 						fetchOpts = { method: 'POST', headers: headers, body: bodyLines.join( '\n' ) };
 					} else {
