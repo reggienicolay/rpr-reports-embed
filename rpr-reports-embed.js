@@ -1,10 +1,17 @@
 /**
- * rpr-reports-embed.js  v1.2.0
+ * rpr-reports-embed.js  v1.2.1
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.2.1: ntfy.sh integration formatting. When the configured webhook URL
+ * is ntfy.sh, the widget now sends a plain-text body with Title/Click/Tags
+ * HTTP headers so the agent's phone notification arrives nicely formatted
+ * ("New RPR Lead — Sarah Johnson", body shows name/email/phone/area, tap
+ * opens the report URL). All other webhook destinations continue to receive
+ * the standard JSON payload unchanged.
  *
  * v1.2.0: Phase 1 bug fixes + security hardening. Fix silent lead loss on
  * HTTP errors, fix duplicate webhook race condition, fix Back button dead-end,
@@ -850,11 +857,46 @@
 			if ( CFG.webhook ) {
 				try {
 					webhookPayload = collectPayload( step1, selectedIndex );
-					const res = await fetch( CFG.webhook, {
-						method:  'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body:    JSON.stringify( webhookPayload ),
-					} );
+
+					/* Per-destination formatting. Default: send our standard JSON
+					   payload (works with Zapier, Make, GHL, Sheets, Slack, Discord,
+					   custom webhooks, etc.). For known notification services with
+					   their own formatting requirements, transform the payload so the
+					   agent's notification arrives nicely formatted. Adding new
+					   destinations is additive — unknown URLs fall through to JSON. */
+					let fetchOpts;
+					if ( /^https:\/\/ntfy\.sh\//i.test( CFG.webhook ) ) {
+						/* ntfy.sh — Title/Click/Tags as HTTP headers, plain text body.
+						   Strip CR/LF defensively (fetch would reject them anyway). */
+						const stripCrlf = s => String( s || '' ).replace( /[\r\n]+/g, ' ' ).trim();
+						const name = [ webhookPayload.first_name, webhookPayload.last_name ]
+							.map( stripCrlf ).filter( Boolean ).join( ' ' );
+						const title = name
+							? 'New RPR Lead — ' + name
+							: 'New RPR Lead — ' + stripCrlf( webhookPayload.selected_area );
+						const bodyLines = [];
+						if ( name )                       bodyLines.push( 'Name:  ' + name );
+						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + stripCrlf( webhookPayload.email ) );
+						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + stripCrlf( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + stripCrlf( webhookPayload.selected_area ) );
+						const headers = {
+							'Title':        title,
+							'Tags':         'house',
+							'Content-Type': 'text/plain',
+						};
+						if ( webhookPayload.report_url ) {
+							headers[ 'Click' ] = stripCrlf( webhookPayload.report_url );
+						}
+						fetchOpts = { method: 'POST', headers: headers, body: bodyLines.join( '\n' ) };
+					} else {
+						/* Default: JSON POST — current behavior for every other destination */
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( webhookPayload ),
+						};
+					}
+					const res = await fetch( CFG.webhook, fetchOpts );
 					if ( ! res.ok ) {
 						/* BUG 8 FIX: treat non-OK HTTP as failure — distinguish retriable vs non-retriable */
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
