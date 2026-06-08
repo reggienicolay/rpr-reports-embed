@@ -956,7 +956,7 @@
 						if ( webhookPayload.source_url )    fields.push( { name: 'Source', value: s( webhookPayload.source_url ),      inline: false } );
 						const embed = {
 							title:       'New RPR Lead' + ( name ? ': ' + name : '' ),
-							color:       34790, /* RPR blue #0086E6 as decimal */
+							color:       34534, /* RPR blue #0086E6 → parseInt('0086E6', 16) */
 							fields:      fields,
 							timestamp:   webhookPayload.timestamp,
 							footer:      { text: 'RPR Reports Widget' },
@@ -993,8 +993,8 @@
 
 					} else if ( /^https:\/\/api\.pushover\.net\//i.test( deliveryUrl ) ) {
 						/* Pushover — POST with token, user, message. Agent's URL has
-						   token and user as query params. Extract them and build a
-						   proper Pushover payload with a formatted message. */
+						   token and user as query params. Extract them, strip params
+						   from the URL, and send credentials in the JSON body only. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );
@@ -1018,6 +1018,7 @@
 							poPayload.url       = s( webhookPayload.report_url );
 							poPayload.url_title = 'View Report: ' + s( webhookPayload.selected_area );
 						}
+						deliveryUrl = 'https://api.pushover.net/1/messages.json';
 						fetchOpts = {
 							method:  'POST',
 							headers: { 'Content-Type': 'application/json' },
