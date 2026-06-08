@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPR Widget — Test Hub</title>
+  <style>
+    body { font-family: system-ui; max-width: 600px; margin: 60px auto; padding: 0 20px; background: #f5f5f5; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; }
+    p { color: #666; margin-bottom: 24px; }
+    h2 { font-size: 1.1rem; color: #444; margin: 24px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    a { display: block; padding: 14px 20px; background: #fff; border-radius: 8px; margin: 8px 0; text-decoration: none; color: #0086E6; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    a:hover { background: #f0f7ff; }
+    a span { color: #999; font-size: 13px; font-weight: 400; display: block; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>RPR Widget v1.2.3 — Test Hub</h1>
+  <p>Each test runs on its own page. Integration tests require real service credentials.</p>
+
+  <h2>Integration Formatters</h2>
+  <a href="test-slack.html">Slack <span>Block Kit message with :house: header, name/email/phone/area fields</span></a>
+  <a href="test-discord.html">Discord <span>Rich embed card in RPR blue with fields and report link</span></a>
+  <a href="test-simplepush.html">SimplePush <span>Phone push — key extracted from URL, title + body text</span></a>
+  <a href="test-pushover.html">Pushover <span>Phone push — token/user from URL params, cash register sound</span></a>
+
+  <h2>Other</h2>
+  <a href="../index.html">Generator <span>Build embed code, test delivery methods</span></a>
+</body>
+</html>

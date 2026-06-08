@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: Discord Integration</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; } code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Discord — Channel Webhook</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Venice 90291","url":"https://www.narrpr.com/test-venice"}]'
+    data-webhook="https://discord.com/api/webhooks/YOUR/WEBHOOK"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Replace <code>data-webhook</code> with a real Discord webhook URL</li>
+      <li>Submit — Discord channel should show a rich embed card in RPR blue</li>
+      <li>Card should have Name, Email, Phone, Area, Report link, and Source as fields</li>
+      <li>Footer should read "RPR Reports Widget" with timestamp</li>
+      <li>Also works with <code>discordapp.com</code> URLs (legacy format)</li>
+    </ul>
+    <strong>Expected Discord payload:</strong>
+    <pre><code>{
+  "embeds": [{
+    "title": "New RPR Lead: First Last",
+    "color": 34790,
+    "fields": [
+      { "name": "Name",   "value": "...", "inline": true },
+      { "name": "Email",  "value": "...", "inline": true },
+      { "name": "Phone",  "value": "...", "inline": true },
+      { "name": "Area",   "value": "...", "inline": false },
+      { "name": "Report", "value": "[View Report](...)", "inline": false }
+    ],
+    "footer": { "text": "RPR Reports Widget" },
+    "timestamp": "..."
+  }]
+}</code></pre>
+  </div>
+</body>
+</html>

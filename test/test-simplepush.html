@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: SimplePush Integration</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; } code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>SimplePush — Phone Push Notification</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Santa Monica 90401","url":"https://www.narrpr.com/test-santa-monica"}]'
+    data-webhook="https://api.simplepush.io/send/YOUR-KEY"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Replace <code>YOUR-KEY</code> in the URL with your actual SimplePush key from the app</li>
+      <li>Submit — phone should receive a push notification</li>
+      <li>Title: "New RPR Lead: [Name]"</li>
+      <li>Body: Name, Email, Phone, Area on separate lines</li>
+      <li>Open DevTools Network tab — verify POST goes to <code>https://api.simplepush.io/send</code> (not the /send/KEY URL)</li>
+      <li>Verify JSON payload has <code>key</code>, <code>title</code>, <code>msg</code> fields</li>
+    </ul>
+    <strong>Expected payload:</strong>
+    <pre><code>{
+  "key": "YOUR-KEY",
+  "title": "New RPR Lead: First Last",
+  "msg": "Name:  First Last\nEmail: ...\nPhone: ...\nArea:  ...",
+  "event": "rpr_lead"
+}</code></pre>
+  </div>
+</body>
+</html>

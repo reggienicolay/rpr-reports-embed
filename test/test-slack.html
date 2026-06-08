@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: Slack Integration</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; } code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Slack — Incoming Webhook</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Beverly Hills 90210","url":"https://www.narrpr.com/test-beverly-hills"}]'
+    data-webhook="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Replace <code>data-webhook</code> with a real Slack Incoming Webhook URL</li>
+      <li>Submit — Slack channel should show a formatted message with :house: emoji header</li>
+      <li>Message should have Name, Email, Phone, Area (linked to report URL), and Source</li>
+      <li>Mobile push notification should show "New RPR Lead: [Name]" as the text fallback</li>
+      <li>Open DevTools Network tab — verify <code>Content-Type: application/json</code> and payload has <code>text</code> + <code>blocks</code></li>
+    </ul>
+    <strong>Expected Slack payload:</strong>
+    <pre><code>{
+  "text": "New RPR Lead: First Last",
+  "blocks": [
+    { "type": "section", "text": { "type": "mrkdwn", "text": ":house: *New RPR Lead: First Last*" } },
+    { "type": "section", "text": { "type": "mrkdwn", "text": "*Name:* ...\n*Email:* ...\n*Phone:* ...\n*Area:* ..." } },
+    { "type": "context", "elements": [ { "type": "mrkdwn", "text": "Sent by RPR Reports Widget · ..." } ] }
+  ]
+}</code></pre>
+  </div>
+</body>
+</html>

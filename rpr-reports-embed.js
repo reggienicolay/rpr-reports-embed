@@ -1,10 +1,16 @@
 /**
- * rpr-reports-embed.js  v1.2.2
+ * rpr-reports-embed.js  v1.2.3
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.2.3: Per-destination formatters for Slack, Discord, SimplePush, and
+ * Pushover. Each service now receives a nicely formatted notification
+ * instead of raw JSON (which those services reject or display as garbage).
+ * Extends the pattern introduced in v1.2.1 for ntfy.sh. Unknown webhook
+ * URLs continue to receive the standard JSON payload unchanged.
  *
  * v1.2.2: Hotfix for v1.2.1 — em-dash (U+2014) in the ntfy Title header
  * caused fetch() to throw "String contains non ISO-8859-1 code point",
@@ -860,19 +866,20 @@
 
 			let webhookOk = true;
 			let webhookPayload = null;
+			let deliveryUrl = CFG.webhook;
 
-			if ( CFG.webhook ) {
+			if ( deliveryUrl ) {
 				try {
 					webhookPayload = collectPayload( step1, selectedIndex );
 
-					/* Per-destination formatting. Default: send our standard JSON
-					   payload (works with Zapier, Make, GHL, Sheets, Slack, Discord,
-					   custom webhooks, etc.). For known notification services with
-					   their own formatting requirements, transform the payload so the
-					   agent's notification arrives nicely formatted. Adding new
-					   destinations is additive — unknown URLs fall through to JSON. */
+				/* Per-destination formatting. Default: send our standard JSON
+					   payload (works with Zapier, Make, GHL, Sheets, Toolkit.app,
+					   custom webhooks, etc.). Services with their own payload
+					   requirements get a dedicated formatter so notifications
+					   arrive nicely on the agent's device. Adding new destinations
+					   is additive — unknown URLs fall through to JSON. */
 					let fetchOpts;
-					if ( /^https:\/\/ntfy\.sh\//i.test( CFG.webhook ) ) {
+					if ( /^https:\/\/ntfy\.sh\//i.test( deliveryUrl ) ) {
 						/* ntfy.sh — Title/Click/Tags as HTTP headers, plain text body.
 						   v1.2.2 fix: HTTP headers must be ISO-8859-1 (Latin-1) per spec
 						   — fetch() throws on any code point > 255 (em-dash, CJK chars,
@@ -900,6 +907,123 @@
 							headers[ 'Click' ] = headerSafe( webhookPayload.report_url );
 						}
 						fetchOpts = { method: 'POST', headers: headers, body: bodyLines.join( '\n' ) };
+
+					} else if ( /^https:\/\/hooks\.slack\.com\//i.test( deliveryUrl ) ) {
+						/* Slack Incoming Webhook — requires { "text": "..." } at minimum.
+						   We send Block Kit sections for rich formatting with a text
+						   fallback for mobile push notifications. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const fallback = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const lines = [];
+						if ( name )                       lines.push( '*Name:* ' + name );
+						if ( webhookPayload.email )       lines.push( '*Email:* ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       lines.push( '*Phone:* ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) {
+							const areaText = webhookPayload.report_url
+								? '<' + s( webhookPayload.report_url ) + '|' + s( webhookPayload.selected_area ) + '>'
+								: s( webhookPayload.selected_area );
+							lines.push( '*Area:* ' + areaText );
+						}
+						if ( webhookPayload.source_url )  lines.push( '*Source:* ' + s( webhookPayload.source_url ) );
+						const payload = {
+							text: fallback,
+							blocks: [
+								{ type: 'section', text: { type: 'mrkdwn', text: ':house: *' + fallback + '*' } },
+								{ type: 'section', text: { type: 'mrkdwn', text: lines.join( '\n' ) } },
+								{ type: 'context', elements: [ { type: 'mrkdwn', text: 'Sent by RPR Reports Widget \u00b7 ' + webhookPayload.timestamp } ] },
+							],
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( payload ),
+						};
+
+					} else if ( /^https:\/\/discord(app)?\.com\/api\/webhooks\//i.test( deliveryUrl ) ) {
+						/* Discord Webhook — requires at least one of content, embeds, file.
+						   We send a rich embed with fields for a clean card layout. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const fields = [];
+						if ( name )                         fields.push( { name: 'Name',   value: name,                              inline: true } );
+						if ( webhookPayload.email )         fields.push( { name: 'Email',  value: s( webhookPayload.email ),          inline: true } );
+						if ( webhookPayload.phone )         fields.push( { name: 'Phone',  value: s( webhookPayload.phone ),          inline: true } );
+						if ( webhookPayload.selected_area ) fields.push( { name: 'Area',   value: s( webhookPayload.selected_area ),  inline: false } );
+						if ( webhookPayload.report_url )    fields.push( { name: 'Report', value: '[View Report](' + s( webhookPayload.report_url ) + ')', inline: false } );
+						if ( webhookPayload.source_url )    fields.push( { name: 'Source', value: s( webhookPayload.source_url ),      inline: false } );
+						const embed = {
+							title:       'New RPR Lead' + ( name ? ': ' + name : '' ),
+							color:       34790, /* RPR blue #0086E6 as decimal */
+							fields:      fields,
+							timestamp:   webhookPayload.timestamp,
+							footer:      { text: 'RPR Reports Widget' },
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( { embeds: [ embed ] } ),
+						};
+
+					} else if ( /^https:\/\/(api\.)?simplepush\.io\//i.test( deliveryUrl ) || /^https:\/\/simplepu\.sh\//i.test( deliveryUrl ) ) {
+						/* SimplePush — POST JSON to /send with key, title, msg.
+						   Agent's webhook URL might be /send/KEY (GET-style) — extract
+						   the key from the URL path and POST to the /send endpoint. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const keyMatch = deliveryUrl.match( /\/send\/([A-Za-z0-9_-]+)/i ) || deliveryUrl.match( /\/([A-Za-z0-9_-]+)\/?$/ );
+						const spKey = keyMatch ? keyMatch[1] : '';
+						const title = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const bodyLines = [];
+						if ( name )                       bodyLines.push( 'Name:  ' + name );
+						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + s( webhookPayload.selected_area ) );
+						const spPayload = { key: spKey, title: title, msg: bodyLines.join( '\n' ) };
+						if ( webhookPayload.report_url ) spPayload.event = 'rpr_lead';
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( spPayload ),
+						};
+						deliveryUrl = 'https://api.simplepush.io/send';
+
+					} else if ( /^https:\/\/api\.pushover\.net\//i.test( deliveryUrl ) ) {
+						/* Pushover — POST with token, user, message. Agent's URL has
+						   token and user as query params. Extract them and build a
+						   proper Pushover payload with a formatted message. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const urlObj = new URL( deliveryUrl );
+						const token = urlObj.searchParams.get( 'token' ) || '';
+						const user  = urlObj.searchParams.get( 'user' )  || '';
+						const title = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const bodyLines = [];
+						if ( name )                       bodyLines.push( 'Name:  ' + name );
+						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + s( webhookPayload.selected_area ) );
+						const poPayload = {
+							token:   token,
+							user:    user,
+							title:   title,
+							message: bodyLines.join( '\n' ),
+							sound:   'cashregister',
+						};
+						if ( webhookPayload.report_url ) {
+							poPayload.url       = s( webhookPayload.report_url );
+							poPayload.url_title = 'View Report: ' + s( webhookPayload.selected_area );
+						}
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( poPayload ),
+						};
+
 					} else {
 						/* Default: JSON POST — current behavior for every other destination */
 						fetchOpts = {
@@ -908,9 +1032,8 @@
 							body:    JSON.stringify( webhookPayload ),
 						};
 					}
-					const res = await fetch( CFG.webhook, fetchOpts );
+					const res = await fetch( deliveryUrl, fetchOpts );
 					if ( ! res.ok ) {
-						/* BUG 8 FIX: treat non-OK HTTP as failure — distinguish retriable vs non-retriable */
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
 						webhookOk = false;
 						if ( res.status >= 500 ) {
@@ -922,7 +1045,6 @@
 						status.style.color = '#d0021b';
 					}
 				} catch ( e ) {
-					/* BUG 4 FIX: surface network errors to user */
 					console.warn( 'RPR Reports Embed: Webhook error', e );
 					webhookOk = false;
 					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), CFG.webhook );

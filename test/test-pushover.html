@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: Pushover Integration</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; } code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Pushover — Phone Push Notification</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Malibu 90265","url":"https://www.narrpr.com/test-malibu"}]'
+    data-webhook="https://api.pushover.net/1/messages.json?token=YOUR_APP_TOKEN&amp;user=YOUR_USER_KEY"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Replace <code>YOUR_APP_TOKEN</code> and <code>YOUR_USER_KEY</code> with real Pushover credentials</li>
+      <li>Submit — phone should receive a push notification with a cash register sound</li>
+      <li>Title: "New RPR Lead: [Name]"</li>
+      <li>Body: Name, Email, Phone, Area on separate lines</li>
+      <li>Tap notification — should open the report URL</li>
+      <li>Token and user are extracted from URL query params and sent in the JSON body</li>
+    </ul>
+    <strong>Expected payload:</strong>
+    <pre><code>{
+  "token": "YOUR_APP_TOKEN",
+  "user": "YOUR_USER_KEY",
+  "title": "New RPR Lead: First Last",
+  "message": "Name:  First Last\nEmail: ...\nPhone: ...\nArea:  ...",
+  "sound": "cashregister",
+  "url": "https://www.narrpr.com/test-malibu",
+  "url_title": "View Report: Malibu 90265"
+}</code></pre>
+  </div>
+</body>
+</html>
