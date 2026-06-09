@@ -98,11 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWebhookWarning();
     generate();
   });
+  var _lastRegisteredUrl = deliveryUrlEl.value.trim();
   deliveryUrlEl.addEventListener('blur', function() {
     var url   = deliveryUrlEl.value.trim();
     var token = document.getElementById('proxyToken').value.trim();
-    if (url && /^https:\/\//i.test(url) && !token) {
-      registerConfig();
+    if (url && /^https:\/\//i.test(url)) {
+      if (!token || url !== _lastRegisteredUrl) {
+        document.getElementById('proxyToken').value = '';
+        _lastRegisteredUrl = url;
+        registerConfig();
+      }
     }
   });
 
