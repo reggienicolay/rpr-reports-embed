@@ -529,24 +529,24 @@ function sendTestViaProxy() {
   .then(async (res) => {
     const body = await res.json().catch(() => null);
     if (res.status === 202) {
-      result.textContent = 'Lead queued \u2014 proxy will forward to your webhook.';
+      result.textContent = 'Test lead sent successfully \u2714';
       result.className = 'test-webhook-result success';
     } else if (res.status === 200 && body && body.status === 'duplicate') {
       result.textContent = 'Duplicate \u2014 this test lead was already sent recently.';
       result.className = 'test-webhook-result success';
     } else {
-      const errMsg = (body && body.error) || ('Proxy returned HTTP ' + res.status);
+      const errMsg = (body && body.error) || ('Server returned HTTP ' + res.status);
       result.textContent = errMsg;
       result.className = 'test-webhook-result error';
     }
   })
   .catch(() => {
-    result.textContent = 'Could not reach proxy \u2014 check Proxy URL in Settings.';
+    result.textContent = 'Could not reach server \u2014 check your internet connection.';
     result.className = 'test-webhook-result error';
   })
   .finally(() => {
     btn.disabled = false;
-    btn.textContent = 'Send test via Proxy';
+    btn.textContent = 'Send test';
   });
 }
 
@@ -1215,8 +1215,7 @@ function resetConfig() {
 function importEmbed() {
   const raw = prompt(
     'Paste your existing <script> embed code here.\n\n' +
-    'The generator will extract your settings, register the webhook URL ' +
-    'with the proxy, and give you an updated embed code with data-proxy.'
+    'The generator will extract your settings and give you an updated embed code.'
   );
   if (!raw || !raw.trim()) return;
 
