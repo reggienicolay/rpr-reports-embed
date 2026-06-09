@@ -101,9 +101,11 @@ All endpoints require Bearer token authentication. All return JSON with CORS hea
 ### D4: Generator Proxy Transparency
 
 - "RPR Proxy" removed from delivery method dropdown — agents never see the word "proxy"
-- Admin API Key and Proxy Base URL moved to Settings pane (admin-only concern)
-- "Register with Proxy" button appears next to webhook URL when admin key is configured
-- Green "Registered" badge with token shown after successful registration
+- Admin API Key and Server URL moved to Settings pane under "Advanced" (admin-only concern)
+- Registration happens **automatically** on URL input blur — no button, no click, no jargon
+- "Securing webhook..." shown during registration; "Webhook secured" + green "Secured" badge on success
+- "Retry" button appears only on failure as a manual fallback
+- Agent-facing UI never uses the words "proxy", "register", or "token"
 - Test button auto-routes through proxy when token exists, direct when it doesn't
 
 ### D5: Embed Code Output Strategy

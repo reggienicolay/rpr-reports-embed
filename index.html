@@ -1124,12 +1124,12 @@ input[type="color"] {
             </div>
 
             <div id="proxyStatus" style="margin-top:8px;display:none;">
-              <span id="proxyBadge" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">Registered</span>
+              <span id="proxyBadge" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">Secured</span>
               <code id="proxyTokenDisplay" style="font-size:12px;margin-left:8px;color:#888;"></code>
             </div>
 
             <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
-              <button type="button" class="btn-test-webhook" id="registerProxyBtn" style="display:none">Register with Proxy</button>
+              <button type="button" class="btn-test-webhook" id="registerProxyBtn" style="display:none">Retry</button>
               <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test</button>
             </div>
             <div class="test-webhook-result" id="testWebhookResult"></div>
@@ -1241,14 +1241,14 @@ input[type="color"] {
         </div>
 
         <div class="glass-card">
-          <h2 class="glass-card-title">RPR Proxy Settings</h2>
-          <p style="font-size:13px;color:#888;margin-bottom:12px;">Proxy registration is automatic. The admin key is only needed to edit or deactivate existing configurations.</p>
+          <h2 class="glass-card-title">Advanced</h2>
+          <p style="font-size:13px;color:#888;margin-bottom:12px;">These settings are for administrators only. Leave them blank for normal use.</p>
           <div class="field-group">
-            <label>Admin API Key <span class="hint">optional — only for managing existing configs</span></label>
+            <label>Admin API Key <span class="hint">optional — for editing or deactivating existing configs</span></label>
             <input type="password" id="adminApiKey" placeholder="rpr-admin-…" autocomplete="off">
           </div>
           <div class="field-group">
-            <label>Proxy Base URL <span class="hint">change only for custom Worker deployments</span></label>
+            <label>Server URL <span class="hint">change only for custom deployments</span></label>
             <input type="url" id="proxyBaseUrl" placeholder="https://rpr-lead-proxy.reggie-c50.workers.dev" value="https://rpr-lead-proxy.reggie-c50.workers.dev">
           </div>
         </div>

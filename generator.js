@@ -95,10 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
     generate();
   });
 
-  /* Shared delivery URL input */
-  document.getElementById('deliveryUrl').addEventListener('input', function() {
+  /* Shared delivery URL input — auto-register on blur */
+  var deliveryUrlEl = document.getElementById('deliveryUrl');
+  deliveryUrlEl.addEventListener('input', function() {
     updateWebhookWarning();
     generate();
+  });
+  deliveryUrlEl.addEventListener('blur', function() {
+    var url   = deliveryUrlEl.value.trim();
+    var token = document.getElementById('proxyToken').value.trim();
+    if (url && /^https:\/\//i.test(url) && !token) {
+      registerConfig();
+    }
   });
 
   /* Admin settings — persist on change, update UI */
@@ -173,8 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Test button (auto-routes via proxy or direct) */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
 
-  /* Register with proxy button */
-  document.getElementById('registerProxyBtn').addEventListener('click', registerConfig);
+  /* Manual register fallback (hidden by default — used if auto-register failed) */
+  var regBtn = document.getElementById('registerProxyBtn');
+  if (regBtn) regBtn.addEventListener('click', registerConfig);
 
   /* Mode tabs — use event delegation on parent */
   document.querySelector('.mode-tabs').addEventListener('click', e => {
@@ -290,7 +299,7 @@ function updateWebhookWarning() {
   const urlWarning = document.getElementById('deliveryUrlWarning');
   if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
 
-  /* Proxy status badge */
+  /* Secured status badge */
   const proxyStatus = document.getElementById('proxyStatus');
   const proxyDisplay = document.getElementById('proxyTokenDisplay');
   if (proxyStatus) {
@@ -302,19 +311,18 @@ function updateWebhookWarning() {
     }
   }
 
-  /* Register button: show when we have a valid HTTPS URL but no token yet */
+  /* Register button: hidden by default — only shown as retry if auto-register failed */
   const registerBtn = document.getElementById('registerProxyBtn');
   if (registerBtn) {
-    const canRegister = url && /^https:\/\//i.test(url) && !token;
-    registerBtn.style.display = canRegister ? 'inline-block' : 'none';
-    registerBtn.textContent = 'Register with Proxy';
+    registerBtn.style.display = 'none';
+    registerBtn.textContent = 'Retry';
   }
 
-  /* Test button: if we have a proxy token, test via proxy; otherwise direct test */
+  /* Test button */
   const testBtn = document.getElementById('testWebhookBtn');
   if (testBtn) {
     testBtn.style.display = (url || token) ? 'inline-block' : 'none';
-    testBtn.textContent = token ? 'Send test via Proxy' : 'Send test';
+    testBtn.textContent = 'Send test';
   }
 }
 
@@ -350,21 +358,21 @@ function restoreAdminSettings() {
 }
 
 /* ─────────────────────────────────────────────
-   Register / update config via Worker admin API
+   Register / update config via Worker API
 ───────────────────────────────────────────── */
 function registerConfig() {
   const url      = document.getElementById('deliveryUrl').value.trim();
   const apiKey   = getAdminKey();
   const baseUrl  = getProxyBaseUrl().replace(/\/+$/, '');
   const token    = document.getElementById('proxyToken').value.trim();
-  const btn      = document.getElementById('registerProxyBtn');
+  const retryBtn = document.getElementById('registerProxyBtn');
   const result   = document.getElementById('testProxyResult');
   const agentName = (document.getElementById('agentName') || {}).value || '';
 
-  if (!url) return;
+  if (!url || !(/^https:\/\//i.test(url))) return;
 
-  if (btn) { btn.disabled = true; btn.textContent = 'Registering\u2026'; }
-  if (result) { result.textContent = ''; result.className = 'test-webhook-result'; }
+  if (retryBtn) retryBtn.style.display = 'none';
+  if (result) { result.textContent = 'Securing webhook\u2026'; result.className = 'test-webhook-result'; }
 
   const isUpdate = token && /^agt_[a-zA-Z0-9]{12,24}$/.test(token);
   const endpoint = isUpdate ? (baseUrl + '/api/config/' + token) : (baseUrl + '/api/config');
@@ -374,7 +382,6 @@ function registerConfig() {
   if (agentName) body.agent_name = agentName;
 
   const headers = { 'Content-Type': 'application/json' };
-  // PUT/GET/DELETE require admin auth; POST (create) is public
   if (isUpdate && apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
 
   fetch(endpoint, {
@@ -387,7 +394,7 @@ function registerConfig() {
     if (res.ok && data && data.token) {
       document.getElementById('proxyToken').value = data.token;
       if (result) {
-        result.textContent = (isUpdate ? 'Config updated' : 'Registered') + ' \u2014 token: ' + data.token;
+        result.textContent = 'Webhook secured \u2714';
         result.className = 'test-webhook-result success';
       }
       updateWebhookWarning();
@@ -395,19 +402,18 @@ function registerConfig() {
     } else {
       const errMsg = (data && data.error) || ('HTTP ' + res.status);
       if (result) {
-        result.textContent = 'Registration failed: ' + errMsg;
+        result.textContent = 'Setup failed: ' + errMsg;
         result.className = 'test-webhook-result error';
       }
+      if (retryBtn) retryBtn.style.display = 'inline-block';
     }
   })
   .catch(() => {
     if (result) {
-      result.textContent = 'Could not reach proxy \u2014 check your internet connection and Proxy URL in Settings.';
+      result.textContent = 'Could not reach server \u2014 check your internet connection.';
       result.className = 'test-webhook-result error';
     }
-  })
-  .finally(() => {
-    if (btn) { btn.disabled = false; btn.textContent = 'Register with Proxy'; }
+    if (retryBtn) retryBtn.style.display = 'inline-block';
   });
 }
 
