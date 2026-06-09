@@ -17,12 +17,12 @@
   - `worker/wrangler.toml` — restored production IDs, fixed `new_sqlite_classes`
 - **Notes:** ADMIN_API_KEY set via `wrangler secret put`. Token format: `agt_` + 16 alphanumeric chars.
 
-### 3.2a — Generator Admin Settings UI
-- **Spec:** `specs/generator-auto-register.md` (requirements 1-3)
+### 3.2a — Generator Proxy Configuration
+- **Spec:** `specs/generator-auto-register.md`
 - **Status:** Done
 - **Files:**
-  - `index.html` — added Admin API Key + Proxy Base URL inputs in Settings pane
-  - `generator.js` — added `getAdminKey()`, `getProxyBaseUrl()`, `persistAdminSettings()`, `restoreAdminSettings()`
+  - `generator.js` — hardcoded `PROXY_BASE_URL` constant (no admin UI fields needed)
+- **Notes:** Admin API Key and Server URL fields were removed from the UI. Worker URL is a JS constant. Admin operations (PUT/DELETE) are done via curl.
 
 ### 3.2b — Generator Auto-Register
 - **Spec:** `specs/generator-auto-register.md` (requirements 4-10)

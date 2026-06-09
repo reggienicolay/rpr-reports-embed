@@ -78,7 +78,7 @@ Agent opens generator
 
 - **`POST /api/config` (create):** Public — no authentication required. Agents self-register from the generator without needing any credentials. Abuse is mitigated by the Worker's existing rate limiter (Durable Object) and the fact that tokens are worthless without a real webhook endpoint.
 - **`GET/PUT/DELETE /api/config/:token` (manage):** Requires `Authorization: Bearer <ADMIN_API_KEY>` header. The admin key is a Wrangler Secret set via `wrangler secret put`, encrypted at rest by Cloudflare.
-- **Storage in generator:** Admin key stored in `localStorage` (optional — only needed if the admin wants to manage existing configs). Never in URL hash, never in embed code.
+- **Generator has no admin UI:** The Worker base URL is hardcoded as a JS constant. No admin API key input exists in the generator — admin operations (view, update, deactivate configs) are performed via `curl` or API tools.
 - **Why not D1-stored tokens:** Wrangler Secrets are encrypted at rest by Cloudflare, not accessible via D1 dumps, and easily rotated via CLI.
 
 ### D2: Admin API Endpoints
@@ -101,7 +101,7 @@ All endpoints require Bearer token authentication. All return JSON with CORS hea
 ### D4: Generator Proxy Transparency
 
 - "RPR Proxy" removed from delivery method dropdown — agents never see the word "proxy"
-- Admin API Key and Server URL moved to Settings pane under "Advanced" (admin-only concern)
+- No admin API key or server URL fields in the UI — Worker URL is a hardcoded JS constant
 - Registration happens **automatically** on URL input blur — no button, no click, no jargon
 - "Securing webhook..." shown during registration; "Webhook secured" + green "Secured" badge on success
 - "Retry" button appears only on failure as a manual fallback

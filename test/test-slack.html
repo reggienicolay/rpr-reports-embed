@@ -10,13 +10,24 @@
   <p><a href="test.html">&larr; Back to test hub</a></p>
   <h2>Slack — Incoming Webhook</h2>
 
-  <script src="../rpr-reports-embed.js"
-    data-reports='[{"label":"Beverly Hills 90210","url":"https://www.narrpr.com/test-beverly-hills"}]'
-    data-webhook="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-    data-agent-name="Test Agent"
-    data-form-mode="full"
-    data-display-mode="inline"
-  ></script>
+  <script
+  src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
+  data-reports='[
+    {
+      "label": "Beverly Hills 90210",
+      "url": "https://narrpr.com"
+    }
+  ]'
+  data-proxy="https://rpr-lead-proxy.reggie-c50.workers.dev/agt_9PtcS5RFWlM7OyZu"
+  data-form-mode="minimal"
+  data-agent-name="Test"
+  data-brokerage="Test"
+  data-headline="What&#x27;s happening in your neighborhood?"
+  data-subheadline="Select your area and get a free local market report."
+  data-display-mode="inline"
+  data-gdpr-enabled="true"
+  data-gdpr-text="I agree to receive communications about local real estate market activity."
+></script>
 
   <div class="note">
     <strong>What to test:</strong>

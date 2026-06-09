@@ -57,9 +57,6 @@ let _suppressGenerate = false;
 ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ── Restore admin settings from localStorage (never in URL hash) ── */
-  restoreAdminSettings();
-
   /* ── Restore config from URL hash or localStorage ── */
   const hashStr  = location.hash.slice(1);
   const stored   = (() => { try { return localStorage.getItem('rpr-generator-config') || ''; } catch(e) { return ''; } })();
@@ -109,17 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* Admin settings — persist on change, update UI */
-  var adminKeyEl = document.getElementById('adminApiKey');
-  if (adminKeyEl) adminKeyEl.addEventListener('input', function() {
-    persistAdminSettings();
-    updateWebhookWarning();
-  });
-  document.getElementById('proxyBaseUrl').addEventListener('input', function() {
-    persistAdminSettings();
-    updateWebhookWarning();
-    generate();
-  });
 
   /* floatPosition is a <select> — fires 'change' not 'input' */
   document.getElementById('floatPosition').addEventListener('change', generate);
@@ -290,7 +276,6 @@ function updateWebhookWarning() {
   const method   = document.getElementById('deliveryMethod').value;
   const url      = document.getElementById('deliveryUrl').value.trim();
   const token    = document.getElementById('proxyToken').value.trim();
-  const apiKey   = getAdminKey();
   const noDelivery = !method || method === 'none';
 
   document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
@@ -326,44 +311,14 @@ function updateWebhookWarning() {
   }
 }
 
-/* ─────────────────────────────────────────────
-   Admin key helpers (stored in localStorage only)
-───────────────────────────────────────────── */
-function getAdminKey() {
-  return (document.getElementById('adminApiKey') || {}).value ||
-         (function() { try { return localStorage.getItem('rpr-admin-key') || ''; } catch(e) { return ''; } })();
-}
-
-function getProxyBaseUrl() {
-  const el = document.getElementById('proxyBaseUrl');
-  return (el && el.value.trim()) || 'https://rpr-lead-proxy.reggie-c50.workers.dev';
-}
-
-function persistAdminSettings() {
-  try {
-    localStorage.setItem('rpr-admin-key', (document.getElementById('adminApiKey') || {}).value || '');
-    localStorage.setItem('rpr-proxy-base', getProxyBaseUrl());
-  } catch(e) { /* ignore */ }
-}
-
-function restoreAdminSettings() {
-  try {
-    const key  = localStorage.getItem('rpr-admin-key') || '';
-    const base = localStorage.getItem('rpr-proxy-base') || '';
-    const keyEl  = document.getElementById('adminApiKey');
-    const baseEl = document.getElementById('proxyBaseUrl');
-    if (keyEl && key) keyEl.value = key;
-    if (baseEl && base) baseEl.value = base;
-  } catch(e) { /* ignore */ }
-}
+var PROXY_BASE_URL = 'https://rpr-lead-proxy.reggie-c50.workers.dev';
 
 /* ─────────────────────────────────────────────
    Register / update config via Worker API
 ───────────────────────────────────────────── */
 function registerConfig() {
   const url      = document.getElementById('deliveryUrl').value.trim();
-  const apiKey   = getAdminKey();
-  const baseUrl  = getProxyBaseUrl().replace(/\/+$/, '');
+  const baseUrl  = PROXY_BASE_URL;
   const token    = document.getElementById('proxyToken').value.trim();
   const retryBtn = document.getElementById('registerProxyBtn');
   const result   = document.getElementById('testProxyResult');
@@ -374,15 +329,13 @@ function registerConfig() {
   if (retryBtn) retryBtn.style.display = 'none';
   if (result) { result.textContent = 'Securing webhook\u2026'; result.className = 'test-webhook-result'; }
 
-  const isUpdate = token && /^agt_[a-zA-Z0-9]{12,24}$/.test(token);
-  const endpoint = isUpdate ? (baseUrl + '/api/config/' + token) : (baseUrl + '/api/config');
-  const method   = isUpdate ? 'PUT' : 'POST';
+  const endpoint = baseUrl + '/api/config';
+  const method   = 'POST';
 
   const body = { webhook_url: url };
   if (agentName) body.agent_name = agentName;
 
   const headers = { 'Content-Type': 'application/json' };
-  if (isUpdate && apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
 
   fetch(endpoint, {
     method:  method,
@@ -490,8 +443,7 @@ function sendTestViaProxy() {
 
   if (!token) return;
 
-  const baseUrl  = getProxyBaseUrl().replace(/\/+$/, '');
-  const proxyUrl = baseUrl + '/' + token;
+  const proxyUrl = PROXY_BASE_URL + '/' + token;
 
   btn.disabled = true;
   btn.textContent = 'Sending\u2026';
@@ -725,7 +677,7 @@ function vals() {
     deliveryMethod: method,
     webhookUrl:     url,
     proxyToken:     token,
-    proxyBaseUrl:   token ? getProxyBaseUrl() : '',
+    proxyBaseUrl:   token ? PROXY_BASE_URL : '',
     formMode:       formMode,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
