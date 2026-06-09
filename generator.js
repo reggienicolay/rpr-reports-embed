@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Delivery method dropdown — toggles panels + URL field, then generates */
   document.getElementById('deliveryMethod').addEventListener('change', function() {
-    handleDeliveryChange();
+    handleDeliveryChange(true);
     generate();
   });
 
@@ -254,18 +254,19 @@ function initCollapsibleSections() {
 /* ─────────────────────────────────────────────
    Delivery method panel handler
 ───────────────────────────────────────────── */
-function handleDeliveryChange() {
+function handleDeliveryChange(userInitiated) {
   const method     = document.getElementById('deliveryMethod').value;
   const urlGroup   = document.getElementById('deliveryUrlGroup');
   const urlInput   = document.getElementById('deliveryUrl');
 
-  /* Clear old proxy token + webhook URL when switching delivery methods */
-  document.getElementById('proxyToken').value = '';
-  if (urlInput) urlInput.value = '';
-  var statusEl = document.getElementById('proxyStatus');
-  if (statusEl) statusEl.style.display = 'none';
-  var resultEl = document.getElementById('testProxyResult');
-  if (resultEl) { resultEl.textContent = ''; resultEl.className = 'test-webhook-result'; }
+  if (userInitiated) {
+    document.getElementById('proxyToken').value = '';
+    if (urlInput) urlInput.value = '';
+    var statusEl = document.getElementById('proxyStatus');
+    if (statusEl) statusEl.style.display = 'none';
+    var resultEl = document.getElementById('testProxyResult');
+    if (resultEl) { resultEl.textContent = ''; resultEl.className = 'test-webhook-result'; }
+  }
 
   /* Hide all panels, show the selected one */
   document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
