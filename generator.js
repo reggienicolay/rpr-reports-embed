@@ -302,10 +302,10 @@ function updateWebhookWarning() {
     }
   }
 
-  /* Register button: show when we have a URL + API key but no token yet */
+  /* Register button: show when we have a valid HTTPS URL but no token yet */
   const registerBtn = document.getElementById('registerProxyBtn');
   if (registerBtn) {
-    const canRegister = url && /^https:\/\//i.test(url) && apiKey && !token;
+    const canRegister = url && /^https:\/\//i.test(url) && !token;
     registerBtn.style.display = canRegister ? 'inline-block' : 'none';
     registerBtn.textContent = 'Register with Proxy';
   }
@@ -361,7 +361,7 @@ function registerConfig() {
   const result   = document.getElementById('testProxyResult');
   const agentName = (document.getElementById('agentName') || {}).value || '';
 
-  if (!url || !apiKey) return;
+  if (!url) return;
 
   if (btn) { btn.disabled = true; btn.textContent = 'Registering\u2026'; }
   if (result) { result.textContent = ''; result.className = 'test-webhook-result'; }
@@ -373,12 +373,13 @@ function registerConfig() {
   const body = { webhook_url: url };
   if (agentName) body.agent_name = agentName;
 
+  const headers = { 'Content-Type': 'application/json' };
+  // PUT/GET/DELETE require admin auth; POST (create) is public
+  if (isUpdate && apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
+
   fetch(endpoint, {
     method:  method,
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-    },
+    headers: headers,
     body: JSON.stringify(body),
   })
   .then(async (res) => {
@@ -401,7 +402,7 @@ function registerConfig() {
   })
   .catch(() => {
     if (result) {
-      result.textContent = 'Could not reach proxy \u2014 check Admin API Key and Proxy URL in Settings.';
+      result.textContent = 'Could not reach proxy \u2014 check your internet connection and Proxy URL in Settings.';
       result.className = 'test-webhook-result error';
     }
   })
@@ -1292,9 +1293,8 @@ function importEmbed() {
   applyConfig(config);
   generateNow();
 
-  /* Auto-register with proxy if we have a webhook but no token and admin key is set */
-  const apiKey = getAdminKey();
-  if (webhook && apiKey && !config.proxyToken) {
+  /* Auto-register with proxy if we have a webhook but no token */
+  if (webhook && !config.proxyToken) {
     setTimeout(registerConfig, 300);
   }
 }

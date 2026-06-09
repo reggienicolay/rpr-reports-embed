@@ -25,10 +25,11 @@ Every competitor (Typeform, Jotform, Splitforms) routes through their own backen
 
 Make the proxy invisible infrastructure. The agent picks their destination (Slack, Sheets, ntfy, etc.) as they always have. Behind the scenes:
 
-- The **generator** calls the Worker's new admin API to register the agent's webhook URL in D1
+- The **generator** calls the Worker's public registration endpoint to register the agent's webhook URL in D1 — no API key needed
 - The generator outputs `data-proxy` in the embed code — the webhook URL never appears
 - The **widget** already supports `data-proxy` (Phase 2) — no delivery logic changes needed
 - Existing `data-webhook` embeds continue working unchanged (backward compatible)
+- Admin operations (read, update, deactivate configs) still require the `ADMIN_API_KEY` Bearer token
 
 Additionally: an **Import Existing Embed** feature lets agents with old `data-webhook` embeds paste their script tag and get an updated `data-proxy` version.
 
@@ -38,8 +39,8 @@ Additionally: an **Import Existing Embed** feature lets agents with old `data-we
 
 ### New Capabilities
 
-- `admin-config-api`: Authenticated CRUD endpoints on the Worker (`POST/GET/PUT/DELETE /api/config`) for managing agent configurations programmatically. Secured with Wrangler Secret (`ADMIN_API_KEY`) via Bearer token.
-- `generator-auto-register`: Generator calls the admin API to create/update agent configs when a webhook URL is entered. Token is stored in URL hash for persistence. Admin API key stored in localStorage (never in embed code).
+- `admin-config-api`: CRUD endpoints on the Worker (`POST/GET/PUT/DELETE /api/config`). `POST` (create) is **public** — no authentication required, so agents can self-register from the generator. `GET`, `PUT`, `DELETE` (read, update, deactivate) require admin auth via Wrangler Secret (`ADMIN_API_KEY`) Bearer token.
+- `generator-auto-register`: Generator calls the public registration endpoint to create agent configs when a webhook URL is entered. No API key needed for registration. Token is stored in URL hash for persistence. Admin API key is optional — only needed for managing existing configs.
 - `import-existing-embed`: Parse a pasted `<script>` tag, extract all `data-*` attributes, auto-detect delivery method from URL pattern, register webhook via admin API, output updated embed with `data-proxy`.
 
 ### Modified Capabilities
@@ -60,7 +61,7 @@ Additionally: an **Import Existing Embed** feature lets agents with old `data-we
 
 - **New files:** `worker/src/routes/admin.ts` (admin API handlers)
 - **Modified files:** `worker/src/index.ts` (routing), `worker/src/types.ts` (Env), `worker/src/routes/ingest.ts` (CORS), `worker/wrangler.toml` (production IDs), `generator.js` (auto-register, import, remove proxy dropdown), `index.html` (Settings pane, UI changes), `rpr-reports-embed.js` (version bump)
-- **New infrastructure:** Wrangler Secret `ADMIN_API_KEY` (set via CLI)
+- **New infrastructure:** Wrangler Secret `ADMIN_API_KEY` (set via CLI) — required only for admin management operations, not for registration
 - **No breaking changes:** Existing `data-webhook` embeds continue working. Existing `data-proxy` embeds continue working.
 - **Version:** Widget bumps from 1.4.0 -> 1.5.0 (new feature, backward compatible = MINOR)
 - **Turnstile deferred:** Requires Cloudflare dashboard key creation; will be its own pass.

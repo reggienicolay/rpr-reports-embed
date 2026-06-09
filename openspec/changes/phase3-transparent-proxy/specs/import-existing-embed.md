@@ -49,7 +49,7 @@
    - Any other URL -> custom
 7. If `data-proxy` is present, the proxy token is extracted from the URL path (`/agt_XXXXX`)
 8. After extraction, `applyConfig()` is called to populate all generator fields
-9. If a webhook URL was extracted, an admin API key is configured, and no proxy token exists, `registerConfig()` is called automatically after a short delay (300ms)
+9. If a webhook URL was extracted and no proxy token exists, `registerConfig()` is called automatically after a short delay (300ms) — no admin key needed (public registration)
 10. The generator code output updates to show `data-proxy` after registration
 
 ## Testable Scenarios
@@ -57,7 +57,7 @@
 - Paste embed with data-webhook="https://ntfy.sh/topic" -> delivery method set to ntfy, URL populated
 - Paste embed with data-proxy="…/agt_xyz123" -> proxy token extracted, no re-registration
 - Paste embed with data-reports, agent-name, branding -> all fields populated
-- Paste embed + admin key configured -> auto-registers and shows data-proxy in output
+- Paste embed with webhook URL -> auto-registers (public, no admin key needed) and shows data-proxy in output
 - Paste non-script HTML -> error alert
 - Paste empty string -> dialog dismissed, no change
 - Cancel prompt -> no change

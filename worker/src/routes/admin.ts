@@ -42,16 +42,19 @@ export async function handleAdmin(
 		return new Response(null, { status: 204, headers: adminCorsHeaders() });
 	}
 
+	const tokenMatch = path.match(/^\/api\/config\/([a-zA-Z0-9_]+)$/);
+	const token = tokenMatch ? tokenMatch[1] : null;
+
+	// POST /api/config is public — agents self-register from the generator.
+	// All other operations (read, update, delete) require admin auth.
+	if (path === '/api/config' && request.method === 'POST') {
+		return createConfig(request, env);
+	}
+
 	if (!authenticate(request, env)) {
 		return jsonErr('Unauthorized', 401);
 	}
 
-	const tokenMatch = path.match(/^\/api\/config\/([a-zA-Z0-9_]+)$/);
-	const token = tokenMatch ? tokenMatch[1] : null;
-
-	if (path === '/api/config' && request.method === 'POST') {
-		return createConfig(request, env);
-	}
 	if (token && request.method === 'GET') {
 		return getConfig(env, token);
 	}
