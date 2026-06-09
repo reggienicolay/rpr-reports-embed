@@ -42,6 +42,7 @@ Additionally: an **Import Existing Embed** feature lets agents with old `data-we
 - `admin-config-api`: CRUD endpoints on the Worker (`POST/GET/PUT/DELETE /api/config`). `POST` (create) is **public** — no authentication required, so agents can self-register from the generator. `GET`, `PUT`, `DELETE` (read, update, deactivate) require admin auth via Wrangler Secret (`ADMIN_API_KEY`) Bearer token.
 - `generator-auto-register`: Generator calls the public registration endpoint to create agent configs when a webhook URL is entered. No API key needed for registration. Token is stored in URL hash for persistence. Admin API key is optional — only needed for managing existing configs.
 - `import-existing-embed`: Parse a pasted `<script>` tag, extract all `data-*` attributes, auto-detect delivery method from URL pattern, register webhook via admin API, output updated embed with `data-proxy`.
+- `worker-formatters`: Server-side destination-aware payload formatting. The delivery handler detects the destination type from the webhook URL (Slack, Discord, ntfy, SimplePush, Pushover) and transforms the raw lead payload into the format each service expects. Unknown URLs receive raw JSON passthrough.
 
 ### Modified Capabilities
 
@@ -51,7 +52,7 @@ Additionally: an **Import Existing Embed** feature lets agents with old `data-we
 
 ### Unchanged Capabilities
 
-- `worker-ingest`, `worker-delivery`, `rate-limiter`, `idempotency`, `payload-signing`: No changes to the ingest/delivery pipeline.
+- `worker-ingest`, `rate-limiter`, `idempotency`, `payload-signing`: No changes to the ingest pipeline.
 - `webhook-submission` (direct `data-webhook` path): Fully preserved as legacy fallback.
 - All per-destination formatters (ntfy, Slack, Discord, SimplePush, Pushover): Unchanged.
 
@@ -59,7 +60,7 @@ Additionally: an **Import Existing Embed** feature lets agents with old `data-we
 
 ## Impact
 
-- **New files:** `worker/src/routes/admin.ts` (admin API handlers)
+- **New files:** `worker/src/routes/admin.ts` (admin API handlers), `worker/src/delivery/formatters.ts` (destination formatters)
 - **Modified files:** `worker/src/index.ts` (routing), `worker/src/types.ts` (Env), `worker/src/routes/ingest.ts` (CORS), `worker/wrangler.toml` (production IDs), `generator.js` (auto-register, import, remove proxy dropdown), `index.html` (Settings pane, UI changes), `rpr-reports-embed.js` (version bump)
 - **New infrastructure:** Wrangler Secret `ADMIN_API_KEY` (set via CLI) — required only for admin management operations, not for registration
 - **No breaking changes:** Existing `data-webhook` embeds continue working. Existing `data-proxy` embeds continue working.

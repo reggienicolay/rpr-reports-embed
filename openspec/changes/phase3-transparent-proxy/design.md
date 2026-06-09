@@ -126,3 +126,12 @@ All endpoints require Bearer token authentication. All return JSON with CORS hea
 - Admin endpoints need `Authorization` in `Access-Control-Allow-Headers`
 - OPTIONS preflight distinguishes `/api/*` paths (adds Authorization) from ingest paths (Content-Type only)
 - `Access-Control-Allow-Methods` expanded to `GET, POST, PUT, DELETE, OPTIONS`
+
+### D8: Server-Side Destination Formatters
+
+- The delivery handler detects the destination type from the agent's `webhook_url` using the same URL regex patterns as the widget's client-side formatters
+- Each formatter is a pure function that returns `{ url, method, headers, body }` — this allows URL rewrites (SimplePush -> `api.simplepush.io/send`, Pushover -> `/1/messages.json`) and non-JSON bodies (ntfy -> plain text)
+- Supported destinations: Slack (Block Kit), Discord (rich embed), ntfy (text + headers), SimplePush (key extraction), Pushover (token/user extraction)
+- Unknown URLs receive the existing raw JSON passthrough with `_proxy` metadata (works for Google Sheets, GHL, Make, Zapier, custom endpoints)
+- Formatters live in `worker/src/delivery/formatters.ts`, separate from the handler, for testability
+- Why server-side instead of widget-side: the widget already sends raw JSON to the proxy (by design — it doesn't know the webhook URL). Formatting must happen where the webhook URL is known, which is at delivery time in the Worker

@@ -2,6 +2,7 @@ import type { Env, QueueMessage } from '../types';
 import { getAgentConfig } from '../services/agent-config';
 import { signPayload } from '../services/signing';
 import { classifyRetry } from './retry';
+import { formatForDestination } from './formatters';
 
 const DELIVERY_TIMEOUT_MS = 30_000;
 
@@ -27,35 +28,31 @@ export async function handleDelivery(
 			continue;
 		}
 
-		const bodyStr = JSON.stringify({
-			...payload,
-			_proxy: {
-				delivery_id: id,
-				forwarded_at: new Date().toISOString(),
-				client_ip,
-				attempt: msg.attempts + 1,
-			},
+		const formatted = formatForDestination(agent.webhook_url, payload, {
+			delivery_id: id,
+			client_ip,
+			attempt: msg.attempts + 1,
 		});
 
 		const headers: Record<string, string> = {
-			'Content-Type': 'application/json',
+			...formatted.headers,
 			'X-RPR-Delivery-Id': id,
 			'X-RPR-Attempt': String(msg.attempts + 1),
 			'User-Agent': 'RPR-Lead-Proxy/1.0',
 		};
 
 		if (agent.hmac_secret) {
-			headers['X-RPR-Signature'] = await signPayload(agent.hmac_secret, bodyStr);
+			headers['X-RPR-Signature'] = await signPayload(agent.hmac_secret, formatted.body);
 		}
 
 		try {
 			const controller = new AbortController();
 			const timeout = setTimeout(() => controller.abort(), DELIVERY_TIMEOUT_MS);
 
-			const res = await fetch(agent.webhook_url, {
-				method: 'POST',
+			const res = await fetch(formatted.url, {
+				method: formatted.method,
 				headers,
-				body: bodyStr,
+				body: formatted.body,
 				signal: controller.signal,
 			});
 

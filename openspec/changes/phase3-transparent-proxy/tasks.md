@@ -58,3 +58,11 @@
 - **Files:**
   - `index.html` — added "Import Embed" button in header
   - `generator.js` — added `importEmbed()` function with DOM parsing, auto-detection, and auto-registration
+
+### 3.6 — Worker Server-Side Formatters
+- **Spec:** `specs/worker-formatters.md`
+- **Status:** Done
+- **Files:**
+  - `worker/src/delivery/formatters.ts` — new file (Slack, Discord, ntfy, SimplePush, Pushover formatters + URL detection + default passthrough)
+  - `worker/src/delivery/handler.ts` — replaced raw JSON body with `formatForDestination()` call
+- **Notes:** Formatter logic ported from widget client-side formatters (rpr-reports-embed.js lines 901-1049). Pure functions, no I/O. Unknown URLs still get raw JSON passthrough with `_proxy` metadata.
