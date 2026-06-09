@@ -1,10 +1,20 @@
 /**
- * rpr-reports-embed.js  v1.2.3
+ * rpr-reports-embed.js  v1.4.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.4.0: Combined proxy + formatters. Merges Phase 2 Cloudflare Worker
+ * proxy with per-destination formatters. When using data-proxy, formatters
+ * are bypassed (Worker handles delivery). When using data-webhook directly,
+ * formatters transform payloads for each service.
+ *
+ * v1.3.0: Phase 2 — Cloudflare Worker lead proxy support. New data-proxy
+ * attribute for secure lead delivery via RPR proxy (hides webhook URL,
+ * enables server-side retry + rate limiting). Backward compatible —
+ * existing data-webhook deploys continue working unchanged.
  *
  * v1.2.3: Per-destination formatters for Slack, Discord, SimplePush, and
  * Pushover. Each service now receives a nicely formatted notification
@@ -39,7 +49,11 @@
  *
  * Required attributes:
  *   data-reports   JSON array: [{"label":"Area Name","url":"https://narrpr.com/..."},…]
- *   data-webhook   HTTPS URL to receive lead payload (Zapier / Make / GHL / HubSpot)
+ *
+ * Lead delivery (at least one required):
+ *   data-proxy     RPR proxy URL with agent token (e.g. https://rpr-lead-proxy.workers.dev/agt_xxx)
+ *   data-webhook   Direct HTTPS webhook URL (Zapier / Make / GHL / HubSpot)
+ *                  If both are present, data-proxy takes priority.
  *
  * Optional attributes (all have sensible defaults):
  *   data-agent-name        Agent display name
@@ -152,6 +166,7 @@
 	/* ── Config object ───────────────────────────────────────────── */
 	const CFG = {
 		reports:         REPORTS,
+		proxy:           attr( 'data-proxy' ),
 		webhook:         attr( 'data-webhook' ),
 		agentName:       attr( 'data-agent-name' ),
 		brokerage:       attr( 'data-brokerage' ),
@@ -187,7 +202,11 @@
 		                 || ( 'rpr-reports-' + Math.random().toString( 36 ).slice( 2, 8 ) ),
 	};
 
-	/* SEC-6 FIX: block non-HTTPS webhooks entirely — don't transmit PII unencrypted */
+	/* SEC-6 FIX: block non-HTTPS URLs entirely — don't transmit PII unencrypted */
+	if ( CFG.proxy && ! CFG.proxy.startsWith( 'https://' ) && ! CFG.proxy.startsWith( 'http://localhost' ) ) {
+		console.error( 'RPR Reports Embed: data-proxy must be an HTTPS URL (http://localhost allowed for dev). Proxy disabled.' );
+		CFG.proxy = '';
+	}
 	if ( CFG.webhook && ! CFG.webhook.startsWith( 'https://' ) ) {
 		console.error( 'RPR Reports Embed: data-webhook must be an HTTPS URL. Webhook disabled.' );
 		CFG.webhook = '';
@@ -864,28 +883,34 @@
 			status.textContent = 'Sending…';
 			status.style.color = '';
 
-			let webhookOk = true;
+			let deliveryOk = true;
 			let webhookPayload = null;
-			let deliveryUrl = CFG.webhook;
+			let deliveryUrl = CFG.proxy || CFG.webhook;
 
 			if ( deliveryUrl ) {
 				try {
 					webhookPayload = collectPayload( step1, selectedIndex );
 
-				/* Per-destination formatting. Default: send our standard JSON
-					   payload (works with Zapier, Make, GHL, Sheets, Toolkit.app,
-					   custom webhooks, etc.). Services with their own payload
-					   requirements get a dedicated formatter so notifications
-					   arrive nicely on the agent's device. Adding new destinations
-					   is additive — unknown URLs fall through to JSON. */
 					let fetchOpts;
-					if ( /^https:\/\/ntfy\.sh\//i.test( deliveryUrl ) ) {
+
+					if ( CFG.proxy ) {
+						/* Proxy mode — send standard JSON to the Worker which handles
+						   formatting and delivery server-side. */
+						webhookPayload._meta = {
+							widget_version: '1.4.0',
+							source_url:     window.location.href,
+							timestamp:      new Date().toISOString(),
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( webhookPayload ),
+						};
+
+					} else if ( /^https:\/\/ntfy\.sh\//i.test( deliveryUrl ) ) {
 						/* ntfy.sh — Title/Click/Tags as HTTP headers, plain text body.
-						   v1.2.2 fix: HTTP headers must be ISO-8859-1 (Latin-1) per spec
-						   — fetch() throws on any code point > 255 (em-dash, CJK chars,
-						   emoji, etc.). The body has no such restriction; full UTF-8 OK
-						   there. headerSafe() replaces non-Latin-1 with '?' so visitor
-						   names with CJK/emoji don't break the submit. */
+						   HTTP headers must be ISO-8859-1 (Latin-1) per spec — fetch()
+						   throws on any code point > 255. headerSafe() strips them. */
 						const stripCrlf  = s => String( s || '' ).replace( /[\r\n]+/g, ' ' ).trim();
 						const headerSafe = s => stripCrlf( s ).replace( /[^\x00-\xFF]/g, '?' );
 						const name = [ webhookPayload.first_name, webhookPayload.last_name ]
@@ -909,9 +934,7 @@
 						fetchOpts = { method: 'POST', headers: headers, body: bodyLines.join( '\n' ) };
 
 					} else if ( /^https:\/\/hooks\.slack\.com\//i.test( deliveryUrl ) ) {
-						/* Slack Incoming Webhook — requires { "text": "..." } at minimum.
-						   We send Block Kit sections for rich formatting with a text
-						   fallback for mobile push notifications. */
+						/* Slack Incoming Webhook — Block Kit with text fallback. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );
@@ -942,8 +965,7 @@
 						};
 
 					} else if ( /^https:\/\/discord(app)?\.com\/api\/webhooks\//i.test( deliveryUrl ) ) {
-						/* Discord Webhook — requires at least one of content, embeds, file.
-						   We send a rich embed with fields for a clean card layout. */
+						/* Discord Webhook — rich embed card in RPR blue. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );
@@ -956,7 +978,7 @@
 						if ( webhookPayload.source_url )    fields.push( { name: 'Source', value: s( webhookPayload.source_url ),      inline: false } );
 						const embed = {
 							title:       'New RPR Lead' + ( name ? ': ' + name : '' ),
-							color:       34534, /* RPR blue #0086E6 → parseInt('0086E6', 16) */
+							color:       34534,
 							fields:      fields,
 							timestamp:   webhookPayload.timestamp,
 							footer:      { text: 'RPR Reports Widget' },
@@ -968,9 +990,7 @@
 						};
 
 					} else if ( /^https:\/\/(api\.)?simplepush\.io\//i.test( deliveryUrl ) || /^https:\/\/simplepu\.sh\//i.test( deliveryUrl ) ) {
-						/* SimplePush — POST JSON to /send with key, title, msg.
-						   Agent's webhook URL might be /send/KEY (GET-style) — extract
-						   the key from the URL path and POST to the /send endpoint. */
+						/* SimplePush — extract key from URL, POST JSON to /send. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );
@@ -992,9 +1012,8 @@
 						deliveryUrl = 'https://api.simplepush.io/send';
 
 					} else if ( /^https:\/\/api\.pushover\.net\//i.test( deliveryUrl ) ) {
-						/* Pushover — POST with token, user, message. Agent's URL has
-						   token and user as query params. Extract them, strip params
-						   from the URL, and send credentials in the JSON body only. */
+						/* Pushover — extract token/user from URL query params,
+						   POST credentials in JSON body only. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );
@@ -1026,19 +1045,36 @@
 						};
 
 					} else {
-						/* Default: JSON POST — current behavior for every other destination */
 						fetchOpts = {
 							method:  'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body:    JSON.stringify( webhookPayload ),
 						};
 					}
+
 					const res = await fetch( deliveryUrl, fetchOpts );
-					if ( ! res.ok ) {
+
+					if ( CFG.proxy ) {
+						if ( res.status === 202 || res.status === 200 ) {
+							deliveryOk = true;
+						} else {
+							deliveryOk = false;
+							let errMsg = 'Something went wrong \u2014 please try again.';
+							try {
+								const body = await res.json();
+								if ( body && body.error ) errMsg = body.error;
+							} catch ( _ignored ) {}
+							if ( res.status >= 500 ) {
+								enqueueRetry( webhookPayload, deliveryUrl );
+							}
+							status.textContent = errMsg;
+							status.style.color = '#d0021b';
+						}
+					} else if ( ! res.ok ) {
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
-						webhookOk = false;
+						deliveryOk = false;
 						if ( res.status >= 500 ) {
-							enqueueRetry( webhookPayload, CFG.webhook );
+							enqueueRetry( webhookPayload, deliveryUrl );
 							status.textContent = 'Something went wrong \u2014 please try again.';
 						} else {
 							status.textContent = 'Lead could not be delivered \u2014 please contact the site owner.';
@@ -1046,15 +1082,15 @@
 						status.style.color = '#d0021b';
 					}
 				} catch ( e ) {
-					console.warn( 'RPR Reports Embed: Webhook error', e );
-					webhookOk = false;
-					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), CFG.webhook );
+					console.warn( 'RPR Reports Embed: Delivery error', e );
+					deliveryOk = false;
+					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), deliveryUrl );
 					status.textContent = 'Something went wrong \u2014 please try again.';
 					status.style.color = '#d0021b';
 				}
 			}
 
-			if ( ! webhookOk ) {
+			if ( ! deliveryOk ) {
 				/* Unlock so user can retry */
 				wrap._rprSubmitted = false;
 				btn.disabled = false;

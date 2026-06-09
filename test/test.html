@@ -15,8 +15,11 @@
   </style>
 </head>
 <body>
-  <h1>RPR Widget v1.2.3 — Test Hub</h1>
+  <h1>RPR Widget v1.4.0 — Test Hub</h1>
   <p>Each test runs on its own page. Integration tests require real service credentials.</p>
+
+  <h2>Live Proxy</h2>
+  <a href="test-proxy-live.html">Cloudflare Worker Proxy <span>Health check, submit, bad token, rate limit burst — live on Cloudflare</span></a>
 
   <h2>Integration Formatters</h2>
   <a href="test-slack.html">Slack <span>Block Kit message with :house: header, name/email/phone/area fields</span></a>
@@ -24,7 +27,13 @@
   <a href="test-simplepush.html">SimplePush <span>Phone push — key extracted from URL, title + body text</span></a>
   <a href="test-pushover.html">Pushover <span>Phone push — token/user from URL params, cash register sound</span></a>
 
-  <h2>Other</h2>
-  <a href="../index.html">Generator <span>Build embed code, test delivery methods</span></a>
+  <h2>Widget Modes</h2>
+  <a href="test-inline-ok.html">Inline Mode — 200 OK <span>Submit flow, Back button, double-click, phone validation</span></a>
+  <a href="test-inline-500.html">Inline Mode — 500 Error <span>Error message, localStorage retry queue</span></a>
+  <a href="test-inline-403.html">Inline Mode — 403 Error <span>Non-retriable error message</span></a>
+  <a href="test-floating.html">Floating Mode <span>FAB button, overlay, Escape key</span></a>
+  <a href="test-modal.html">Modal Mode <span>Trigger button, overlay, Escape key</span></a>
+  <a href="test-invalid-colors.html">Invalid Card Colors <span>Hex validation fallback</span></a>
+  <a href="../index.html">Generator <span>Empty reports guard, Copy button</span></a>
 </body>
 </html>

@@ -960,6 +960,7 @@ input[type="color"] {
               <label>How do you want to receive leads?</label>
           <select id="deliveryMethod">
             <option value="">— Choose a delivery method —</option>
+            <option value="rpr-proxy">RPR Proxy — Recommended (secure, reliable, free)</option>
             <option value="none">No notification (leads not captured)</option>
             <option value="ntfy">ntfy.sh — Free phone push notification</option>
             <option value="simplepush">SimplePush — Free phone push notification</option>
@@ -975,6 +976,13 @@ input[type="color"] {
           </select>
 
           <div id="deliveryInstructions">
+            <div class="delivery-panel" id="panel-rpr-proxy" hidden>
+              <div class="panel-title">RPR Proxy — secure lead delivery (recommended)</div>
+              <p>Your leads are delivered through the RPR secure proxy. This hides your webhook URL from the public page, adds automatic retry on failure, rate limiting against bots, and deduplication.</p>
+              <p>Enter your agent token below. If you don't have one yet, contact your RPR administrator.</p>
+              <p class="panel-foot">Free for all RPR agents. Server-side retry guarantees delivery even if the visitor closes the page.</p>
+            </div>
+
             <div class="delivery-panel" id="panel-none" hidden>
               <p>No webhook URL will be added. The form will display reports to visitors but lead data will not be captured. You can add a delivery method later.</p>
             </div>
@@ -1111,6 +1119,20 @@ input[type="color"] {
               <p>Paste any HTTPS webhook URL below. The widget will POST lead data as JSON to this URL when a visitor submits the form.</p>
               <p class="panel-foot">Payload includes: <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>selected_area</code>, <code>report_url</code>, <code>timestamp</code>, <code>form_id</code>.</p>
             </div>
+          </div>
+
+          <div id="proxyTokenGroup" hidden style="margin-top:12px">
+            <label>Agent Token</label>
+            <input type="text" id="proxyToken" placeholder="agt_your_token_here">
+            <div class="delivery-url-warning" id="proxyTokenWarning" hidden>
+              Token must start with <code>agt_</code> followed by alphanumeric characters.
+            </div>
+            <div class="field-group" style="margin-top:8px">
+              <label>Proxy Base URL <span class="hint">change only for custom deployments</span></label>
+              <input type="url" id="proxyBaseUrl" placeholder="https://rpr-lead-proxy.workers.dev" value="https://rpr-lead-proxy.workers.dev">
+            </div>
+            <button type="button" class="btn-test-webhook" id="testProxyBtn" style="display:none">Send test</button>
+            <div class="test-webhook-result" id="testProxyResult"></div>
           </div>
 
           <div id="deliveryUrlGroup" hidden style="margin-top:12px">

@@ -24,7 +24,7 @@ const DEFAULTS = {
 
 /* Field IDs for URL hash encoding (scalar fields only) */
 const FIELD_KEYS = [
-  'deliveryMethod','deliveryUrl','formMode','agentName','brokerage','logoUrl','colorBrandHex',
+  'deliveryMethod','deliveryUrl','proxyToken','proxyBaseUrl','formMode','agentName','brokerage','logoUrl','colorBrandHex',
   'fontHeading','fontBody','headline','subheadline','btnLabel',
   'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
   'cardRadius','areaLabel','reportsHeading','gdprText',
@@ -98,6 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
     generate();
   });
 
+  /* Proxy token + base URL inputs */
+  document.getElementById('proxyToken').addEventListener('input', function() {
+    updateWebhookWarning();
+    generate();
+  });
+  document.getElementById('proxyBaseUrl').addEventListener('input', function() {
+    updateWebhookWarning();
+    generate();
+  });
+
   /* floatPosition is a <select> — fires 'change' not 'input' */
   document.getElementById('floatPosition').addEventListener('change', generate);
 
@@ -153,6 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Test webhook button */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
+
+  /* Test proxy button */
+  document.getElementById('testProxyBtn').addEventListener('click', sendTestProxy);
 
   /* Mode tabs — use event delegation on parent */
   document.querySelector('.mode-tabs').addEventListener('click', e => {
@@ -233,20 +246,26 @@ function initCollapsibleSections() {
    Delivery method panel handler
 ───────────────────────────────────────────── */
 function handleDeliveryChange() {
-  const method   = document.getElementById('deliveryMethod').value;
-  const urlGroup = document.getElementById('deliveryUrlGroup');
-  const urlInput = document.getElementById('deliveryUrl');
+  const method     = document.getElementById('deliveryMethod').value;
+  const urlGroup   = document.getElementById('deliveryUrlGroup');
+  const proxyGroup = document.getElementById('proxyTokenGroup');
+  const urlInput   = document.getElementById('deliveryUrl');
+  const isProxy    = method === 'rpr-proxy';
 
   /* Hide all panels, show the selected one */
   document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
   const panel = document.getElementById('panel-' + method);
   if (panel) panel.hidden = false;
 
-  /* Show URL input for every method except "none" / empty.
-     Sheets DOES need the URL field — the deployed Web App URL is
-     what the script.appendRow handler listens on. */
-  const noUrl = !method || method === 'none';
-  urlGroup.hidden = noUrl;
+  /* Show proxy fields or webhook fields based on method */
+  if (isProxy) {
+    proxyGroup.hidden = false;
+    urlGroup.hidden   = true;
+  } else {
+    proxyGroup.hidden = true;
+    const noUrl = !method || method === 'none';
+    urlGroup.hidden = noUrl;
+  }
 
   /* Update placeholder for the selected service */
   const meta = DELIVERY_META[method];
@@ -259,24 +278,43 @@ function handleDeliveryChange() {
    Webhook warning + test button visibility
 ───────────────────────────────────────────── */
 function updateWebhookWarning() {
-  const method  = document.getElementById('deliveryMethod').value;
-  const url     = document.getElementById('deliveryUrl').value.trim();
+  const method   = document.getElementById('deliveryMethod').value;
+  const url      = document.getElementById('deliveryUrl').value.trim();
+  const isProxy  = method === 'rpr-proxy';
   const noDelivery = !method || method === 'none';
 
   document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
 
-  /* HTTPS warning — surfaces in the generator before the embed widget rejects it at runtime */
-  const urlWarning = document.getElementById('deliveryUrlWarning');
-  if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
+  if (isProxy) {
+    /* Proxy token validation */
+    const token = document.getElementById('proxyToken').value.trim();
+    const tokenWarning = document.getElementById('proxyTokenWarning');
+    if (tokenWarning) tokenWarning.hidden = !token || /^agt_[a-zA-Z0-9]{12,24}$/.test(token);
 
-  /* Test button only shows when a URL has been entered */
-  const testBtn = document.getElementById('testWebhookBtn');
-  if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
+    const baseUrl = document.getElementById('proxyBaseUrl').value.trim();
+    const baseUrlEl = document.getElementById('proxyBaseUrl');
+    if (baseUrl && !/^https:\/\//i.test(baseUrl) && !/^http:\/\/localhost/i.test(baseUrl)) {
+      baseUrlEl.style.borderColor = '#dc2626';
+    } else {
+      baseUrlEl.style.borderColor = '';
+    }
 
-  const result = document.getElementById('testWebhookResult');
-  if (result) {
-    result.textContent = '';
-    result.className = 'test-webhook-result';
+    const testProxyBtn = document.getElementById('testProxyBtn');
+    if (testProxyBtn) testProxyBtn.style.display = token ? 'inline-block' : 'none';
+
+    const proxyResult = document.getElementById('testProxyResult');
+    if (proxyResult) { proxyResult.textContent = ''; proxyResult.className = 'test-webhook-result'; }
+  } else {
+    /* HTTPS warning — surfaces in the generator before the embed widget rejects it at runtime */
+    const urlWarning = document.getElementById('deliveryUrlWarning');
+    if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
+
+    /* Test button only shows when a URL has been entered */
+    const testBtn = document.getElementById('testWebhookBtn');
+    if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
+
+    const result = document.getElementById('testWebhookResult');
+    if (result) { result.textContent = ''; result.className = 'test-webhook-result'; }
   }
 }
 
@@ -336,6 +374,74 @@ function sendTestWebhook() {
   })
   .catch(() => {
     result.textContent = 'Could not send test \u2014 check your URL and try again.';
+    result.className = 'test-webhook-result error';
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Send test';
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Test proxy
+───────────────────────────────────────────── */
+function sendTestProxy() {
+  const cfg    = vals();
+  const btn    = document.getElementById('testProxyBtn');
+  const result = document.getElementById('testProxyResult');
+
+  if (!cfg.proxyToken) return;
+
+  const proxyUrl = cfg.proxyBaseUrl.replace(/\/+$/, '') + '/' + cfg.proxyToken;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+  result.textContent = '';
+  result.className = 'test-webhook-result';
+
+  const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
+
+  const payload = {
+    form_id:       'rpr-test-000',
+    first_name:    'Test',
+    last_name:     'Lead (from RPR Generator)',
+    email:         'test@example.com',
+    phone:         '(555) 000-0000',
+    selected_area: firstLabel,
+    report_url:    'https://www.narrpr.com/reports-v2/test/pdf',
+    agent_name:    cfg.agentName || '',
+    brokerage:     cfg.brokerage || '',
+    gdpr_consent:  null,
+    source_url:    location.href,
+    timestamp:     new Date().toISOString(),
+    _meta: {
+      widget_version: '1.3.0',
+      source_url:     location.href,
+      timestamp:      new Date().toISOString(),
+    },
+  };
+
+  fetch(proxyUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload),
+  })
+  .then(async (res) => {
+    const body = await res.json().catch(() => null);
+    if (res.status === 202) {
+      result.textContent = 'Lead queued for delivery \u2014 the proxy will forward it to your webhook.';
+      result.className = 'test-webhook-result success';
+    } else if (res.status === 200 && body && body.status === 'duplicate') {
+      result.textContent = 'Duplicate submission \u2014 this test lead was already sent recently.';
+      result.className = 'test-webhook-result success';
+    } else {
+      const errMsg = (body && body.error) || ('Proxy returned HTTP ' + res.status);
+      result.textContent = errMsg;
+      result.className = 'test-webhook-result error';
+    }
+  })
+  .catch(() => {
+    result.textContent = 'Could not reach proxy \u2014 check the base URL and try again.';
     result.className = 'test-webhook-result error';
   })
   .finally(() => {
@@ -511,12 +617,15 @@ function sanitizeFontName(name) {
 
 function vals() {
   const method = v('deliveryMethod');
-  const url    = (!method || method === 'none') ? '' : v('deliveryUrl');
+  const isProxy = method === 'rpr-proxy';
+  const url    = (!method || method === 'none' || isProxy) ? '' : v('deliveryUrl');
   const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';  /* default minimal */
   return {
     reports:        getReports(),
     deliveryMethod: method,
     webhookUrl:     url,
+    proxyToken:     isProxy ? v('proxyToken') : '',
+    proxyBaseUrl:   isProxy ? (v('proxyBaseUrl') || 'https://rpr-lead-proxy.workers.dev') : '',
     formMode:       formMode,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
@@ -682,6 +791,9 @@ function applyConfig(config) {
     addReportRow('Beverly Hills 90210', '', true);
     addReportRow('Santa Monica 90401', '', true);
   }
+
+  /* Trigger delivery panel visibility after restoring method selection */
+  handleDeliveryChange();
 
   _suppressGenerate = false;
 }
@@ -869,7 +981,12 @@ function renderCode(cfg) {
     lines.push("  data-reports='[]'");
   }
 
-  if (cfg.webhookUrl)  lines.push('  data-webhook="'      + av(cfg.webhookUrl)   + '"');
+  if (cfg.proxyToken) {
+    const proxyUrl = cfg.proxyBaseUrl.replace(/\/+$/, '') + '/' + cfg.proxyToken;
+    lines.push('  data-proxy="' + av(proxyUrl) + '"');
+  } else if (cfg.webhookUrl) {
+    lines.push('  data-webhook="' + av(cfg.webhookUrl) + '"');
+  }
   /* Always emit data-form-mode so the embed code is explicit about which
      form variant the agent picked. The widget itself defaults to 'full' for
      backwards-compat, so omitting would silently flip new minimal embeds. */

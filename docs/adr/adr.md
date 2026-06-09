@@ -267,3 +267,51 @@ Host the widget script on Cloudflare R2 with a public bucket URL: `pub-6607a59d1
 - (-) The URL is opaque (hash-based bucket name) — not human-readable
 - (-) No built-in versioning — the same URL always serves the latest upload
 - (-) Single point of failure if the R2 bucket or Cloudflare has an outage
+
+---
+
+## ADR-010: Cloudflare Worker Lead Proxy
+
+**Status:** Active
+**Date:** 2026-05 (v1.3.0)
+**Supersedes:** ADR-002 partial (proxy deferral)
+
+### Context
+
+ADR-002 established webhook-only lead delivery with no server-side infrastructure. As the agent base grows, this creates five production-grade problems: (1) webhook URLs visible in page source invite spam and abuse, (2) CORS failures on many webhook services, (3) no server-side retry — lost leads on transient failures, (4) no rate limiting against bots, (5) no observability into delivery health.
+
+Every production competitor (Typeform, Jotform, HubSpot Forms) uses a server-side proxy for form submissions.
+
+### Decision
+
+Build a Cloudflare Worker lead proxy using the Cloudflare Developer Platform:
+
+- **Worker** (single worker with `fetch()` + `queue()` handlers): receives form submissions, validates, enqueues for delivery
+- **Cloudflare Queue**: at-least-once delivery with configurable retry and dead letter queue
+- **D1 database**: agent config store (token -> webhook URL, rate limit config, HMAC secret)
+- **KV namespace**: idempotency — SHA-256 payload hash with 5-minute TTL prevents double-submit
+- **Durable Object**: per-IP sliding window rate limiter (configurable per agent)
+Widget uses `data-proxy` attribute with fallback to `data-webhook` for backward compatibility. Turnstile bot verification is planned for Phase 3 (requires widget-side integration).
+
+### Alternatives Considered
+
+| Alternative | Why Rejected |
+|---|---|
+| **AWS Lambda + API Gateway** | Higher cold start, more operational overhead, no native queue integration, separate billing account needed |
+| **Separate ingest and delivery Workers** | Adds complexity for local development (experimental multi-config wrangler); RPR's scale (<15M messages/month) doesn't need independent scaling |
+| **Durable Objects for retry** (instead of Queues) | Queues are purpose-built for this — at-least-once delivery, DLQ, configurable batch/timeout. DOs for retry is a workaround pattern. |
+| **Keep client-side only with localStorage retry** | Only works if same visitor returns to same page on same device. Not viable for >99% delivery target. |
+
+### Consequences
+
+- (+) Webhook URLs hidden from page source — only proxy token visible
+- (+) Server-side retry guarantees delivery even if visitor closes browser
+- (+) Per-IP rate limiting blocks bot abuse
+- (+) Deduplication prevents double-submit from retry
+- (+) CORS normalized — browser POSTs to Worker origin, no preflight issues
+- (+) HMAC signing enables agents to verify payload authenticity
+- (+) ~$5.60/month at 10K agents — cost-effective
+- (+) Uses same Cloudflare ecosystem as existing R2 CDN (ADR-008)
+- (-) First server-side component — introduces infrastructure to maintain
+- (-) Requires Cloudflare account with Workers Paid plan ($5/mo base)
+- (-) Agent onboarding requires token provisioning (no self-service UI yet)

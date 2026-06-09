@@ -1,0 +1,21 @@
+{
+  "name": "rpr-lead-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker lead proxy for RPR Reports Embed Widget",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "wrangler d1 execute rpr_leads --local --file=src/schema.sql",
+    "migrate": "wrangler d1 execute rpr_leads --local --file=src/schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4",
+    "typescript": "^5",
+    "vitest": "^3",
+    "@cloudflare/vitest-pool-workers": "^0.8",
+    "@cloudflare/workers-types": "^4"
+  }
+}

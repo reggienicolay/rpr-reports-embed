@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 2: Inline — 500 Error</title>
+  <style>body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; } .note { color: #888; font-size: 13px; margin-top: 12px; } a { color: #0086E6; } code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }</style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Inline Mode — 500 Error (retriable)</h2>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Test Area","url":"https://www.narrpr.com/test"}]'
+    data-webhook="https://httpbin.org/status/500"
+    data-agent-name="Test Agent"
+    data-form-mode="minimal"
+    data-display-mode="inline"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Submit — should show "Something went wrong — please try again." in red</li>
+      <li>Should NOT advance to step 2</li>
+      <li>Open console: run <code>localStorage.getItem('rpr_retry_queue')</code> — should have a queued entry</li>
+      <li>Refresh the page — the retry fires automatically in the background</li>
+      <li>After 3 failed retries the entry is discarded</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+name = "rpr-lead-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# --- D1 Database ---
+[[d1_databases]]
+binding = "DB"
+database_name = "rpr_leads"
+database_id = "local-dev-placeholder"
+
+# --- KV Namespace (idempotency) ---
+[[kv_namespaces]]
+binding = "IDEMPOTENCY"
+id = "local-dev-placeholder"
+
+# --- Queue Producer ---
+[[queues.producers]]
+binding = "LEAD_QUEUE"
+queue = "lead-delivery"
+
+# --- Queue Consumer ---
+[[queues.consumers]]
+queue = "lead-delivery"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "lead-delivery-dlq"
+
+# --- Dead Letter Queue Producer (for logging) ---
+[[queues.producers]]
+binding = "DLQ"
+queue = "lead-delivery-dlq"
+
+# --- Durable Objects ---
+[durable_objects]
+bindings = [
+  { name = "RATE_LIMITER", class_name = "RateLimiter" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]

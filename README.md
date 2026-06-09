@@ -1,10 +1,10 @@
 # RPR Market Reports — Embed Widget
 
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Compatibility:** All modern browsers (Chrome 60+, Firefox 55+, Safari 12+, Edge 79+)
 **Dependencies:** None — no framework, no jQuery
 
-A self-contained lead capture widget for embedding RPR market reports on any website. Visitors select an area, submit their contact information, and receive a link to the corresponding RPR report. Lead data is delivered to a webhook of your choosing (Zapier, Make, GoHighLevel, etc.).
+A self-contained lead capture widget for embedding RPR market reports on any website. Visitors select an area, submit their contact information, and receive a link to the corresponding RPR report. Lead data is delivered via the RPR secure proxy (recommended) or directly to a webhook of your choosing (Zapier, Make, GoHighLevel, etc.).
 
 ---
 
@@ -47,10 +47,11 @@ You can switch modes at any time and re-copy the embed code. The widget itself r
 
 ### Step 4 — Set up lead delivery (recommended)
 
-Pick a delivery method from the **How do you want to receive leads?** dropdown. The generator includes 12 options ranging from free-and-instant to enterprise:
+Pick a delivery method from the **How do you want to receive leads?** dropdown. The generator includes 13 options ranging from free-and-instant to enterprise:
 
 | Method | Notes |
 |--------|-------|
+| **RPR Proxy** *(recommended)* | Secure server-side relay with retry, rate limiting, and dedup. Free. |
 | **ntfy.sh**, **SimplePush** | Free phone push notifications, ~2-minute setup |
 | **Pushover** | Phone push, $5 one-time |
 | **Toolkit.app** | Free email notification, no account needed |
@@ -61,7 +62,7 @@ Pick a delivery method from the **How do you want to receive leads?** dropdown. 
 | **Custom webhook URL** | Any HTTPS endpoint that accepts a JSON POST |
 | **No notification** | Display reports without capturing leads |
 
-Selecting a method reveals inline setup instructions for that service and a webhook URL field. Paste the URL the service gives you, and the generator builds your `data-webhook` attribute automatically.
+Selecting a method reveals inline setup instructions for that service. For the **RPR Proxy**, enter your agent token and the generator builds the `data-proxy` attribute. For other methods, paste the webhook URL the service gives you, and the generator builds the `data-webhook` attribute.
 
 If you skip lead delivery (or pick "No notification"), the widget still works — visitors can view reports — but contact information won't be captured anywhere.
 
@@ -119,11 +120,12 @@ The form renders inline at the script tag's location. See [Display modes](#displ
 |-----------|-------------|
 | `data-reports` | JSON array of area objects. Each object must have a `label` (shown in the dropdown and on the report card) and a `url` (the RPR PDF link). Must contain at least one valid entry. All `url` values must begin with `http://` or `https://`; entries failing this check are silently dropped. |
 
-### Recommended
+### Lead Delivery (at least one recommended)
 
 | Attribute | Description |
 |-----------|-------------|
-| `data-webhook` | HTTPS URL that receives lead data on each submission. Must begin with `https://` — non-HTTPS values are rejected and no data is transmitted. If omitted, the form still displays reports but leads are not captured. |
+| `data-proxy` | RPR proxy URL with agent token (e.g. `https://rpr-lead-proxy.workers.dev/agt_xxx`). Leads are delivered through the secure RPR proxy which hides webhook URLs, adds server-side retry, rate limiting, and deduplication. If both `data-proxy` and `data-webhook` are present, the proxy takes priority. `http://localhost` is allowed for local development. |
+| `data-webhook` | Direct HTTPS URL that receives lead data on each submission. Must begin with `https://` — non-HTTPS values are rejected and no data is transmitted. If omitted and no `data-proxy` is set, the form still displays reports but leads are not captured. |
 | `data-form-mode` | `"minimal"` (area + email only) or `"full"` (first/last/email/phone + area). **Default: `"full"`** for backwards compatibility with deployed embeds. The v1.1+ generator emits `data-form-mode="minimal"` by default for new embeds. |
 
 ### Branding
@@ -258,7 +260,11 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 
 ## Security
 
+- `data-proxy` must be HTTPS (except `http://localhost` for local development). Non-HTTPS values are rejected at startup.
 - `data-webhook` must be HTTPS. Non-HTTPS values are rejected at startup; no data is transmitted.
+- When using the RPR Proxy, the agent's real webhook URL is never exposed in page source — only the proxy token is visible.
+- The proxy adds per-IP rate limiting and payload deduplication. Turnstile bot verification is planned for Phase 3.
+- Webhook deliveries from the proxy include an HMAC-SHA256 signature in the `X-RPR-Signature` header for authenticity verification.
 - `data-logo-url` must be HTTPS. HTTP and data URIs are rejected.
 - All report URLs in `data-reports` must begin with `http://` or `https://`. Entries with `javascript:` or other schemes are silently dropped during parsing and again at render time.
 - Font names from `data-font-heading` and `data-font-body` are stripped to letters, numbers, spaces, and hyphens before use in CSS.
@@ -268,6 +274,8 @@ The webhook fires once per submission. If the webhook URL is absent or non-HTTPS
 ---
 
 ## Changelog
+
+**v1.3.0** — Phase 2: Cloudflare Worker lead proxy. New `data-proxy` attribute enables secure lead delivery via the RPR proxy — hides webhook URLs from page source, adds server-side retry with dead letter queue, per-IP rate limiting via Durable Objects, KV-based payload deduplication, and HMAC-SHA256 payload signing. Backward compatible: existing `data-webhook` deploys continue working unchanged. Generator adds "RPR Proxy (Recommended)" delivery method with agent token input and real success/fail test feedback. Worker stack: Cloudflare Workers, Queues, D1, KV, Durable Objects.
 
 **v1.2.0** — Phase 1: Bug fixes + security hardening. Fix silent lead loss on HTTP errors (4xx/5xx now shown to user instead of fake success). Fix duplicate webhook race condition (submission locked before fetch). Fix Back button dead-end (full form reset on Back). Fix Escape key resetting closed overlays. Validate `data-card-bg` and `data-card-text` with `isValidHex()`. Align widget default brand color with generator (`#0086E6`). Add phone validation (permissive international pattern) and `maxlength` on all form fields. Add localStorage retry queue for failed webhook submissions (up to 3 retries with exponential backoff). Generator: unify HTML escaping to 5 entities, block Copy button when no valid report rows exist.
 
