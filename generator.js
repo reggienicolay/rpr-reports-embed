@@ -259,6 +259,14 @@ function handleDeliveryChange() {
   const urlGroup   = document.getElementById('deliveryUrlGroup');
   const urlInput   = document.getElementById('deliveryUrl');
 
+  /* Clear old proxy token + webhook URL when switching delivery methods */
+  document.getElementById('proxyToken').value = '';
+  if (urlInput) urlInput.value = '';
+  var statusEl = document.getElementById('proxyStatus');
+  if (statusEl) statusEl.style.display = 'none';
+  var resultEl = document.getElementById('testProxyResult');
+  if (resultEl) { resultEl.textContent = ''; resultEl.className = 'test-webhook-result'; }
+
   /* Hide all panels, show the selected one */
   document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
   const panel = document.getElementById('panel-' + method);
