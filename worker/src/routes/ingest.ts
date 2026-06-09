@@ -90,7 +90,7 @@ function jsonError(error: string, status: number): Response {
 export function corsHeaders(): Record<string, string> {
 	return {
 		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Methods': 'POST, OPTIONS',
-		'Access-Control-Allow-Headers': 'Content-Type',
+		'Access-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS',
+		'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 	};
 }

@@ -1,10 +1,15 @@
 /**
- * rpr-reports-embed.js  v1.4.0
+ * rpr-reports-embed.js  v1.5.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.5.0: Phase 3 — Transparent proxy. The generator now auto-registers
+ * agent configs via the Worker admin API and always emits data-proxy.
+ * Webhook URLs are never exposed in embed code. data-webhook remains as
+ * a legacy fallback for existing deploys.
  *
  * v1.4.0: Combined proxy + formatters. Merges Phase 2 Cloudflare Worker
  * proxy with per-destination formatters. When using data-proxy, formatters
@@ -897,7 +902,7 @@
 						/* Proxy mode — send standard JSON to the Worker which handles
 						   formatting and delivery server-side. */
 						webhookPayload._meta = {
-							widget_version: '1.4.0',
+							widget_version: '1.5.0',
 							source_url:     window.location.href,
 							timestamp:      new Date().toISOString(),
 						};

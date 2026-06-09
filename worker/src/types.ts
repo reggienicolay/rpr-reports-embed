@@ -4,6 +4,7 @@ export interface Env {
 	LEAD_QUEUE: Queue;
 	DLQ: Queue;
 	RATE_LIMITER: DurableObjectNamespace;
+	ADMIN_API_KEY: string;
 }
 
 export interface AgentConfig {

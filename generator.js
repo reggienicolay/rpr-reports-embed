@@ -24,7 +24,7 @@ const DEFAULTS = {
 
 /* Field IDs for URL hash encoding (scalar fields only) */
 const FIELD_KEYS = [
-  'deliveryMethod','deliveryUrl','proxyToken','proxyBaseUrl','formMode','agentName','brokerage','logoUrl','colorBrandHex',
+  'deliveryMethod','deliveryUrl','proxyToken','formMode','agentName','brokerage','logoUrl','colorBrandHex',
   'fontHeading','fontBody','headline','subheadline','btnLabel',
   'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
   'cardRadius','areaLabel','reportsHeading','gdprText',
@@ -56,6 +56,9 @@ let _suppressGenerate = false;
    Boot
 ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+
+  /* ── Restore admin settings from localStorage (never in URL hash) ── */
+  restoreAdminSettings();
 
   /* ── Restore config from URL hash or localStorage ── */
   const hashStr  = location.hash.slice(1);
@@ -98,12 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
     generate();
   });
 
-  /* Proxy token + base URL inputs */
-  document.getElementById('proxyToken').addEventListener('input', function() {
+  /* Admin settings — persist on change, update UI */
+  var adminKeyEl = document.getElementById('adminApiKey');
+  if (adminKeyEl) adminKeyEl.addEventListener('input', function() {
+    persistAdminSettings();
     updateWebhookWarning();
-    generate();
   });
   document.getElementById('proxyBaseUrl').addEventListener('input', function() {
+    persistAdminSettings();
     updateWebhookWarning();
     generate();
   });
@@ -150,6 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', resetConfig);
 
+  /* Import existing embed button */
+  const importBtn = document.getElementById('importBtn');
+  if (importBtn) importBtn.addEventListener('click', importEmbed);
+
   /* Side nav: click switches which .section-pane is visible. */
   document.querySelectorAll('.side-nav-item').forEach(btn => {
     btn.addEventListener('click', () => switchPane(btn.dataset.pane));
@@ -161,11 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => setFormMode(btn.dataset.formMode));
   });
 
-  /* Test webhook button */
+  /* Test button (auto-routes via proxy or direct) */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
 
-  /* Test proxy button */
-  document.getElementById('testProxyBtn').addEventListener('click', sendTestProxy);
+  /* Register with proxy button */
+  document.getElementById('registerProxyBtn').addEventListener('click', registerConfig);
 
   /* Mode tabs — use event delegation on parent */
   document.querySelector('.mode-tabs').addEventListener('click', e => {
@@ -248,24 +257,15 @@ function initCollapsibleSections() {
 function handleDeliveryChange() {
   const method     = document.getElementById('deliveryMethod').value;
   const urlGroup   = document.getElementById('deliveryUrlGroup');
-  const proxyGroup = document.getElementById('proxyTokenGroup');
   const urlInput   = document.getElementById('deliveryUrl');
-  const isProxy    = method === 'rpr-proxy';
 
   /* Hide all panels, show the selected one */
   document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
   const panel = document.getElementById('panel-' + method);
   if (panel) panel.hidden = false;
 
-  /* Show proxy fields or webhook fields based on method */
-  if (isProxy) {
-    proxyGroup.hidden = false;
-    urlGroup.hidden   = true;
-  } else {
-    proxyGroup.hidden = true;
-    const noUrl = !method || method === 'none';
-    urlGroup.hidden = noUrl;
-  }
+  const noUrl = !method || method === 'none';
+  urlGroup.hidden = noUrl;
 
   /* Update placeholder for the selected service */
   const meta = DELIVERY_META[method];
@@ -275,62 +275,159 @@ function handleDeliveryChange() {
 }
 
 /* ─────────────────────────────────────────────
-   Webhook warning + test button visibility
+   Webhook warning + test/register button visibility
 ───────────────────────────────────────────── */
 function updateWebhookWarning() {
   const method   = document.getElementById('deliveryMethod').value;
   const url      = document.getElementById('deliveryUrl').value.trim();
-  const isProxy  = method === 'rpr-proxy';
+  const token    = document.getElementById('proxyToken').value.trim();
+  const apiKey   = getAdminKey();
   const noDelivery = !method || method === 'none';
 
   document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
 
-  if (isProxy) {
-    /* Proxy token validation */
-    const token = document.getElementById('proxyToken').value.trim();
-    const tokenWarning = document.getElementById('proxyTokenWarning');
-    if (tokenWarning) tokenWarning.hidden = !token || /^agt_[a-zA-Z0-9]{12,24}$/.test(token);
+  /* HTTPS warning */
+  const urlWarning = document.getElementById('deliveryUrlWarning');
+  if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
 
-    const baseUrl = document.getElementById('proxyBaseUrl').value.trim();
-    const baseUrlEl = document.getElementById('proxyBaseUrl');
-    if (baseUrl && !/^https:\/\//i.test(baseUrl) && !/^http:\/\/localhost/i.test(baseUrl)) {
-      baseUrlEl.style.borderColor = '#dc2626';
+  /* Proxy status badge */
+  const proxyStatus = document.getElementById('proxyStatus');
+  const proxyDisplay = document.getElementById('proxyTokenDisplay');
+  if (proxyStatus) {
+    if (token) {
+      proxyStatus.style.display = 'block';
+      if (proxyDisplay) proxyDisplay.textContent = token;
     } else {
-      baseUrlEl.style.borderColor = '';
+      proxyStatus.style.display = 'none';
     }
+  }
 
-    const testProxyBtn = document.getElementById('testProxyBtn');
-    if (testProxyBtn) testProxyBtn.style.display = token ? 'inline-block' : 'none';
+  /* Register button: show when we have a URL + API key but no token yet */
+  const registerBtn = document.getElementById('registerProxyBtn');
+  if (registerBtn) {
+    const canRegister = url && /^https:\/\//i.test(url) && apiKey && !token;
+    registerBtn.style.display = canRegister ? 'inline-block' : 'none';
+    registerBtn.textContent = 'Register with Proxy';
+  }
 
-    const proxyResult = document.getElementById('testProxyResult');
-    if (proxyResult) { proxyResult.textContent = ''; proxyResult.className = 'test-webhook-result'; }
-  } else {
-    /* HTTPS warning — surfaces in the generator before the embed widget rejects it at runtime */
-    const urlWarning = document.getElementById('deliveryUrlWarning');
-    if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
-
-    /* Test button only shows when a URL has been entered */
-    const testBtn = document.getElementById('testWebhookBtn');
-    if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
-
-    const result = document.getElementById('testWebhookResult');
-    if (result) { result.textContent = ''; result.className = 'test-webhook-result'; }
+  /* Test button: if we have a proxy token, test via proxy; otherwise direct test */
+  const testBtn = document.getElementById('testWebhookBtn');
+  if (testBtn) {
+    testBtn.style.display = (url || token) ? 'inline-block' : 'none';
+    testBtn.textContent = token ? 'Send test via Proxy' : 'Send test';
   }
 }
 
 /* ─────────────────────────────────────────────
-   Test webhook
+   Admin key helpers (stored in localStorage only)
+───────────────────────────────────────────── */
+function getAdminKey() {
+  return (document.getElementById('adminApiKey') || {}).value ||
+         (function() { try { return localStorage.getItem('rpr-admin-key') || ''; } catch(e) { return ''; } })();
+}
+
+function getProxyBaseUrl() {
+  const el = document.getElementById('proxyBaseUrl');
+  return (el && el.value.trim()) || 'https://rpr-lead-proxy.reggie-c50.workers.dev';
+}
+
+function persistAdminSettings() {
+  try {
+    localStorage.setItem('rpr-admin-key', (document.getElementById('adminApiKey') || {}).value || '');
+    localStorage.setItem('rpr-proxy-base', getProxyBaseUrl());
+  } catch(e) { /* ignore */ }
+}
+
+function restoreAdminSettings() {
+  try {
+    const key  = localStorage.getItem('rpr-admin-key') || '';
+    const base = localStorage.getItem('rpr-proxy-base') || '';
+    const keyEl  = document.getElementById('adminApiKey');
+    const baseEl = document.getElementById('proxyBaseUrl');
+    if (keyEl && key) keyEl.value = key;
+    if (baseEl && base) baseEl.value = base;
+  } catch(e) { /* ignore */ }
+}
+
+/* ─────────────────────────────────────────────
+   Register / update config via Worker admin API
+───────────────────────────────────────────── */
+function registerConfig() {
+  const url      = document.getElementById('deliveryUrl').value.trim();
+  const apiKey   = getAdminKey();
+  const baseUrl  = getProxyBaseUrl().replace(/\/+$/, '');
+  const token    = document.getElementById('proxyToken').value.trim();
+  const btn      = document.getElementById('registerProxyBtn');
+  const result   = document.getElementById('testProxyResult');
+  const agentName = (document.getElementById('agentName') || {}).value || '';
+
+  if (!url || !apiKey) return;
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Registering\u2026'; }
+  if (result) { result.textContent = ''; result.className = 'test-webhook-result'; }
+
+  const isUpdate = token && /^agt_[a-zA-Z0-9]{12,24}$/.test(token);
+  const endpoint = isUpdate ? (baseUrl + '/api/config/' + token) : (baseUrl + '/api/config');
+  const method   = isUpdate ? 'PUT' : 'POST';
+
+  const body = { webhook_url: url };
+  if (agentName) body.agent_name = agentName;
+
+  fetch(endpoint, {
+    method:  method,
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+    },
+    body: JSON.stringify(body),
+  })
+  .then(async (res) => {
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.token) {
+      document.getElementById('proxyToken').value = data.token;
+      if (result) {
+        result.textContent = (isUpdate ? 'Config updated' : 'Registered') + ' \u2014 token: ' + data.token;
+        result.className = 'test-webhook-result success';
+      }
+      updateWebhookWarning();
+      generate();
+    } else {
+      const errMsg = (data && data.error) || ('HTTP ' + res.status);
+      if (result) {
+        result.textContent = 'Registration failed: ' + errMsg;
+        result.className = 'test-webhook-result error';
+      }
+    }
+  })
+  .catch(() => {
+    if (result) {
+      result.textContent = 'Could not reach proxy \u2014 check Admin API Key and Proxy URL in Settings.';
+      result.className = 'test-webhook-result error';
+    }
+  })
+  .finally(() => {
+    if (btn) { btn.disabled = false; btn.textContent = 'Register with Proxy'; }
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Test delivery (auto-routes via proxy or direct)
 ───────────────────────────────────────────── */
 function sendTestWebhook() {
+  const token = document.getElementById('proxyToken').value.trim();
+  if (token) return sendTestViaProxy();
+  return sendTestDirect();
+}
+
+function sendTestDirect() {
   const cfg    = vals();
   const btn    = document.getElementById('testWebhookBtn');
   const result = document.getElementById('testWebhookResult');
 
   if (!cfg.webhookUrl) return;
 
-  /* Enforce HTTPS \u2014 matches what the embed widget enforces at runtime */
   if (!/^https:\/\//i.test(cfg.webhookUrl)) {
-    result.textContent = 'Webhook URL must start with https:// \u2014 leads will not be sent over insecure connections.';
+    result.textContent = 'Webhook URL must start with https://.';
     result.className = 'test-webhook-result error';
     return;
   }
@@ -341,7 +438,6 @@ function sendTestWebhook() {
   result.className = 'test-webhook-result';
 
   const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
-
   const payload = {
     form_id:       'rpr-test-000',
     first_name:    'Test',
@@ -357,8 +453,6 @@ function sendTestWebhook() {
     timestamp:     new Date().toISOString(),
   };
 
-  /* no-cors so we don't trip CORS preflight on Slack/Discord/etc;
-     trade-off is we can't read the response, only confirm it sent */
   const meta        = DELIVERY_META[cfg.deliveryMethod] || {};
   const destination = meta.destination || 'webhook destination';
 
@@ -382,23 +476,22 @@ function sendTestWebhook() {
   });
 }
 
-/* ─────────────────────────────────────────────
-   Test proxy
-───────────────────────────────────────────── */
-function sendTestProxy() {
-  const cfg    = vals();
-  const btn    = document.getElementById('testProxyBtn');
-  const result = document.getElementById('testProxyResult');
+function sendTestViaProxy() {
+  const token  = document.getElementById('proxyToken').value.trim();
+  const btn    = document.getElementById('testWebhookBtn');
+  const result = document.getElementById('testWebhookResult');
 
-  if (!cfg.proxyToken) return;
+  if (!token) return;
 
-  const proxyUrl = cfg.proxyBaseUrl.replace(/\/+$/, '') + '/' + cfg.proxyToken;
+  const baseUrl  = getProxyBaseUrl().replace(/\/+$/, '');
+  const proxyUrl = baseUrl + '/' + token;
 
   btn.disabled = true;
   btn.textContent = 'Sending\u2026';
   result.textContent = '';
   result.className = 'test-webhook-result';
 
+  const cfg = vals();
   const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
 
   const payload = {
@@ -415,7 +508,7 @@ function sendTestProxy() {
     source_url:    location.href,
     timestamp:     new Date().toISOString(),
     _meta: {
-      widget_version: '1.3.0',
+      widget_version: '1.5.0',
       source_url:     location.href,
       timestamp:      new Date().toISOString(),
     },
@@ -429,10 +522,10 @@ function sendTestProxy() {
   .then(async (res) => {
     const body = await res.json().catch(() => null);
     if (res.status === 202) {
-      result.textContent = 'Lead queued for delivery \u2014 the proxy will forward it to your webhook.';
+      result.textContent = 'Lead queued \u2014 proxy will forward to your webhook.';
       result.className = 'test-webhook-result success';
     } else if (res.status === 200 && body && body.status === 'duplicate') {
-      result.textContent = 'Duplicate submission \u2014 this test lead was already sent recently.';
+      result.textContent = 'Duplicate \u2014 this test lead was already sent recently.';
       result.className = 'test-webhook-result success';
     } else {
       const errMsg = (body && body.error) || ('Proxy returned HTTP ' + res.status);
@@ -441,12 +534,12 @@ function sendTestProxy() {
     }
   })
   .catch(() => {
-    result.textContent = 'Could not reach proxy \u2014 check the base URL and try again.';
+    result.textContent = 'Could not reach proxy \u2014 check Proxy URL in Settings.';
     result.className = 'test-webhook-result error';
   })
   .finally(() => {
     btn.disabled = false;
-    btn.textContent = 'Send test';
+    btn.textContent = 'Send test via Proxy';
   });
 }
 
@@ -617,15 +710,15 @@ function sanitizeFontName(name) {
 
 function vals() {
   const method = v('deliveryMethod');
-  const isProxy = method === 'rpr-proxy';
-  const url    = (!method || method === 'none' || isProxy) ? '' : v('deliveryUrl');
-  const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';  /* default minimal */
+  const url    = (!method || method === 'none') ? '' : v('deliveryUrl');
+  const token  = v('proxyToken');
+  const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';
   return {
     reports:        getReports(),
     deliveryMethod: method,
     webhookUrl:     url,
-    proxyToken:     isProxy ? v('proxyToken') : '',
-    proxyBaseUrl:   isProxy ? (v('proxyBaseUrl') || 'https://rpr-lead-proxy.workers.dev') : '',
+    proxyToken:     token,
+    proxyBaseUrl:   token ? getProxyBaseUrl() : '',
     formMode:       formMode,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
@@ -985,6 +1078,7 @@ function renderCode(cfg) {
     const proxyUrl = cfg.proxyBaseUrl.replace(/\/+$/, '') + '/' + cfg.proxyToken;
     lines.push('  data-proxy="' + av(proxyUrl) + '"');
   } else if (cfg.webhookUrl) {
+    /* Fallback: direct webhook when no proxy token (admin key not configured or offline) */
     lines.push('  data-webhook="' + av(cfg.webhookUrl) + '"');
   }
   /* Always emit data-form-mode so the embed code is explicit about which
@@ -1104,6 +1198,105 @@ function resetConfig() {
   /* Strip hash and reload */
   history.replaceState(null, '', location.pathname + location.search);
   location.reload();
+}
+
+/* ─────────────────────────────────────────────
+   Import existing embed — parse <script> tag,
+   extract attributes, register webhook via API,
+   populate generator fields.
+───────────────────────────────────────────── */
+function importEmbed() {
+  const raw = prompt(
+    'Paste your existing <script> embed code here.\n\n' +
+    'The generator will extract your settings, register the webhook URL ' +
+    'with the proxy, and give you an updated embed code with data-proxy.'
+  );
+  if (!raw || !raw.trim()) return;
+
+  const parser = document.createElement('div');
+  parser.innerHTML = raw.trim();
+  const script = parser.querySelector('script');
+  if (!script) {
+    alert('Could not find a <script> tag in the pasted code.');
+    return;
+  }
+
+  /* Extract data-* attributes into a config object */
+  const config = {};
+  const attrMap = {
+    'data-webhook':         'deliveryUrl',
+    'data-proxy':           null,
+    'data-reports':         null,
+    'data-agent-name':      'agentName',
+    'data-brokerage':       'brokerage',
+    'data-logo-url':        'logoUrl',
+    'data-color-brand':     'colorBrandHex',
+    'data-font-heading':    'fontHeading',
+    'data-font-body':       'fontBody',
+    'data-headline':        'headline',
+    'data-subheadline':     'subheadline',
+    'data-btn-label':       'btnLabel',
+    'data-display-mode':    'displayMode',
+    'data-float-label':     'floatLabel',
+    'data-float-position':  'floatPosition',
+    'data-modal-trigger':   'modalTrigger',
+    'data-form-mode':       'formMode',
+    'data-card-bg':         'cardBg',
+    'data-card-text':       'cardText',
+    'data-card-radius':     'cardRadius',
+    'data-area-label':      'areaLabel',
+    'data-reports-heading':  'reportsHeading',
+    'data-gdpr-enabled':    null,
+    'data-gdpr-text':       'gdprText',
+  };
+
+  for (const [attr, key] of Object.entries(attrMap)) {
+    const val = script.getAttribute(attr);
+    if (val !== null && key) config[key] = val;
+  }
+
+  /* Parse reports JSON */
+  const reportsRaw = script.getAttribute('data-reports');
+  if (reportsRaw) {
+    try { config.reports = JSON.parse(reportsRaw); } catch(e) { /* skip */ }
+  }
+
+  /* GDPR */
+  if (script.getAttribute('data-gdpr-enabled') === 'true') {
+    config.gdprEnabled = true;
+  }
+
+  /* Detect delivery method from webhook URL */
+  const webhook = config.deliveryUrl || '';
+  if (/ntfy\.sh\//i.test(webhook))              config.deliveryMethod = 'ntfy';
+  else if (/hooks\.slack\.com\//i.test(webhook)) config.deliveryMethod = 'slack';
+  else if (/discord(app)?\.com\/api\/webhooks/i.test(webhook)) config.deliveryMethod = 'discord';
+  else if (/simplepush\.io\//i.test(webhook) || /simplepu\.sh\//i.test(webhook)) config.deliveryMethod = 'simplepush';
+  else if (/api\.pushover\.net\//i.test(webhook)) config.deliveryMethod = 'pushover';
+  else if (/script\.google\.com\//i.test(webhook)) config.deliveryMethod = 'sheets';
+  else if (/leadconnectorhq\.com\//i.test(webhook)) config.deliveryMethod = 'ghl';
+  else if (/make\.com\//i.test(webhook))         config.deliveryMethod = 'make';
+  else if (/zapier\.com\//i.test(webhook))       config.deliveryMethod = 'zapier';
+  else if (/gettoolkit\.app\//i.test(webhook))   config.deliveryMethod = 'toolkit';
+  else if (webhook)                               config.deliveryMethod = 'custom';
+
+  /* If the embed already has data-proxy, extract token */
+  const proxyUrl = script.getAttribute('data-proxy');
+  if (proxyUrl) {
+    const match = proxyUrl.match(/\/(agt_[a-zA-Z0-9]+)$/);
+    if (match) config.proxyToken = match[1];
+  }
+
+  /* Clear existing rows and apply */
+  document.getElementById('reportsList').innerHTML = '';
+  applyConfig(config);
+  generateNow();
+
+  /* Auto-register with proxy if we have a webhook but no token and admin key is set */
+  const apiKey = getAdminKey();
+  if (webhook && apiKey && !config.proxyToken) {
+    setTimeout(registerConfig, 300);
+  }
 }
 
 /* ─────────────────────────────────────────────
