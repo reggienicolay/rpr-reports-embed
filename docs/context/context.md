@@ -46,10 +46,18 @@ This constraint shaped every architectural decision:
 
 ```
 rpr-reports-embed/                    Root
-├── rpr-reports-embed.js   (1119 lines)  Embed widget — the deployable product
-├── generator.js           (1068 lines)  Generator logic — drives the configurator
-├── index.html             (1325 lines)  Generator UI — HTML + CSS (single file)
-├── README.md              (284 lines)   User-facing documentation
+├── rpr-reports-embed.js   (1275 lines)  Embed widget — the deployable product
+├── generator.js           (1079 lines)  Generator logic — drives the configurator
+├── index.html             (1908 lines)  Generator UI + on-page Install Guide & FAQ
+├── help.css               (439 lines)   Styles for the on-page help section (scoped .rpr-help)
+├── help.js                (114 lines)   Help section interactions (TOC, tabs, copy, FAQ search)
+├── README.md              (285 lines)   User-facing documentation
+├── avada/                              Avada/WordPress build of the help page
+│   ├── help-avada-builder.txt            Native Avada Builder shortcode import
+│   ├── help-avada-codeblock.html         Self-contained raw Code Block version
+│   ├── help-faq-search-codeblock.html    FAQ live-search (no native equivalent)
+│   ├── help-avada-global.css             Polish CSS for the native build
+│   └── help-avada-README.md              Install + in-Builder polish guide
 ├── integrations/
 │   └── google-sheets/
 │       ├── Code.gs        (123 lines)   Google Sheets Apps Script receiver
@@ -64,7 +72,9 @@ rpr-reports-embed/                    Root
     └── context/context.md                This file
 ```
 
-**Total application code:** ~3,700 lines across 4 files (widget + generator + HTML + Apps Script).
+**Total application code:** ~4,900 lines across 6 files (widget + generator + HTML + help CSS/JS + Apps Script).
+
+The on-page Install Guide & FAQ lives at the bottom of `index.html` (a `.rpr-help` section) and is styled/driven by `help.css` + `help.js`. Its content is scoped under `.rpr-help` so it cannot collide with the generator. The `avada/` folder is a parallel build of the same help content as native Avada Builder elements, for embedding on the WordPress site (`blog.narrpr.com`) — it is not part of the GitHub Pages deployment.
 
 No `package.json`, no `node_modules`, no build configuration, no test framework. The project has **zero build tooling** by design.
 
