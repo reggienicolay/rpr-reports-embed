@@ -1,0 +1,54 @@
+/* =====================================================================
+   RPR Help page — small polish CSS for the Avada native-element build.
+   Paste into: Avada > Options > Custom CSS  (or Appearance > Customize >
+   Additional CSS). Everything is scoped under .rpr-help so it can't leak
+   into the rest of your site. (The import wraps its containers in the
+   "rpr-help" CSS class.)
+   ===================================================================== */
+
+/* Inline code (the <code> snippets inside Text/Toggle bodies) */
+.rpr-help code {
+  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: #f1efe9;
+  border: 1px solid #e7e5df;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+}
+
+/* Turn the Alert "callouts" into left-border editorial flags.
+   Avada sets the Alert border on all sides via the element's border_size;
+   these rules keep only a thick left accent bar. */
+.rpr-help .rpr-callout.fusion-alert,
+.rpr-help .rpr-callout .fusion-alert {
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left-width: 3px !important;
+  border-left-style: solid !important;
+  border-radius: 0 4px 4px 0 !important;
+}
+
+/* FAQ search box */
+.rpr-help .rpr-faq-search { position: relative; margin: 16px 0 8px; }
+.rpr-help .rpr-faq-search input {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: #17171a;
+  background: #fff;
+  border: 1px solid #d2cfc7;
+  border-radius: 4px;
+  outline: none;
+}
+.rpr-help .rpr-faq-search input:focus { border-color: #17171a; }
+
+/* Optional: tighten the big "01–05" step look if you use a number element.
+   (Not required — included for parity with the original design.) */
+.rpr-help .rpr-step-num {
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 1;
+  color: #17171a;
+}

@@ -16,7 +16,7 @@ The widget must have **no external runtime dependencies**. No frameworks, no lib
 
 ### 1.2 Single-File Distribution
 
-The embed widget (`rpr-reports-embed.js`) must remain a **single file**. No module imports, no code splitting, no separate CSS file. The generator (`index.html` + `generator.js`) is a two-file exception because it runs on a controlled hosting environment (GitHub Pages), not on arbitrary host pages.
+The embed widget (`rpr-reports-embed.js`) must remain a **single file**. No module imports, no code splitting, no separate CSS file. The generator and its on-page help section (`index.html` + `generator.js` + `help.css` + `help.js`) are an exception because they run on a controlled hosting environment (GitHub Pages), not on arbitrary host pages. `help.js` is a separate file rather than inline because the generator page's CSP is `script-src 'self'` (inline scripts are blocked); `help.css` is linked the same way. All help styles are scoped under `.rpr-help` so they never affect the generator.
 
 ### 1.3 Backwards Compatibility
 
@@ -231,8 +231,16 @@ docs: add Google Sheets setup guide with screenshots
 rpr-reports-embed/
 ├── rpr-reports-embed.js      # Embed widget (single-file, deployed to CDN)
 ├── generator.js               # Generator logic (deployed with index.html)
-├── index.html                 # Generator UI (deployed to GitHub Pages)
+├── index.html                 # Generator UI + on-page Install Guide & FAQ (GitHub Pages)
+├── help.css                   # Help-section styles (scoped .rpr-help)
+├── help.js                    # Help-section interactions (TOC, tabs, copy, FAQ search)
 ├── README.md                  # User-facing documentation
+├── avada/                     # Avada/WordPress build of the help page
+│   ├── help-avada-builder.txt          #   Native Avada Builder shortcode import
+│   ├── help-avada-codeblock.html       #   Self-contained raw Code Block version
+│   ├── help-faq-search-codeblock.html  #   FAQ live-search snippet
+│   ├── help-avada-global.css           #   Polish CSS for the native build
+│   └── help-avada-README.md            #   Install + polish guide
 ├── docs/                      # Internal documentation
 │   ├── prd/                   #   Product Requirements Document
 │   ├── frd/                   #   Functional Requirements Document
