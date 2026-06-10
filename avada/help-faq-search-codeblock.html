@@ -1,0 +1,67 @@
+<!-- =====================================================================
+     FAQ live-search — paste into an Avada CODE BLOCK element placed
+     directly ABOVE the first FAQ accordion (the "Common setup questions"
+     group), inside the same content column.
+
+     This is the ONE piece with no native Avada equivalent. It filters the
+     native Avada Toggles/Accordion items by text and expands matches.
+     It targets Avada's standard accordion DOM (.fusion-accordian /
+     .fusion-panel / .panel-collapse). If a future Avada version renames
+     those classes, update the selectors below.
+     ===================================================================== -->
+<div class="rpr-faq-search">
+  <input type="text" id="rprFaqSearch" placeholder="Search the FAQ — try &ldquo;webhook&rdquo; or &ldquo;form not showing&rdquo;" autocomplete="off" aria-label="Search the FAQ">
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('rprFaqSearch');
+  if (!input) return;
+
+  // Limit to the help section if it's wrapped in .rpr-help, else whole page.
+  var scope = input.closest('.rpr-help') || document;
+
+  function panelsIn(accordion) {
+    return accordion.querySelectorAll('.fusion-panel');
+  }
+
+  // Show/hide a panel's answer without relying on Avada's click animation.
+  // Avada accordions use Bootstrap-style .panel-collapse.collapse(.in).
+  function setOpen(panel, open) {
+    var body = panel.querySelector('.panel-collapse');
+    var link = panel.querySelector('.panel-title a, .fusion-toggle-heading a, .panel-title');
+    if (!body) return;
+    if (open) {
+      body.classList.add('in', 'show');
+      body.style.height = '';
+      body.setAttribute('aria-expanded', 'true');
+      if (link && link.classList) link.classList.remove('collapsed');
+    } else {
+      body.classList.remove('in', 'show');
+      body.setAttribute('aria-expanded', 'false');
+      if (link && link.classList) link.classList.add('collapsed');
+    }
+  }
+
+  function run() {
+    var q = input.value.trim().toLowerCase();
+    var accordions = scope.querySelectorAll('.fusion-accordian, .fusion-accordion');
+    accordions.forEach(function (acc) {
+      var anyVisible = 0;
+      panelsIn(acc).forEach(function (panel) {
+        var match = !q || panel.textContent.toLowerCase().indexOf(q) !== -1;
+        panel.style.display = match ? '' : 'none';
+        if (q) { setOpen(panel, match); }      // expand matches while searching
+        else   { setOpen(panel, false); }       // collapse all when cleared
+        if (match) anyVisible++;
+      });
+      // Hide this group's heading (the Title element just before the accordion)
+      // when nothing in the group matches.
+      var heading = acc.previousElementSibling;
+      if (heading) heading.style.display = (q && anyVisible === 0) ? 'none' : '';
+    });
+  }
+
+  input.addEventListener('input', run);
+})();
+</script>
