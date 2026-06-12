@@ -1,10 +1,31 @@
 /**
- * rpr-reports-embed.js  v1.2.2
+ * rpr-reports-embed.js  v1.5.0
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.5.0: Phase 3 — Transparent proxy. The generator now auto-registers
+ * agent configs via the Worker admin API and always emits data-proxy.
+ * Webhook URLs are never exposed in embed code. data-webhook remains as
+ * a legacy fallback for existing deploys.
+ *
+ * v1.4.0: Combined proxy + formatters. Merges Phase 2 Cloudflare Worker
+ * proxy with per-destination formatters. When using data-proxy, formatters
+ * are bypassed (Worker handles delivery). When using data-webhook directly,
+ * formatters transform payloads for each service.
+ *
+ * v1.3.0: Phase 2 — Cloudflare Worker lead proxy support. New data-proxy
+ * attribute for secure lead delivery via RPR proxy (hides webhook URL,
+ * enables server-side retry + rate limiting). Backward compatible —
+ * existing data-webhook deploys continue working unchanged.
+ *
+ * v1.2.3: Per-destination formatters for Slack, Discord, SimplePush, and
+ * Pushover. Each service now receives a nicely formatted notification
+ * instead of raw JSON (which those services reject or display as garbage).
+ * Extends the pattern introduced in v1.2.1 for ntfy.sh. Unknown webhook
+ * URLs continue to receive the standard JSON payload unchanged.
  *
  * v1.2.2: Hotfix for v1.2.1 — em-dash (U+2014) in the ntfy Title header
  * caused fetch() to throw "String contains non ISO-8859-1 code point",
@@ -33,7 +54,11 @@
  *
  * Required attributes:
  *   data-reports   JSON array: [{"label":"Area Name","url":"https://narrpr.com/..."},…]
- *   data-webhook   HTTPS URL to receive lead payload (Zapier / Make / GHL / HubSpot)
+ *
+ * Lead delivery (at least one required):
+ *   data-proxy     RPR proxy URL with agent token (e.g. https://rpr-lead-proxy.workers.dev/agt_xxx)
+ *   data-webhook   Direct HTTPS webhook URL (Zapier / Make / GHL / HubSpot)
+ *                  If both are present, data-proxy takes priority.
  *
  * Optional attributes (all have sensible defaults):
  *   data-agent-name        Agent display name
@@ -146,6 +171,7 @@
 	/* ── Config object ───────────────────────────────────────────── */
 	const CFG = {
 		reports:         REPORTS,
+		proxy:           attr( 'data-proxy' ),
 		webhook:         attr( 'data-webhook' ),
 		agentName:       attr( 'data-agent-name' ),
 		brokerage:       attr( 'data-brokerage' ),
@@ -181,7 +207,11 @@
 		                 || ( 'rpr-reports-' + Math.random().toString( 36 ).slice( 2, 8 ) ),
 	};
 
-	/* SEC-6 FIX: block non-HTTPS webhooks entirely — don't transmit PII unencrypted */
+	/* SEC-6 FIX: block non-HTTPS URLs entirely — don't transmit PII unencrypted */
+	if ( CFG.proxy && ! CFG.proxy.startsWith( 'https://' ) && ! CFG.proxy.startsWith( 'http://localhost' ) ) {
+		console.error( 'RPR Reports Embed: data-proxy must be an HTTPS URL (http://localhost allowed for dev). Proxy disabled.' );
+		CFG.proxy = '';
+	}
 	if ( CFG.webhook && ! CFG.webhook.startsWith( 'https://' ) ) {
 		console.error( 'RPR Reports Embed: data-webhook must be an HTTPS URL. Webhook disabled.' );
 		CFG.webhook = '';
@@ -858,27 +888,34 @@
 			status.textContent = 'Sending…';
 			status.style.color = '';
 
-			let webhookOk = true;
+			let deliveryOk = true;
 			let webhookPayload = null;
+			let deliveryUrl = CFG.proxy || CFG.webhook;
 
-			if ( CFG.webhook ) {
+			if ( deliveryUrl ) {
 				try {
 					webhookPayload = collectPayload( step1, selectedIndex );
 
-					/* Per-destination formatting. Default: send our standard JSON
-					   payload (works with Zapier, Make, GHL, Sheets, Slack, Discord,
-					   custom webhooks, etc.). For known notification services with
-					   their own formatting requirements, transform the payload so the
-					   agent's notification arrives nicely formatted. Adding new
-					   destinations is additive — unknown URLs fall through to JSON. */
 					let fetchOpts;
-					if ( /^https:\/\/ntfy\.sh\//i.test( CFG.webhook ) ) {
+
+					if ( CFG.proxy ) {
+						/* Proxy mode — send standard JSON to the Worker which handles
+						   formatting and delivery server-side. */
+						webhookPayload._meta = {
+							widget_version: '1.5.0',
+							source_url:     window.location.href,
+							timestamp:      new Date().toISOString(),
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( webhookPayload ),
+						};
+
+					} else if ( /^https:\/\/ntfy\.sh\//i.test( deliveryUrl ) ) {
 						/* ntfy.sh — Title/Click/Tags as HTTP headers, plain text body.
-						   v1.2.2 fix: HTTP headers must be ISO-8859-1 (Latin-1) per spec
-						   — fetch() throws on any code point > 255 (em-dash, CJK chars,
-						   emoji, etc.). The body has no such restriction; full UTF-8 OK
-						   there. headerSafe() replaces non-Latin-1 with '?' so visitor
-						   names with CJK/emoji don't break the submit. */
+						   HTTP headers must be ISO-8859-1 (Latin-1) per spec — fetch()
+						   throws on any code point > 255. headerSafe() strips them. */
 						const stripCrlf  = s => String( s || '' ).replace( /[\r\n]+/g, ' ' ).trim();
 						const headerSafe = s => stripCrlf( s ).replace( /[^\x00-\xFF]/g, '?' );
 						const name = [ webhookPayload.first_name, webhookPayload.last_name ]
@@ -900,21 +937,149 @@
 							headers[ 'Click' ] = headerSafe( webhookPayload.report_url );
 						}
 						fetchOpts = { method: 'POST', headers: headers, body: bodyLines.join( '\n' ) };
+
+					} else if ( /^https:\/\/hooks\.slack\.com\//i.test( deliveryUrl ) ) {
+						/* Slack Incoming Webhook — Block Kit with text fallback. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const fallback = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const lines = [];
+						if ( name )                       lines.push( '*Name:* ' + name );
+						if ( webhookPayload.email )       lines.push( '*Email:* ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       lines.push( '*Phone:* ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) {
+							const areaText = webhookPayload.report_url
+								? '<' + s( webhookPayload.report_url ) + '|' + s( webhookPayload.selected_area ) + '>'
+								: s( webhookPayload.selected_area );
+							lines.push( '*Area:* ' + areaText );
+						}
+						if ( webhookPayload.source_url )  lines.push( '*Source:* ' + s( webhookPayload.source_url ) );
+						const payload = {
+							text: fallback,
+							blocks: [
+								{ type: 'section', text: { type: 'mrkdwn', text: ':house: *' + fallback + '*' } },
+								{ type: 'section', text: { type: 'mrkdwn', text: lines.join( '\n' ) } },
+								{ type: 'context', elements: [ { type: 'mrkdwn', text: 'Sent by RPR Reports Widget \u00b7 ' + webhookPayload.timestamp } ] },
+							],
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( payload ),
+						};
+
+					} else if ( /^https:\/\/discord(app)?\.com\/api\/webhooks\//i.test( deliveryUrl ) ) {
+						/* Discord Webhook — rich embed card in RPR blue. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const fields = [];
+						if ( name )                         fields.push( { name: 'Name',   value: name,                              inline: true } );
+						if ( webhookPayload.email )         fields.push( { name: 'Email',  value: s( webhookPayload.email ),          inline: true } );
+						if ( webhookPayload.phone )         fields.push( { name: 'Phone',  value: s( webhookPayload.phone ),          inline: true } );
+						if ( webhookPayload.selected_area ) fields.push( { name: 'Area',   value: s( webhookPayload.selected_area ),  inline: false } );
+						if ( webhookPayload.report_url )    fields.push( { name: 'Report', value: '[View Report](' + s( webhookPayload.report_url ) + ')', inline: false } );
+						if ( webhookPayload.source_url )    fields.push( { name: 'Source', value: s( webhookPayload.source_url ),      inline: false } );
+						const embed = {
+							title:       'New RPR Lead' + ( name ? ': ' + name : '' ),
+							color:       34534,
+							fields:      fields,
+							timestamp:   webhookPayload.timestamp,
+							footer:      { text: 'RPR Reports Widget' },
+						};
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( { embeds: [ embed ] } ),
+						};
+
+					} else if ( /^https:\/\/(api\.)?simplepush\.io\//i.test( deliveryUrl ) || /^https:\/\/simplepu\.sh\//i.test( deliveryUrl ) ) {
+						/* SimplePush — extract key from URL, POST JSON to /send. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const keyMatch = deliveryUrl.match( /\/send\/([A-Za-z0-9_-]+)/i ) || deliveryUrl.match( /\/([A-Za-z0-9_-]+)\/?$/ );
+						const spKey = keyMatch ? keyMatch[1] : '';
+						const title = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const bodyLines = [];
+						if ( name )                       bodyLines.push( 'Name:  ' + name );
+						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + s( webhookPayload.selected_area ) );
+						const spPayload = { key: spKey, title: title, msg: bodyLines.join( '\n' ) };
+						if ( webhookPayload.report_url ) spPayload.event = 'rpr_lead';
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( spPayload ),
+						};
+						deliveryUrl = 'https://api.simplepush.io/send';
+
+					} else if ( /^https:\/\/api\.pushover\.net\//i.test( deliveryUrl ) ) {
+						/* Pushover — extract token/user from URL query params,
+						   POST credentials in JSON body only. */
+						const s  = v => String( v || '' ).trim();
+						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
+							.filter( Boolean ).join( ' ' );
+						const urlObj = new URL( deliveryUrl );
+						const token = urlObj.searchParams.get( 'token' ) || '';
+						const user  = urlObj.searchParams.get( 'user' )  || '';
+						const title = 'New RPR Lead' + ( name ? ': ' + name : '' );
+						const bodyLines = [];
+						if ( name )                       bodyLines.push( 'Name:  ' + name );
+						if ( webhookPayload.email )       bodyLines.push( 'Email: ' + s( webhookPayload.email ) );
+						if ( webhookPayload.phone )       bodyLines.push( 'Phone: ' + s( webhookPayload.phone ) );
+						if ( webhookPayload.selected_area ) bodyLines.push( 'Area:  ' + s( webhookPayload.selected_area ) );
+						const poPayload = {
+							token:   token,
+							user:    user,
+							title:   title,
+							message: bodyLines.join( '\n' ),
+							sound:   'cashregister',
+						};
+						if ( webhookPayload.report_url ) {
+							poPayload.url       = s( webhookPayload.report_url );
+							poPayload.url_title = 'View Report: ' + s( webhookPayload.selected_area );
+						}
+						deliveryUrl = 'https://api.pushover.net/1/messages.json';
+						fetchOpts = {
+							method:  'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body:    JSON.stringify( poPayload ),
+						};
+
 					} else {
-						/* Default: JSON POST — current behavior for every other destination */
 						fetchOpts = {
 							method:  'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body:    JSON.stringify( webhookPayload ),
 						};
 					}
-					const res = await fetch( CFG.webhook, fetchOpts );
-					if ( ! res.ok ) {
-						/* BUG 8 FIX: treat non-OK HTTP as failure — distinguish retriable vs non-retriable */
+
+					const res = await fetch( deliveryUrl, fetchOpts );
+
+					if ( CFG.proxy ) {
+						if ( res.status === 202 || res.status === 200 ) {
+							deliveryOk = true;
+						} else {
+							deliveryOk = false;
+							let errMsg = 'Something went wrong \u2014 please try again.';
+							try {
+								const body = await res.json();
+								if ( body && body.error ) errMsg = body.error;
+							} catch ( _ignored ) {}
+							if ( res.status >= 500 ) {
+								enqueueRetry( webhookPayload, deliveryUrl );
+							}
+							status.textContent = errMsg;
+							status.style.color = '#d0021b';
+						}
+					} else if ( ! res.ok ) {
 						console.warn( 'RPR Reports Embed: Webhook returned ' + res.status );
-						webhookOk = false;
+						deliveryOk = false;
 						if ( res.status >= 500 ) {
-							enqueueRetry( webhookPayload, CFG.webhook );
+							enqueueRetry( webhookPayload, deliveryUrl );
 							status.textContent = 'Something went wrong \u2014 please try again.';
 						} else {
 							status.textContent = 'Lead could not be delivered \u2014 please contact the site owner.';
@@ -922,16 +1087,15 @@
 						status.style.color = '#d0021b';
 					}
 				} catch ( e ) {
-					/* BUG 4 FIX: surface network errors to user */
-					console.warn( 'RPR Reports Embed: Webhook error', e );
-					webhookOk = false;
-					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), CFG.webhook );
+					console.warn( 'RPR Reports Embed: Delivery error', e );
+					deliveryOk = false;
+					enqueueRetry( webhookPayload || collectPayload( step1, selectedIndex ), deliveryUrl );
 					status.textContent = 'Something went wrong \u2014 please try again.';
 					status.style.color = '#d0021b';
 				}
 			}
 
-			if ( ! webhookOk ) {
+			if ( ! deliveryOk ) {
 				/* Unlock so user can retry */
 				wrap._rprSubmitted = false;
 				btn.disabled = false;

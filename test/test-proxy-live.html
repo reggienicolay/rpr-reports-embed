@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test: Live Cloudflare Worker Proxy</title>
+  <style>
+    body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 1.3em; }
+    .info { background: #e8f5e9; border: 1px solid #a5d6a7; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; font-size: 14px; }
+    code { background: #e8e8e8; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+    .test-btn { display: inline-block; margin: 8px 4px; padding: 10px 18px; background: #0086E6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .test-btn:hover { background: #006dbb; }
+    #results { margin-top: 16px; padding: 12px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 13px; white-space: pre-wrap; min-height: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Live Cloudflare Worker Proxy — Test Page</h1>
+  <div class="info">
+    <strong>Worker is live at:</strong> <code>https://rpr-lead-proxy.reggie-c50.workers.dev</code><br>
+    This page tests the proxy directly with curl-style POSTs (no CORS issues).
+  </div>
+
+  <h3>Quick Tests</h3>
+  <button class="test-btn" onclick="testHealth()">Health Check</button>
+  <button class="test-btn" onclick="testSubmit()">Submit Test Lead</button>
+  <button class="test-btn" onclick="testBadToken()">Bad Token (404)</button>
+  <button class="test-btn" onclick="testRateLimit()">Rate Limit Burst (11x)</button>
+
+  <div id="results">Click a test button...</div>
+
+  <script>
+    const BASE = 'https://rpr-lead-proxy.reggie-c50.workers.dev';
+    const out = document.getElementById('results');
+
+    async function testHealth() {
+      out.textContent = 'Testing health...';
+      try {
+        const res = await fetch(BASE + '/health');
+        const data = await res.json();
+        out.textContent = 'GET /health → ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (e) { out.textContent = 'Error: ' + e.message; }
+    }
+
+    async function testSubmit() {
+      out.textContent = 'Submitting test lead...';
+      try {
+        const res = await fetch(BASE + '/agt_testtoken000001', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: 'Rodrigo', last_name: 'Test',
+            email: 'test@example.com', phone: '555-1234',
+            selected_area: 'Beverly Hills 90210',
+            report_url: 'https://narrpr.com/test-beverly-hills',
+            source_url: window.location.href,
+            timestamp: new Date().toISOString()
+          })
+        });
+        const data = await res.json();
+        out.textContent = 'POST /agt_testtoken000001 → ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (e) { out.textContent = 'Error: ' + e.message; }
+    }
+
+    async function testBadToken() {
+      out.textContent = 'Testing bad token...';
+      try {
+        const res = await fetch(BASE + '/agt_doesnotexist99', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'test@example.com', selected_area: 'Test' })
+        });
+        const data = await res.json();
+        out.textContent = 'POST /agt_doesnotexist99 → ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (e) { out.textContent = 'Error: ' + e.message; }
+    }
+
+    async function testRateLimit() {
+      out.textContent = 'Sending 11 rapid requests...';
+      const results = [];
+      for (let i = 1; i <= 11; i++) {
+        try {
+          const res = await fetch(BASE + '/agt_testtoken000001', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              first_name: 'Burst', last_name: 'Test ' + i,
+              email: 'burst' + i + '@example.com',
+              selected_area: 'Rate Limit Test',
+              report_url: 'https://narrpr.com/test'
+            })
+          });
+          const data = await res.json();
+          results.push('#' + i + ' → ' + res.status + ' ' + data.status);
+        } catch (e) {
+          results.push('#' + i + ' → Error: ' + e.message);
+        }
+      }
+      out.textContent = results.join('\n');
+    }
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 # RPR Market Reports Embed Widget — Improvement & Scalability Plan
 
 **Prepared for:** Reggie Nicolay
-**Date:** May 21, 2026
-**Version:** 2.0 — Validated against industry research
+**Date:** May 21, 2026 (updated May 28, 2026)
+**Version:** 2.1 — Phase 1 & 2 completed, Phase 3 (transparent proxy) prioritized
 
 ---
 
@@ -43,9 +43,11 @@ The most urgent finding: **direct client-side webhook POST is architecturally un
 
 ---
 
-## Phase 1 — Critical Bug Fixes & Security Hardening
+## Phase 1 — Critical Bug Fixes & Security Hardening ✅
 
-Fixes that should ship before broader adoption. Zero infrastructure cost, high impact on correctness.
+*Shipped in v1.2.0 (PR #2). All items completed.*
+
+Fixes that shipped before broader adoption. Zero infrastructure cost, high impact on correctness.
 
 ### 1.1 Fix silent lead loss on HTTP errors (HIGH)
 
@@ -116,9 +118,11 @@ Fixes that should ship before broader adoption. Zero infrastructure cost, high i
 
 ---
 
-## Phase 2 — Cloudflare Worker Lead Proxy (Scalability + Security)
+## Phase 2 — Cloudflare Worker Lead Proxy — Opt-in Test Phase ✅
 
-This is the single highest-impact architectural change. It solves webhook exposure, CORS failures, rate limiting, retry, and bot protection in one component. **Every production-grade competitor (splitforms, Typeform, Jotform) uses this pattern.**
+*Shipped in v1.3.0 (PR #3). Worker infrastructure validated as opt-in delivery method.*
+
+This phase built and validated the Worker infrastructure: D1 agent config, Cloudflare Queues with retry + DLQ, Durable Object rate limiting, KV deduplication, and HMAC payload signing. Shipped as an **explicit opt-in** in the generator so the infrastructure could be tested in isolation before routing all traffic through it. **Phase 3 makes it transparent.**
 
 ### 2.1 Architecture (revised with Cloudflare Queues)
 
@@ -183,17 +187,9 @@ Backwards compatible: widget checks `data-proxy` first, falls back to `data-webh
 - At 10,000 agents x 5 leads/day = 50K submissions/day = ~1.5M/month = **~$5.60/month total**
 - At 50,000 agents x 10 leads/day = 500K/day = 15M/month = **~$11/month total**
 
-### 2.5 Turnstile integration details
+### 2.5 Turnstile integration details *(deferred to Phase 3.4)*
 
-Cloudflare Turnstile offers three modes — **Invisible** is the best fit:
-
-- No visible widget or loading indicator
-- Runs challenges entirely in background
-- Zero UX friction, zero visitor interaction
-- Free (unlimited usage)
-- Widget loads Turnstile script only when the sitekey attribute is present
-- Worker verifies token via Siteverify API before forwarding to webhook
-- Requires privacy policy reference (Cloudflare Privacy Addendum)
+Cloudflare Turnstile requires widget-side integration that depends on `data-proxy` being the default delivery path. Moved to Phase 3.4 where it can be implemented alongside the transparent proxy switchover.
 
 ### 2.6 Generator updates
 
@@ -205,9 +201,62 @@ Cloudflare Turnstile offers three modes — **Invisible** is the best fit:
 
 ---
 
-## Phase 3 — Infrastructure Hardening
+## Phase 3 — Transparent Proxy (Priority — Next Up)
 
-### 3.1 Versioned CDN URLs (HIGH)
+Phase 2 shipped the Worker infrastructure as an **opt-in test phase**: agents explicitly select "RPR Proxy" in the generator and configure a token. This was intentional — it lets us validate the Worker (D1, Queues, rate limiting, dedup, HMAC signing, retry + DLQ) in isolation before routing all traffic through it.
+
+Now that the infrastructure is proven, **Phase 3 makes the proxy invisible**. Agents pick their destination (Slack, Sheets, Zapier, webhook) as they always have — the proxy operates behind the scenes automatically.
+
+### 3.1 Worker config management API (HIGH)
+
+Add authenticated endpoints to the Worker so the generator can manage agent configurations programmatically:
+
+- `POST /api/config` — create a new agent config (returns token)
+- `PUT /api/config/:token` — update an existing agent config
+- `DELETE /api/config/:token` — deactivate an agent config
+- Secured with an admin API key (stored as Worker secret, not in client code)
+- Validates destination URL format and reachability (optional HEAD probe)
+
+### 3.2 Generator: always emit data-proxy (HIGH)
+
+Remove the "RPR Proxy" dropdown option entirely. Instead:
+
+- Agent picks their destination as today (Slack / Sheets / Zapier / Direct Webhook)
+- Generator calls the config API behind the scenes to register the agent's destination in D1
+- Generator outputs `data-proxy="https://leads.rpr-proxy.com/agt_XXXXX"` — always
+- The agent's webhook URL is never exposed in the embed code
+- Agent token is persisted in the URL hash so the generator can update the config on subsequent edits
+
+### 3.3 Widget: data-proxy as default path (MEDIUM)
+
+- `data-proxy` becomes the primary delivery mechanism for all new embeds
+- `data-webhook` remains fully supported as a legacy fallback for already-deployed widgets
+- No changes required to the widget's proxy handling logic (already built in Phase 2)
+- Widget behavior: check `data-proxy` first → fall back to `data-webhook` → show error if neither
+
+### 3.4 Turnstile bot protection (MEDIUM)
+
+Deferred from Phase 2 because it requires widget-side integration. Now that the proxy is the default path:
+
+- Widget loads Cloudflare Turnstile script (invisible mode) when `data-proxy` is present
+- Turnstile runs challenges entirely in background — zero UX friction, zero visitor interaction
+- Widget sends Turnstile token alongside lead payload to the proxy
+- Worker verifies token via Cloudflare Siteverify API **using the secret key** (not the site key)
+- Turnstile site key stored in D1 per-agent (or a shared key for all RPR widgets)
+- Free, unlimited usage
+
+### 3.5 Migration path for existing deploys (LOW)
+
+- Existing `data-webhook` embeds continue working indefinitely — no forced migration
+- Generator "Import existing config" feature: agent pastes their current embed code, generator extracts the webhook URL, registers it in D1 via the config API, and outputs a new `data-proxy` embed
+- Optional: bulk migration script for agents with many deployed widgets
+- Documentation guide for agents who want to upgrade manually
+
+---
+
+## Phase 4 — Infrastructure Hardening
+
+### 4.1 Versioned CDN URLs (HIGH)
 
 **Problem:** Single unversioned URL — a bad upload breaks every widget worldwide with no rollback.
 
@@ -219,7 +268,7 @@ Cloudflare Turnstile offers three modes — **Invisible** is the best fit:
 - Set up a custom domain (`cdn.narrpr.com` or `cdn.rprreports.com`) via Cloudflare for branding and DNS control
 - Add appropriate `Cache-Control` headers: short TTL for the latest alias, immutable for versioned files
 
-### 3.2 CI/CD Pipeline (HIGH)
+### 4.2 CI/CD Pipeline (HIGH)
 
 ```mermaid
 flowchart TD
@@ -242,11 +291,11 @@ flowchart TD
 - Automated smoke test: headless browser loads staging embed, verifies DOM structure
 - Manual promotion step via GitHub Actions `workflow_dispatch` (no auto-deploy to production CDN)
 
-### 3.3 Observability / Telemetry (HIGH)
+### 4.3 Observability / Telemetry (HIGH)
 
 **Problem:** Zero visibility into widget deployments, conversion rates, or failures at scale. Cannot operate at thousands of deployments without this.
 
-**Solution:** Privacy-respecting anonymous counters via the Worker proxy (Phase 2) + `navigator.sendBeacon()`:
+**Solution:** Privacy-respecting anonymous counters via the Worker proxy (Phase 2/3) + `navigator.sendBeacon()`:
 
 | Event | Data sent (no PII) | Collection point |
 |---|---|---|
@@ -258,21 +307,21 @@ flowchart TD
 
 Dashboard options: Cloudflare Analytics (free, built-in for Workers) or Grafana Cloud free tier for custom dashboards.
 
-### 3.4 Subresource Integrity (MEDIUM)
+### 4.4 Subresource Integrity (MEDIUM)
 
 Generate SRI hashes for versioned widget script. Generator emits `integrity` and `crossorigin="anonymous"` attributes on the script tag. Protects against CDN compromise.
 
 **Note:** SRI is incompatible with the `latest` alias (hash changes on every release). Only works with versioned URLs. Generator should emit versioned URL when SRI is needed.
 
-### 3.5 Secondary CDN / Self-host documentation (LOW)
+### 4.5 Secondary CDN / Self-host documentation (LOW)
 
 Document how agents or their developers can self-host the widget script on their own domain as a fallback. Add a "Self-hosted" option to the generator that lets agents change the `src` URL.
 
 ---
 
-## Phase 4 — Accessibility, UX Polish, Growth Features
+## Phase 5 — Accessibility, UX Polish, Growth Features
 
-### 4.1 Modal accessibility (MEDIUM)
+### 5.1 Modal accessibility (MEDIUM)
 
 - Add `role="dialog"`, `aria-modal="true"`, `aria-labelledby` pointing at headline
 - Trap focus inside the overlay when open (Tab/Shift+Tab cycle within card)
@@ -281,14 +330,14 @@ Document how agents or their developers can self-host the widget script on their
 - Add a visible close button (X) in the overlay top-right corner
 - Add `aria-hidden="true"` to content behind the overlay when open
 
-### 4.2 Form error accessibility (LOW)
+### 5.2 Form error accessibility (LOW)
 
 - Add `aria-invalid="true"` to invalid fields on validation failure; remove on clear
 - Add `aria-describedby` linking each field to its error message element
 - Add `role="alert"` to error message elements so screen readers announce them immediately
 - Add `aria-live="assertive"` to the status message element
 
-### 4.3 Generator UX fixes (MEDIUM)
+### 5.3 Generator UX fixes (MEDIUM)
 
 - **Empty reports guard** (covered in 1.10) — disable Copy button, show inline warning
 - **Fix test webhook feedback** — when using `no-cors` mode (pre-proxy), change success message to "Request dispatched — verify in your [destination]. Note: we cannot confirm delivery in this mode." When using proxy (Phase 2), show actual delivery confirmation.
@@ -296,7 +345,7 @@ Document how agents or their developers can self-host the widget script on their
 - **Add proper ARIA roles** to form mode tabs and display mode tabs
 - **Side nav focus management** — move focus to the pane heading when switching panes
 
-### 4.4 Direct CRM integrations via proxy (LOW — Growth)
+### 5.4 Direct CRM integrations via proxy (LOW — Growth)
 
 With the Worker proxy in place, add server-side integrations that were impossible client-side:
 
@@ -306,7 +355,7 @@ With the Worker proxy in place, add server-side integrations that were impossibl
 - **Chime** — another popular RE CRM
 - Pattern: agent selects CRM in generator, enters API key (stored encrypted in D1), proxy formats and forwards leads to the CRM API directly
 
-### 4.5 Sub-10-second SMS lead alerts via proxy (MEDIUM)
+### 5.5 Sub-10-second SMS lead alerts via proxy (MEDIUM)
 
 **Research finding:** In real estate, speed-to-lead is the single most important conversion factor. Agents who respond within 5 minutes are 100x more likely to convert the lead. splitforms and other competitors highlight SMS alerts as a key feature.
 
@@ -384,11 +433,12 @@ Cloudflare's pricing model (pay-per-request with generous free tiers) means the 
 
 ## Priority Summary
 
-| Phase | Impact | Dependencies | Items |
-|---|---|---|---|
-| **Phase 1: Bug fixes + hardening** | High — prevents lead loss, fixes UX dead-ends | None | 10 items |
-| **Phase 2: Worker proxy** | Critical — solves security, reliability, CORS, abuse | Cloudflare account | 4 items |
-| **Phase 3: Infra hardening** | High — versioned CDN, CI/CD, monitoring | Phase 2 (telemetry via Worker) | 5 items |
-| **Phase 4: A11y, UX, CRM** | Medium — polish, accessibility, growth features | Phase 2 (CRM/SMS need proxy) | 5 items |
+| Phase | Status | Impact | Dependencies | Items |
+|---|---|---|---|---|
+| **Phase 1: Bug fixes + hardening** | ✅ Done (v1.2.0) | High — prevents lead loss, fixes UX dead-ends | None | 10 items |
+| **Phase 2: Worker proxy (opt-in test)** | ✅ Done (v1.3.0) | Critical — Worker infra: D1, Queues, DO, KV, HMAC, DLQ | Cloudflare account | 6 items |
+| **Phase 3: Transparent proxy** | **Next up** | **Critical — makes proxy invisible infrastructure for all agents** | Phase 2 | 5 items |
+| **Phase 4: Infra hardening** | Planned | High — versioned CDN, CI/CD, monitoring, SRI | Phase 3 (telemetry via Worker) | 5 items |
+| **Phase 5: A11y, UX, CRM** | Planned | Medium — polish, accessibility, growth features | Phase 3 (CRM/SMS need proxy) | 5 items |
 
-Phase 1 can begin immediately with zero infrastructure changes. Phase 2 is the architectural inflection point. Phases 3 and 4 build on the proxy foundation.
+Phase 1 shipped bug fixes and security hardening. Phase 2 built and validated the Worker proxy infrastructure as an opt-in test phase. **Phase 3 is the next priority** — it makes the proxy transparent so every agent automatically gets retry, dedup, rate limiting, and abuse protection without knowing the proxy exists. Phases 4 and 5 build on the transparent proxy foundation.

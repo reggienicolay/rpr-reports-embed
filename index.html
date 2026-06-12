@@ -849,6 +849,7 @@ input[type="color"] {
 <header class="site-header">
   <div></div>
   <div style="display:flex;align-items:center;gap:12px;">
+    <button type="button" class="btn-reset" id="importBtn" title="Import an existing embed script to migrate to proxy">Import Embed</button>
     <button type="button" class="btn-reset" id="resetBtn" title="Clear all saved fields and start fresh">Reset</button>
   </div>
 </header>
@@ -1116,17 +1117,26 @@ input[type="color"] {
             </div>
           </div>
 
+          <input type="hidden" id="proxyToken" value="">
+
           <div id="deliveryUrlGroup" hidden style="margin-top:12px">
             <label>Webhook URL</label>
             <input type="url" id="deliveryUrl" placeholder="https://…">
             <div class="delivery-url-warning" id="deliveryUrlWarning" hidden>
               Webhook URL must start with <code>https://</code> — leads will not be sent over insecure connections.
             </div>
-            <p class="delivery-privacy-note">
-              Webhook URLs grant write access to your channel. Don't share the generator link publicly.
-            </p>
-            <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test</button>
+
+            <div id="proxyStatus" style="margin-top:8px;display:none;">
+              <span id="proxyBadge" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">Secured</span>
+              <code id="proxyTokenDisplay" style="font-size:12px;margin-left:8px;color:#888;"></code>
+            </div>
+
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+              <button type="button" class="btn-test-webhook" id="registerProxyBtn" style="display:none">Retry</button>
+              <button type="button" class="btn-test-webhook" id="testWebhookBtn" style="display:none">Send test</button>
+            </div>
             <div class="test-webhook-result" id="testWebhookResult"></div>
+            <div class="test-webhook-result" id="testProxyResult"></div>
           </div>
             </div>
           </div>
@@ -1230,8 +1240,9 @@ input[type="color"] {
       <div class="section-pane" data-pane="settings">
         <div class="section-pane-header">
           <h1 class="section-pane-title">Settings</h1>
-          <p class="section-pane-sub">Privacy, advanced styling, and labels.</p>
+          <p class="section-pane-sub">Proxy admin, privacy, advanced styling, and labels.</p>
         </div>
+
 
         <div class="glass-card">
           <h2 class="glass-card-title">Privacy</h2>

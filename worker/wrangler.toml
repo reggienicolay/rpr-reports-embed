@@ -1,0 +1,43 @@
+name = "rpr-lead-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+account_id = "c5035196740f136167383085063b5af3"
+
+# --- D1 Database ---
+[[d1_databases]]
+binding = "DB"
+database_name = "rpr_leads"
+database_id = "a8f32a02-753c-4014-96f7-c78b3e1a62fa"
+
+# --- KV Namespace (idempotency) ---
+[[kv_namespaces]]
+binding = "IDEMPOTENCY"
+id = "bb68f67239db42c6a5f8e59f38bd6572"
+
+# --- Queue Producer ---
+[[queues.producers]]
+binding = "LEAD_QUEUE"
+queue = "lead-delivery"
+
+# --- Queue Consumer ---
+[[queues.consumers]]
+queue = "lead-delivery"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "lead-delivery-dlq"
+
+# --- Dead Letter Queue Producer (for logging) ---
+[[queues.producers]]
+binding = "DLQ"
+queue = "lead-delivery-dlq"
+
+# --- Durable Objects ---
+[durable_objects]
+bindings = [
+  { name = "RATE_LIMITER", class_name = "RateLimiter" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]

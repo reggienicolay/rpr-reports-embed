@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test 5: Modal Mode</title>
+  <style>
+    body { font-family: system-ui; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+    .note { color: #888; font-size: 13px; margin-top: 12px; }
+    a { color: #0086E6; }
+    .trigger-btn { padding: 12px 24px; background: #0086E6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; margin: 20px 0; }
+    .trigger-btn:hover { background: #006dbb; }
+  </style>
+</head>
+<body>
+  <p><a href="test.html">&larr; Back to test hub</a></p>
+  <h2>Modal Mode</h2>
+
+  <button class="trigger-btn" id="modal-trigger">Open Market Report</button>
+
+  <script src="../rpr-reports-embed.js"
+    data-reports='[{"label":"Venice 90291","url":"https://www.narrpr.com/test-venice"},{"label":"Marina del Rey","url":"https://www.narrpr.com/test-mdr"}]'
+    data-webhook="https://httpbin.org/post"
+    data-agent-name="Test Agent"
+    data-form-mode="full"
+    data-display-mode="modal"
+    data-modal-trigger="#modal-trigger"
+  ></script>
+
+  <div class="note">
+    <strong>What to test:</strong>
+    <ul>
+      <li>Click "Open Market Report" — modal overlay opens</li>
+      <li>Press Escape — modal closes, form resets</li>
+      <li>Open modal, submit, click Back — form resets for resubmission</li>
+      <li>Click on the dark backdrop — modal closes</li>
+      <li>Press Escape when modal is NOT open — nothing should happen</li>
+    </ul>
+  </div>
+</body>
+</html>

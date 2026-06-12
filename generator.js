@@ -24,7 +24,7 @@ const DEFAULTS = {
 
 /* Field IDs for URL hash encoding (scalar fields only) */
 const FIELD_KEYS = [
-  'deliveryMethod','deliveryUrl','formMode','agentName','brokerage','logoUrl','colorBrandHex',
+  'deliveryMethod','deliveryUrl','proxyToken','formMode','agentName','brokerage','logoUrl','colorBrandHex',
   'fontHeading','fontBody','headline','subheadline','btnLabel',
   'floatLabel','floatPosition','modalTrigger','cardBg','cardText',
   'cardRadius','areaLabel','reportsHeading','gdprText',
@@ -88,15 +88,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Delivery method dropdown — toggles panels + URL field, then generates */
   document.getElementById('deliveryMethod').addEventListener('change', function() {
-    handleDeliveryChange();
+    handleDeliveryChange(true);
     generate();
   });
 
-  /* Shared delivery URL input */
-  document.getElementById('deliveryUrl').addEventListener('input', function() {
+  /* Shared delivery URL input — auto-register on blur */
+  var deliveryUrlEl = document.getElementById('deliveryUrl');
+  deliveryUrlEl.addEventListener('input', function() {
     updateWebhookWarning();
     generate();
   });
+  var _lastRegisteredUrl = deliveryUrlEl.value.trim();
+  deliveryUrlEl.addEventListener('blur', function() {
+    var url   = deliveryUrlEl.value.trim();
+    var token = document.getElementById('proxyToken').value.trim();
+    if (url && /^https:\/\//i.test(url)) {
+      if (!token || url !== _lastRegisteredUrl) {
+        document.getElementById('proxyToken').value = '';
+        _lastRegisteredUrl = url;
+        registerConfig();
+      }
+    }
+  });
+
 
   /* floatPosition is a <select> — fires 'change' not 'input' */
   document.getElementById('floatPosition').addEventListener('change', generate);
@@ -140,6 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', resetConfig);
 
+  /* Import existing embed button */
+  const importBtn = document.getElementById('importBtn');
+  if (importBtn) importBtn.addEventListener('click', importEmbed);
+
   /* Side nav: click switches which .section-pane is visible. */
   document.querySelectorAll('.side-nav-item').forEach(btn => {
     btn.addEventListener('click', () => switchPane(btn.dataset.pane));
@@ -151,8 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => setFormMode(btn.dataset.formMode));
   });
 
-  /* Test webhook button */
+  /* Test button (auto-routes via proxy or direct) */
   document.getElementById('testWebhookBtn').addEventListener('click', sendTestWebhook);
+
+  /* Manual register fallback (hidden by default — used if auto-register failed) */
+  var regBtn = document.getElementById('registerProxyBtn');
+  if (regBtn) regBtn.addEventListener('click', registerConfig);
 
   /* Mode tabs — use event delegation on parent */
   document.querySelector('.mode-tabs').addEventListener('click', e => {
@@ -232,19 +254,25 @@ function initCollapsibleSections() {
 /* ─────────────────────────────────────────────
    Delivery method panel handler
 ───────────────────────────────────────────── */
-function handleDeliveryChange() {
-  const method   = document.getElementById('deliveryMethod').value;
-  const urlGroup = document.getElementById('deliveryUrlGroup');
-  const urlInput = document.getElementById('deliveryUrl');
+function handleDeliveryChange(userInitiated) {
+  const method     = document.getElementById('deliveryMethod').value;
+  const urlGroup   = document.getElementById('deliveryUrlGroup');
+  const urlInput   = document.getElementById('deliveryUrl');
+
+  if (userInitiated) {
+    document.getElementById('proxyToken').value = '';
+    if (urlInput) urlInput.value = '';
+    var statusEl = document.getElementById('proxyStatus');
+    if (statusEl) statusEl.style.display = 'none';
+    var resultEl = document.getElementById('testProxyResult');
+    if (resultEl) { resultEl.textContent = ''; resultEl.className = 'test-webhook-result'; }
+  }
 
   /* Hide all panels, show the selected one */
   document.querySelectorAll('.delivery-panel').forEach(p => p.hidden = true);
   const panel = document.getElementById('panel-' + method);
   if (panel) panel.hidden = false;
 
-  /* Show URL input for every method except "none" / empty.
-     Sheets DOES need the URL field — the deployed Web App URL is
-     what the script.appendRow handler listens on. */
   const noUrl = !method || method === 'none';
   urlGroup.hidden = noUrl;
 
@@ -256,43 +284,124 @@ function handleDeliveryChange() {
 }
 
 /* ─────────────────────────────────────────────
-   Webhook warning + test button visibility
+   Webhook warning + test/register button visibility
 ───────────────────────────────────────────── */
 function updateWebhookWarning() {
-  const method  = document.getElementById('deliveryMethod').value;
-  const url     = document.getElementById('deliveryUrl').value.trim();
+  const method   = document.getElementById('deliveryMethod').value;
+  const url      = document.getElementById('deliveryUrl').value.trim();
+  const token    = document.getElementById('proxyToken').value.trim();
   const noDelivery = !method || method === 'none';
 
   document.getElementById('webhookWarning').style.display = noDelivery ? 'flex' : 'none';
 
-  /* HTTPS warning — surfaces in the generator before the embed widget rejects it at runtime */
+  /* HTTPS warning */
   const urlWarning = document.getElementById('deliveryUrlWarning');
   if (urlWarning) urlWarning.hidden = !url || /^https:\/\//i.test(url);
 
-  /* Test button only shows when a URL has been entered */
-  const testBtn = document.getElementById('testWebhookBtn');
-  if (testBtn) testBtn.style.display = url ? 'inline-block' : 'none';
+  /* Secured status badge */
+  const proxyStatus = document.getElementById('proxyStatus');
+  const proxyDisplay = document.getElementById('proxyTokenDisplay');
+  if (proxyStatus) {
+    if (token) {
+      proxyStatus.style.display = 'block';
+      if (proxyDisplay) proxyDisplay.textContent = token;
+    } else {
+      proxyStatus.style.display = 'none';
+    }
+  }
 
-  const result = document.getElementById('testWebhookResult');
-  if (result) {
-    result.textContent = '';
-    result.className = 'test-webhook-result';
+  /* Register button: hidden by default — only shown as retry if auto-register failed */
+  const registerBtn = document.getElementById('registerProxyBtn');
+  if (registerBtn) {
+    registerBtn.style.display = 'none';
+    registerBtn.textContent = 'Retry';
+  }
+
+  /* Test button */
+  const testBtn = document.getElementById('testWebhookBtn');
+  if (testBtn) {
+    testBtn.style.display = (url || token) ? 'inline-block' : 'none';
+    testBtn.textContent = 'Send test';
   }
 }
 
+var PROXY_BASE_URL = 'https://rpr-lead-proxy.reggie-c50.workers.dev';
+
 /* ─────────────────────────────────────────────
-   Test webhook
+   Register / update config via Worker API
+───────────────────────────────────────────── */
+function registerConfig() {
+  const url      = document.getElementById('deliveryUrl').value.trim();
+  const baseUrl  = PROXY_BASE_URL;
+  const token    = document.getElementById('proxyToken').value.trim();
+  const retryBtn = document.getElementById('registerProxyBtn');
+  const result   = document.getElementById('testProxyResult');
+  const agentName = (document.getElementById('agentName') || {}).value || '';
+
+  if (!url || !(/^https:\/\//i.test(url))) return;
+
+  if (retryBtn) retryBtn.style.display = 'none';
+  if (result) { result.textContent = 'Securing webhook\u2026'; result.className = 'test-webhook-result'; }
+
+  const endpoint = baseUrl + '/api/config';
+  const method   = 'POST';
+
+  const body = { webhook_url: url };
+  if (agentName) body.agent_name = agentName;
+
+  const headers = { 'Content-Type': 'application/json' };
+
+  fetch(endpoint, {
+    method:  method,
+    headers: headers,
+    body: JSON.stringify(body),
+  })
+  .then(async (res) => {
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.token) {
+      document.getElementById('proxyToken').value = data.token;
+      if (result) {
+        result.textContent = 'Webhook secured \u2714';
+        result.className = 'test-webhook-result success';
+      }
+      updateWebhookWarning();
+      generate();
+    } else {
+      const errMsg = (data && data.error) || ('HTTP ' + res.status);
+      if (result) {
+        result.textContent = 'Setup failed: ' + errMsg;
+        result.className = 'test-webhook-result error';
+      }
+      if (retryBtn) retryBtn.style.display = 'inline-block';
+    }
+  })
+  .catch(() => {
+    if (result) {
+      result.textContent = 'Could not reach server \u2014 check your internet connection.';
+      result.className = 'test-webhook-result error';
+    }
+    if (retryBtn) retryBtn.style.display = 'inline-block';
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Test delivery (auto-routes via proxy or direct)
 ───────────────────────────────────────────── */
 function sendTestWebhook() {
+  const token = document.getElementById('proxyToken').value.trim();
+  if (token) return sendTestViaProxy();
+  return sendTestDirect();
+}
+
+function sendTestDirect() {
   const cfg    = vals();
   const btn    = document.getElementById('testWebhookBtn');
   const result = document.getElementById('testWebhookResult');
 
   if (!cfg.webhookUrl) return;
 
-  /* Enforce HTTPS \u2014 matches what the embed widget enforces at runtime */
   if (!/^https:\/\//i.test(cfg.webhookUrl)) {
-    result.textContent = 'Webhook URL must start with https:// \u2014 leads will not be sent over insecure connections.';
+    result.textContent = 'Webhook URL must start with https://.';
     result.className = 'test-webhook-result error';
     return;
   }
@@ -303,7 +412,6 @@ function sendTestWebhook() {
   result.className = 'test-webhook-result';
 
   const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
-
   const payload = {
     form_id:       'rpr-test-000',
     first_name:    'Test',
@@ -319,8 +427,6 @@ function sendTestWebhook() {
     timestamp:     new Date().toISOString(),
   };
 
-  /* no-cors so we don't trip CORS preflight on Slack/Discord/etc;
-     trade-off is we can't read the response, only confirm it sent */
   const meta        = DELIVERY_META[cfg.deliveryMethod] || {};
   const destination = meta.destination || 'webhook destination';
 
@@ -336,6 +442,72 @@ function sendTestWebhook() {
   })
   .catch(() => {
     result.textContent = 'Could not send test \u2014 check your URL and try again.';
+    result.className = 'test-webhook-result error';
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Send test';
+  });
+}
+
+function sendTestViaProxy() {
+  const token  = document.getElementById('proxyToken').value.trim();
+  const btn    = document.getElementById('testWebhookBtn');
+  const result = document.getElementById('testWebhookResult');
+
+  if (!token) return;
+
+  const proxyUrl = PROXY_BASE_URL + '/' + token;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+  result.textContent = '';
+  result.className = 'test-webhook-result';
+
+  const cfg = vals();
+  const firstLabel = cfg.reports.length ? cfg.reports[0].label : 'Test Area';
+
+  const payload = {
+    form_id:       'rpr-test-000',
+    first_name:    'Test',
+    last_name:     'Lead (from RPR Generator)',
+    email:         'test@example.com',
+    phone:         '(555) 000-0000',
+    selected_area: firstLabel,
+    report_url:    'https://www.narrpr.com/reports-v2/test/pdf',
+    agent_name:    cfg.agentName || '',
+    brokerage:     cfg.brokerage || '',
+    gdpr_consent:  null,
+    source_url:    location.href,
+    timestamp:     new Date().toISOString(),
+    _meta: {
+      widget_version: '1.5.0',
+      source_url:     location.href,
+      timestamp:      new Date().toISOString(),
+    },
+  };
+
+  fetch(proxyUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload),
+  })
+  .then(async (res) => {
+    const body = await res.json().catch(() => null);
+    if (res.status === 202) {
+      result.textContent = 'Test lead sent successfully \u2714';
+      result.className = 'test-webhook-result success';
+    } else if (res.status === 200 && body && body.status === 'duplicate') {
+      result.textContent = 'Duplicate \u2014 this test lead was already sent recently.';
+      result.className = 'test-webhook-result success';
+    } else {
+      const errMsg = (body && body.error) || ('Server returned HTTP ' + res.status);
+      result.textContent = errMsg;
+      result.className = 'test-webhook-result error';
+    }
+  })
+  .catch(() => {
+    result.textContent = 'Could not reach server \u2014 check your internet connection.';
     result.className = 'test-webhook-result error';
   })
   .finally(() => {
@@ -512,11 +684,14 @@ function sanitizeFontName(name) {
 function vals() {
   const method = v('deliveryMethod');
   const url    = (!method || method === 'none') ? '' : v('deliveryUrl');
-  const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';  /* default minimal */
+  const token  = v('proxyToken');
+  const formMode = (v('formMode') === 'full') ? 'full' : 'minimal';
   return {
     reports:        getReports(),
     deliveryMethod: method,
     webhookUrl:     url,
+    proxyToken:     token,
+    proxyBaseUrl:   token ? PROXY_BASE_URL : '',
     formMode:       formMode,
     agentName:      v('agentName'),
     brokerage:      v('brokerage'),
@@ -682,6 +857,9 @@ function applyConfig(config) {
     addReportRow('Beverly Hills 90210', '', true);
     addReportRow('Santa Monica 90401', '', true);
   }
+
+  /* Trigger delivery panel visibility after restoring method selection */
+  handleDeliveryChange();
 
   _suppressGenerate = false;
 }
@@ -869,7 +1047,13 @@ function renderCode(cfg) {
     lines.push("  data-reports='[]'");
   }
 
-  if (cfg.webhookUrl)  lines.push('  data-webhook="'      + av(cfg.webhookUrl)   + '"');
+  if (cfg.proxyToken) {
+    const proxyUrl = cfg.proxyBaseUrl.replace(/\/+$/, '') + '/' + cfg.proxyToken;
+    lines.push('  data-proxy="' + av(proxyUrl) + '"');
+  } else if (cfg.webhookUrl) {
+    /* Fallback: direct webhook when no proxy token (admin key not configured or offline) */
+    lines.push('  data-webhook="' + av(cfg.webhookUrl) + '"');
+  }
   /* Always emit data-form-mode so the embed code is explicit about which
      form variant the agent picked. The widget itself defaults to 'full' for
      backwards-compat, so omitting would silently flip new minimal embeds. */
@@ -987,6 +1171,103 @@ function resetConfig() {
   /* Strip hash and reload */
   history.replaceState(null, '', location.pathname + location.search);
   location.reload();
+}
+
+/* ─────────────────────────────────────────────
+   Import existing embed — parse <script> tag,
+   extract attributes, register webhook via API,
+   populate generator fields.
+───────────────────────────────────────────── */
+function importEmbed() {
+  const raw = prompt(
+    'Paste your existing <script> embed code here.\n\n' +
+    'The generator will extract your settings and give you an updated embed code.'
+  );
+  if (!raw || !raw.trim()) return;
+
+  const parser = document.createElement('div');
+  parser.innerHTML = raw.trim();
+  const script = parser.querySelector('script');
+  if (!script) {
+    alert('Could not find a <script> tag in the pasted code.');
+    return;
+  }
+
+  /* Extract data-* attributes into a config object */
+  const config = {};
+  const attrMap = {
+    'data-webhook':         'deliveryUrl',
+    'data-proxy':           null,
+    'data-reports':         null,
+    'data-agent-name':      'agentName',
+    'data-brokerage':       'brokerage',
+    'data-logo-url':        'logoUrl',
+    'data-color-brand':     'colorBrandHex',
+    'data-font-heading':    'fontHeading',
+    'data-font-body':       'fontBody',
+    'data-headline':        'headline',
+    'data-subheadline':     'subheadline',
+    'data-btn-label':       'btnLabel',
+    'data-display-mode':    'displayMode',
+    'data-float-label':     'floatLabel',
+    'data-float-position':  'floatPosition',
+    'data-modal-trigger':   'modalTrigger',
+    'data-form-mode':       'formMode',
+    'data-card-bg':         'cardBg',
+    'data-card-text':       'cardText',
+    'data-card-radius':     'cardRadius',
+    'data-area-label':      'areaLabel',
+    'data-reports-heading':  'reportsHeading',
+    'data-gdpr-enabled':    null,
+    'data-gdpr-text':       'gdprText',
+  };
+
+  for (const [attr, key] of Object.entries(attrMap)) {
+    const val = script.getAttribute(attr);
+    if (val !== null && key) config[key] = val;
+  }
+
+  /* Parse reports JSON */
+  const reportsRaw = script.getAttribute('data-reports');
+  if (reportsRaw) {
+    try { config.reports = JSON.parse(reportsRaw); } catch(e) { /* skip */ }
+  }
+
+  /* GDPR */
+  if (script.getAttribute('data-gdpr-enabled') === 'true') {
+    config.gdprEnabled = true;
+  }
+
+  /* Detect delivery method from webhook URL */
+  const webhook = config.deliveryUrl || '';
+  if (/ntfy\.sh\//i.test(webhook))              config.deliveryMethod = 'ntfy';
+  else if (/hooks\.slack\.com\//i.test(webhook)) config.deliveryMethod = 'slack';
+  else if (/discord(app)?\.com\/api\/webhooks/i.test(webhook)) config.deliveryMethod = 'discord';
+  else if (/simplepush\.io\//i.test(webhook) || /simplepu\.sh\//i.test(webhook)) config.deliveryMethod = 'simplepush';
+  else if (/api\.pushover\.net\//i.test(webhook)) config.deliveryMethod = 'pushover';
+  else if (/script\.google\.com\//i.test(webhook)) config.deliveryMethod = 'sheets';
+  else if (/leadconnectorhq\.com\//i.test(webhook)) config.deliveryMethod = 'ghl';
+  else if (/make\.com\//i.test(webhook))         config.deliveryMethod = 'make';
+  else if (/zapier\.com\//i.test(webhook))       config.deliveryMethod = 'zapier';
+  else if (/gettoolkit\.app\//i.test(webhook))   config.deliveryMethod = 'toolkit';
+  else if (webhook)                               config.deliveryMethod = 'custom';
+
+  /* If the embed already has data-proxy, extract token */
+  const proxyUrl = script.getAttribute('data-proxy');
+  if (proxyUrl) {
+    const match = proxyUrl.match(/\/(agt_[a-zA-Z0-9]+)$/);
+    if (match) config.proxyToken = match[1];
+  }
+
+  /* Clear existing rows and apply */
+  document.getElementById('reportsList').innerHTML = '';
+  applyConfig(config);
+  generateNow();
+
+  /* Auto-register with proxy if we have a webhook but no token */
+  if (webhook && !config.proxyToken) {
+    setTimeout(registerConfig, 300);
+  }
 }
 
 /* ─────────────────────────────────────────────
