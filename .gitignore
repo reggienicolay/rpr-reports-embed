@@ -24,3 +24,6 @@ Desktop.ini
 
 # OpenSpec temp
 openspec/.cache/
+
+# Local Claude Code preview server config
+.claude/launch.json

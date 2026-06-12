@@ -1,0 +1,439 @@
+/* ===================================================================
+   help.css — RPR Market Reports Widget · on-page Install Guide & FAQ
+   Recreated from the Claude Design handoff "Reports Widget Help.html".
+   ALL selectors are scoped under `.rpr-help` so the article styling
+   cannot leak into (or be clobbered by) the generator app above it.
+   Design tokens live on `.rpr-help` — NOT :root — so the generator's
+   own --accent (#0086E6) is left untouched.
+   =================================================================== */
+
+html { scroll-behavior: smooth; }
+
+.rpr-help {
+  /* ---- Tokens (orange editorial palette from the design) ---- */
+  --bg: #ffffff;
+  --bg-alt: #f7f6f3;
+  --bg-code: #0f0f10;
+  --ink: #17171a;
+  --ink-soft: #3c3c40;
+  --ink-mute: #6b6b70;
+  --ink-faint: #a3a3a8;
+  --rule: #e7e5df;
+  --rule-strong: #d2cfc7;
+  --accent: #f37737;          /* RPR orange */
+  --accent-ink: #c85512;
+  --warn-bg: #fef6e4;
+  --warn-ink: #7a5411;
+  --ok-bg: #eef6ef;
+  --ok-ink: #2f6f3a;
+  --radius: 4px;
+  --radius-lg: 8px;
+  --max: 1200px;
+  --header-h: 80px;           /* clears the generator's 64px sticky header */
+  --font-sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  border-top: 1px solid var(--rule);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.rpr-help *,
+.rpr-help *::before,
+.rpr-help *::after { box-sizing: border-box; }
+
+.rpr-help a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+.rpr-help a:hover { text-decoration-color: var(--accent); }
+
+/* ---------- Hero ---------- */
+.rpr-help .hero {
+  max-width: var(--max); margin: 0 auto;
+  padding: 72px 32px 56px;
+  border-bottom: 1px solid var(--rule);
+}
+.rpr-help .hero-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--accent-ink); text-transform: uppercase;
+  margin: 0 0 22px;
+}
+.rpr-help .hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 5.2vw, 60px);
+  line-height: 1.05; letter-spacing: -0.02em;
+  font-weight: 600;
+  margin: 0 0 22px;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.rpr-help .hero .lede {
+  font-size: 19px; line-height: 1.55; color: var(--ink-soft);
+  max-width: 62ch; margin: 0 0 32px;
+}
+.rpr-help .hero-meta {
+  display: flex; gap: 32px; flex-wrap: wrap;
+  padding-top: 24px; border-top: 1px solid var(--rule);
+  font-size: 14px; color: var(--ink-mute);
+}
+.rpr-help .hero-meta b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Main layout with sticky TOC ---------- */
+.rpr-help .page {
+  max-width: var(--max); margin: 0 auto;
+  padding: 56px 32px 120px;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 64px;
+}
+@media (max-width: 960px) {
+  .rpr-help .page { grid-template-columns: 1fr; gap: 32px; padding: 40px 20px 80px; }
+  .rpr-help .toc { position: static !important; }
+}
+
+.rpr-help .toc {
+  position: sticky; top: var(--header-h);
+  align-self: start;
+  font-size: 14px;
+  max-height: calc(100vh - var(--header-h) - 24px);
+  overflow: auto;
+}
+.rpr-help .toc h4 {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 600;
+  margin: 0 0 14px;
+}
+.rpr-help .toc ol { list-style: none; padding: 0; margin: 0 0 28px; }
+.rpr-help .toc li { margin: 0; }
+.rpr-help .toc a {
+  display: block;
+  padding: 7px 0 7px 14px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-mute);
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: color .15s, border-color .15s;
+}
+.rpr-help .toc a:hover { color: var(--ink); }
+.rpr-help .toc a.active { color: var(--ink); border-left-color: var(--accent); }
+
+/* ---------- Sections ---------- */
+.rpr-help section { scroll-margin-top: var(--header-h); }
+.rpr-help .section { margin-bottom: 80px; }
+.rpr-help .section:last-child { margin-bottom: 0; }
+
+.rpr-help .section-tag {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--ink-mute); text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.rpr-help .section-tag::before {
+  content: ""; width: 24px; height: 1px; background: var(--ink-mute);
+}
+.rpr-help h2 {
+  font-family: var(--font-serif);
+  font-size: 40px; line-height: 1.15; letter-spacing: -0.015em;
+  font-weight: 600;
+  margin: 0 0 16px;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.rpr-help h3 {
+  font-family: var(--font-serif);
+  font-size: 26px; line-height: 1.25; letter-spacing: -0.01em;
+  font-weight: 600;
+  margin: 40px 0 12px;
+  color: var(--ink);
+}
+.rpr-help h4 {
+  font-size: 15px; font-weight: 600;
+  margin: 24px 0 8px; color: var(--ink);
+}
+.rpr-help p { margin: 0 0 16px; color: var(--ink-soft); max-width: 68ch; }
+.rpr-help p.intro { font-size: 18px; color: var(--ink-soft); max-width: 64ch; }
+
+.rpr-help ul, .rpr-help ol { color: var(--ink-soft); padding-left: 22px; margin: 0 0 16px; }
+.rpr-help li { margin-bottom: 6px; max-width: 66ch; }
+
+.rpr-help kbd {
+  font-family: var(--font-mono); font-size: 12px;
+  background: #fff; border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px; padding: 2px 6px;
+  color: var(--ink);
+}
+
+.rpr-help code.inline {
+  font-family: var(--font-mono); font-size: 13px;
+  background: #f1efe9; color: var(--ink);
+  padding: 2px 6px; border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+
+/* ---------- Step cards ---------- */
+.rpr-help .steps {
+  display: grid; gap: 0;
+  margin: 32px 0 0;
+  border-top: 1px solid var(--rule);
+}
+.rpr-help .step {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 32px;
+  padding: 36px 0;
+  border-bottom: 1px solid var(--rule);
+}
+@media (max-width: 640px) {
+  .rpr-help .step { grid-template-columns: 1fr; gap: 8px; padding: 28px 0; }
+}
+.rpr-help .step-num {
+  font-family: var(--font-serif);
+  font-size: 42px; font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.rpr-help .step-num::after {
+  content: ""; display: block;
+  width: 36px; height: 2px; background: var(--accent);
+  margin-top: 14px;
+}
+.rpr-help .step-body h3 { margin: 0 0 8px; font-size: 22px; }
+.rpr-help .step-body p { margin: 0 0 12px; }
+.rpr-help .step-body ol, .rpr-help .step-body ul { margin: 0 0 12px; }
+
+/* ---------- Callout ---------- */
+.rpr-help .callout {
+  margin: 20px 0;
+  padding: 16px 18px;
+  border-left: 3px solid var(--accent);
+  background: #fbf6f2;
+  font-size: 14px;
+  color: var(--ink-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.rpr-help .callout b { color: var(--ink); }
+.rpr-help .callout.warn { border-left-color: #d89f2c; background: var(--warn-bg); }
+.rpr-help .callout.warn b { color: var(--warn-ink); }
+.rpr-help .callout.ok   { border-left-color: #3f9a4d; background: var(--ok-bg); }
+.rpr-help .callout.ok b { color: var(--ok-ink); }
+
+/* ---------- Code block ---------- */
+.rpr-help .code {
+  position: relative;
+  background: var(--bg-code); color: #f4f4f5;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  font-family: var(--font-mono); font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 16px 0 20px;
+  white-space: pre;
+}
+.rpr-help .code .tok-tag   { color: #f4a26a; }
+.rpr-help .code .tok-attr  { color: #a3d2ff; }
+.rpr-help .code .tok-str   { color: #d6e9b8; }
+.rpr-help .code .tok-com   { color: #7b7b84; font-style: italic; }
+.rpr-help .code .copy {
+  position: absolute; top: 10px; right: 10px;
+  background: #2a2a2e; color: #f4f4f5;
+  border: 1px solid #3a3a40;
+  font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+  padding: 6px 10px; border-radius: 4px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.rpr-help .code .copy:hover { background: #3a3a40; }
+.rpr-help .code .copy.copied { background: #2f6f3a; border-color: #2f6f3a; }
+/* single-line code samples (report URL) read better centered, not pre */
+.rpr-help .code.inline-url { white-space: normal; word-break: break-all; }
+
+/* ---------- Screenshot / figure ---------- */
+.rpr-help figure { margin: 20px 0; }
+.rpr-help .figure {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bg-alt);
+  padding: 40px;
+  text-align: center;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  background-image: repeating-linear-gradient(135deg, transparent 0 14px, rgba(0,0,0,0.025) 14px 15px);
+}
+.rpr-help .figure strong {
+  display: block; color: var(--ink); font-family: var(--font-sans);
+  font-size: 14px; font-weight: 600; letter-spacing: 0; margin-bottom: 4px;
+}
+.rpr-help figcaption {
+  font-size: 13px; color: var(--ink-mute);
+  margin-top: 8px; font-style: italic;
+}
+
+/* ---------- Platform tabs (Inline / Floating / Modal & platforms) ---------- */
+.rpr-help .tabs {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  margin: 24px 0 0;
+}
+.rpr-help .tab {
+  border: 0; background: none; cursor: pointer;
+  font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+  color: var(--ink-mute);
+  padding: 12px 20px 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.rpr-help .tab:hover { color: var(--ink); }
+.rpr-help .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+.rpr-help .tabpanel { padding: 24px 0; display: none; }
+.rpr-help .tabpanel.active { display: block; }
+
+/* ---------- FAQ ---------- */
+.rpr-help .faq-group { margin-top: 48px; }
+.rpr-help .faq-group:first-of-type { margin-top: 32px; }
+.rpr-help .faq-group-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: 14px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.rpr-help .faq-group-header h3 { margin: 0; font-size: 22px; }
+.rpr-help .faq-group-header .count {
+  font-size: 13px; color: var(--ink-mute);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  margin-left: 16px;
+}
+.rpr-help details.faq {
+  border-bottom: 1px solid var(--rule);
+  padding: 0;
+}
+.rpr-help details.faq > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 20px 44px 20px 0;
+  position: relative;
+  font-weight: 500; font-size: 16px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.rpr-help details.faq > summary::-webkit-details-marker { display: none; }
+.rpr-help details.faq > summary::after {
+  content: ""; position: absolute; right: 4px; top: 50%;
+  width: 12px; height: 12px;
+  border-right: 2px solid var(--ink-mute);
+  border-bottom: 2px solid var(--ink-mute);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform .2s;
+}
+.rpr-help details.faq[open] > summary::after {
+  transform: translateY(-30%) rotate(-135deg);
+  border-color: var(--accent);
+}
+.rpr-help details.faq[open] > summary { color: var(--ink); }
+.rpr-help details.faq .answer {
+  padding: 0 40px 24px 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+.rpr-help details.faq .answer p { color: var(--ink-soft); }
+.rpr-help details.faq .answer p:last-child { margin-bottom: 0; }
+.rpr-help details.faq .answer ul { padding-left: 20px; }
+.rpr-help details.faq .answer ul li { font-size: 15px; }
+
+/* ---------- FAQ search ---------- */
+.rpr-help .faq-search { position: relative; margin: 16px 0 8px; }
+.rpr-help .faq-search input {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  font-family: var(--font-sans); font-size: 15px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color .15s;
+}
+.rpr-help .faq-search input:focus { border-color: var(--ink); }
+.rpr-help .faq-search::before {
+  content: "";
+  position: absolute; left: 14px; top: 50%;
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--ink-mute);
+  border-radius: 50%;
+  transform: translateY(-70%);
+}
+.rpr-help .faq-search::after {
+  content: "";
+  position: absolute; left: 25px; top: 50%;
+  width: 7px; height: 1.5px;
+  background: var(--ink-mute);
+  transform: translateY(60%) rotate(45deg);
+  transform-origin: left center;
+}
+.rpr-help .faq-hidden { display: none !important; }
+
+/* ---------- Diagnostic table ---------- */
+.rpr-help .diag {
+  width: 100%; border-collapse: collapse;
+  margin: 16px 0 20px;
+  font-size: 14px;
+}
+.rpr-help .diag th {
+  text-align: left;
+  font-weight: 600; font-size: 12px;
+  color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.rpr-help .diag td {
+  padding: 14px 12px 14px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+.rpr-help .diag td:first-child { font-weight: 500; color: var(--ink); width: 40%; }
+
+/* ---------- "Still stuck" CTA ---------- */
+.rpr-help .still-stuck {
+  margin-top: 80px;
+  padding: 48px;
+  background: #111113; color: #f4f4f5;
+  border-radius: 12px;
+  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;
+}
+@media (max-width: 720px) { .rpr-help .still-stuck { grid-template-columns: 1fr; padding: 32px; } }
+.rpr-help .still-stuck h3 {
+  font-family: var(--font-serif); font-weight: 600;
+  font-size: 28px; margin: 0 0 8px; color: #fff;
+  letter-spacing: -0.01em;
+}
+.rpr-help .still-stuck p { color: #b5b5ba; margin: 0; font-size: 15px; max-width: none; }
+.rpr-help .still-stuck a.btn {
+  background: var(--accent); color: #fff;
+  padding: 12px 20px; border-radius: var(--radius);
+  font-weight: 600; text-decoration: none; font-size: 14px;
+  white-space: nowrap;
+}
+.rpr-help .still-stuck a.btn:hover { background: var(--accent-ink); }
+
+/* ---------- Footer ---------- */
+.rpr-help .sitefoot {
+  border-top: 1px solid var(--rule);
+  padding: 32px;
+  text-align: center;
+  color: var(--ink-mute); font-size: 13px;
+}

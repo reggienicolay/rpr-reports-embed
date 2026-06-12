@@ -76,7 +76,7 @@ The RPR Market Reports Embed Widget has a **serverless, fully static infrastruct
 |---|---|
 | **Service** | GitHub Pages (static site hosting from GitHub repo) |
 | **URL** | `https://reggienicolay.github.io/rpr-reports-embed/` |
-| **Files hosted** | `index.html`, `generator.js`, `README.md`, static assets |
+| **Files hosted** | `index.html`, `generator.js`, `help.css`, `help.js`, `README.md`, static assets |
 | **Deployment trigger** | Push to `main` branch (or configured branch) |
 | **Build step** | None — files are served as-is (no Jekyll, no build pipeline) |
 | **Custom domain** | Not configured (using default `github.io` subdomain) |

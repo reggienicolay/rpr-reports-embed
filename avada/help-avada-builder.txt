@@ -1,0 +1,419 @@
+==============================================================================
+ RPR Market Reports — Install Guide & FAQ  ·  Avada Builder import
+==============================================================================
+HOW TO USE
+  1. WordPress > Pages > Add New (or edit the page that hosts the generator).
+  2. Make sure you are in the default WP "Code editor" (NOT Avada Live), OR use
+     Avada Builder's "paste" — see avada.com/documentation/how-to-generate-
+     element-code-for-pasting-into-avada/
+  3. Paste EVERYTHING between the >>> START and <<< END markers below into the
+     page content, then open Avada Builder. It renders as native, editable
+     elements.
+  4. Do the 6 quick "Polish in Builder" steps in help-avada-README.md.
+  5. Paste the FAQ-search Code Block (help-faq-search-codeblock.html) via the
+     Builder UI where indicated, and add help-avada-global.css to
+     Avada > Options > Custom CSS.
+
+NOTES
+  - Fonts: nothing is forced — elements inherit your site's global typography.
+  - Unverified cosmetic attributes were intentionally omitted so they fall back
+    to Avada defaults (clean import). You set them with a click in the Builder.
+  - The embed-code sample uses the Syntax Highlighter element (native copy
+    button). If your install mangles the raw body, retype the snippet in the
+    Builder's Syntax Highlighter field.
+==============================================================================
+
+>>> START >>>
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-help" padding_top="64px" padding_bottom="24px"]
+[fusion_builder_row]
+[fusion_builder_column type="1_1" align_self="auto"]
+[fusion_text]<p style="font-size:12px;font-weight:600;letter-spacing:0.14em;color:#c85512;text-transform:uppercase;margin-bottom:14px;">KNOWLEDGE BASE · SETUP GUIDE</p>[/fusion_text]
+[fusion_title size="1" content_align="left"]Add the Market Reports widget to your website.[/fusion_title]
+[fusion_text]<p style="font-size:19px;max-width:62ch;">A step-by-step guide to installing the RPR Market Reports lead capture widget on any website that lets you add custom HTML — plus answers to the questions we hear most often.</p>[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="24px" bottom_margin="24px" /]
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-help" flex_align_items="flex-start" padding_top="40px" padding_bottom="80px"]
+[fusion_builder_row]
+
+[fusion_builder_column type="1_4" align_self="flex-start" sticky="on" sticky_devices="medium-visibility,large-visibility"]
+[fusion_text]<p style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#6b6b70;font-weight:600;margin-bottom:10px;">On this page</p>[/fusion_text]
+[fusion_table_of_contents][/fusion_table_of_contents]
+[/fusion_builder_column]
+
+[fusion_builder_column type="3_4" align_self="flex-start"]
+
+[fusion_title size="2" content_align="left"]Before you start[/fusion_title]
+[fusion_text]
+<p style="font-size:18px;">You'll need three things ready before you add the widget to your site. Have them open in tabs as you work through the steps.</p>
+<ul>
+<li>Access to your RPR account at <a href="https://narrpr.com" target="_blank" rel="noopener">narrpr.com</a> with at least one published market report.</li>
+<li>A way to receive leads — an email inbox, a phone notification, a spreadsheet, or a CRM. You'll choose one in Step 2.</li>
+<li>The ability to add custom HTML to a page on your website — either your own login, or someone who can paste a snippet for you.</li>
+</ul>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Not sure you can add code?</strong> If your site builder has a Custom HTML, Code, or Embed block, you're all set. If you're not sure, your web designer or site manager can add the snippet in a few minutes.[/fusion_alert]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
+
+[fusion_title size="2" content_align="left"]1. Get your report URLs from RPR[/fusion_title]
+[fusion_text]
+<p>Every area you offer in the widget needs a link to a live RPR market report.</p>
+<ol>
+<li>Log into <a href="https://narrpr.com" target="_blank" rel="noopener">narrpr.com</a>.</li>
+<li>Click <strong>Reports</strong> in the top navigation.</li>
+<li>Run a <strong>Market Activity Report</strong> for the ZIP code or neighborhood you want to feature — or open one you've already published.</li>
+<li>Click <strong>Share</strong> and copy the public PDF link. It looks like: <code>https://www.narrpr.com/reports-v2/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/pdf</code></li>
+</ol>
+<p>Save the link somewhere you can paste from later. Repeat for each area you plan to offer.</p>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Start small.</strong> Three to five areas is plenty. A dropdown with twenty options is harder to navigate than one with five. You can always add more later.[/fusion_alert]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
+
+[fusion_title size="2" content_align="left"]2. Decide how you want to receive leads[/fusion_title]
+[fusion_text]
+<p>When someone submits the form, their info is sent to a <strong>webhook URL</strong> — a web address that hands the data off to your phone, inbox, spreadsheet, or CRM. The generator's <strong>Lead Delivery</strong> step has a "How do you want to receive leads?" dropdown that walks you through each option and gives you the exact URL to paste. Pick the one that matches how you work:</p>
+<ul>
+<li><strong>An email when someone submits</strong> — Toolkit.app (free, ~2-min setup, no account). Leads arrive in your inbox.</li>
+<li><strong>A push notification on your phone</strong> — ntfy.sh or SimplePush (both free), or Pushover ($5 one-time).</li>
+<li><strong>Leads in a spreadsheet</strong> — Google Sheets (free; the generator gives you a ready-made template with the receiver script already attached).</li>
+<li><strong>A message in your team chat</strong> — Slack or Discord (both free).</li>
+<li><strong>Leads in GoHighLevel</strong> — GHL's native Inbound Webhook trigger (Automation &rarr; Workflow &rarr; Inbound Webhook).</li>
+<li><strong>Leads in another CRM</strong> — bridge with Make ($9/mo) or Zapier (paid plan), or paste your CRM's own inbound webhook URL under Custom.</li>
+<li><strong>To connect to almost anything</strong> — any Custom HTTPS webhook; the widget POSTs the lead as JSON.</li>
+</ul>
+<p>Whichever tool you choose, the goal is the same: copy the webhook URL it gives you. Keep it handy — you'll paste it in the next step.</p>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#d89f2c" background_color="#fef6e4" border_size="1px" class="rpr-callout rpr-callout-warn"]<strong>The webhook URL must start with https://</strong> The widget refuses any non-HTTPS URL and disables delivery, so leads wouldn't be captured.[/fusion_alert]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Heads up on simple form services.</strong> The widget sends each lead as a JSON POST. Tools that expect a classic HTML form post with their own hidden access-key field (for example Web3Forms) won't read it correctly — use one of the methods in the dropdown instead.[/fusion_alert]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
+
+[fusion_title size="2" content_align="left"]3. Build your embed code in the generator[/fusion_title]
+[fusion_text]
+<p>You build your embed code in the generator at the top of this page. It has a configuration panel on the left, a live preview on the right, and your finished embed code at the bottom. Every change updates everything instantly.</p>
+<p><strong>Fill in, in order:</strong></p>
+<ol>
+<li><strong>Market reports</strong> — type an Area label (e.g. Scottsdale, AZ 85254) and paste the matching report URL from Step 1. Click Add area for each one.</li>
+<li><strong>Lead delivery</strong> — pick a method from the dropdown and paste the webhook URL from Step 2. The "no webhook URL" warning disappears once you do.</li>
+<li><strong>Branding</strong> — agent name, brokerage, logo URL (must start with https://), and a brand color.</li>
+<li><strong>Copy</strong> — optional. Adjust the headline, subheadline, and button text if you want to match your voice.</li>
+<li><strong>Display</strong> — choose Inline (form on a specific page), Floating (a button on every page), or Modal (popup triggered by your own button).</li>
+</ol>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#3f9a4d" background_color="#eef6ef" border_size="1px" class="rpr-callout rpr-callout-ok"]<strong>Tip — click "Send test" before you finish.</strong> Once you've pasted a webhook URL, a Send test button appears under it. It fires a sample submission through your webhook so you know the connection works before the widget goes live.[/fusion_alert]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Your work is saved automatically.</strong> The generator remembers your settings in your browser, so they're still there when you come back. To move your setup to another computer — or keep a backup — click Copy generator link and save that link; opening it reloads your exact configuration. Reset clears everything and starts fresh.[/fusion_alert]
+[fusion_text]<p><strong>Copy your embed code.</strong> Scroll to the Embed code box and click Copy. The code looks roughly like this:</p>[/fusion_text]
+[fusion_syntax_highlighter language="html"]<!-- RPR Market Reports Widget -->
+<script src="https://pub-6607a59d1d3b4ed18490937c995526d1.r2.dev/rpr-reports-embed.js"
+        data-reports='[{"label":"Scottsdale, AZ 85254","url":"https://www.narrpr.com/reports-v2/.../pdf"}]'
+        data-webhook="https://ntfy.sh/your-topic-name"
+        data-agent-name="Your Name"
+        data-brokerage="Your Brokerage"
+        data-form-mode="full"
+        data-display-mode="inline"></script>[/fusion_syntax_highlighter]
+[fusion_text]<p style="font-size:13px;color:#6b6b70;">Your actual code will include your own areas, branding, and webhook. The shape is the same: a single &lt;script&gt; tag.</p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
+
+[fusion_title size="2" content_align="left"]4. Add the code to your website[/fusion_title]
+[fusion_text]<p>Drop the embed code into any element that accepts custom HTML or JavaScript. Pick the tab that matches your platform — the steps differ, but the idea is the same everywhere.</p>[/fusion_text]
+[fusion_tabs]
+[fusion_tab title="WordPress · Avada" icon=""]
+[fusion_text]
+<p>Use Avada's <strong>Code Block</strong> element — it's built to accept raw HTML and JavaScript.</p>
+<p><strong>For one page (Inline mode)</strong></p>
+<ol>
+<li>Open the page and click Edit with Avada Builder (or Avada Live).</li>
+<li>Click the + where you want the form and choose Code Block (older versions label it HTML).</li>
+<li>Paste your full embed code into the Code field.</li>
+<li>Save the Code Block, then Update the page.</li>
+</ol>
+<p><strong>For every page (Floating mode)</strong></p>
+<ol>
+<li>Go to Avada &rarr; Options &rarr; Advanced &rarr; Code Fields.</li>
+<li>Paste your embed code into Space Before &lt;/body&gt;.</li>
+<li>Click Save Changes.</li>
+</ol>
+<p><em>Don't paste into a regular Text Block — Avada's text elements strip &lt;script&gt; tags. The Code Block is the one place scripts actually run.</em></p>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="WordPress · Gutenberg" icon=""]
+[fusion_text]
+<p>For WordPress sites using the default block editor (no Avada, Elementor, or Divi).</p>
+<p><strong>For one page (Inline mode)</strong></p>
+<ol>
+<li>Open the page in the WordPress editor.</li>
+<li>Click the + to add a new block and search for Custom HTML.</li>
+<li>Paste your embed code into the block.</li>
+<li>Click Update to publish.</li>
+</ol>
+<p><strong>For every page (Floating mode)</strong></p>
+<ol>
+<li>Install the free plugin Insert Headers and Footers (or WPCode).</li>
+<li>Go to Settings &rarr; Insert Headers and Footers &rarr; Scripts in Footer.</li>
+<li>Paste your embed code and save.</li>
+</ol>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="Squarespace" icon=""]
+[fusion_text]
+<ol>
+<li>Open the page in the Squarespace editor.</li>
+<li>Add a Code block where you want the form to appear.</li>
+<li>Paste your embed code and click Apply.</li>
+<li>Save and publish.</li>
+</ol>
+<p><em>Squarespace's free plan doesn't allow custom code. You need at least the Basic Commerce or Business plan for the Code block to work.</em></p>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="Wix" icon=""]
+[fusion_text]
+<ol>
+<li>In the Wix editor, click Add (+) &rarr; Embed &rarr; Custom Embeds &rarr; Embed a Widget.</li>
+<li>An embed box appears on the page — click Enter Code.</li>
+<li>Paste your embed code and click Update.</li>
+<li>Position and resize the embed box, then publish.</li>
+</ol>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="Webflow" icon=""]
+[fusion_text]
+<p><strong>For one page (Inline mode)</strong></p>
+<ol>
+<li>Open the page in the Webflow Designer.</li>
+<li>Drag an Embed element to where you want the form.</li>
+<li>Paste your embed code into the HTML editor and click Save &amp; Close.</li>
+<li>Publish your site.</li>
+</ol>
+<p><strong>For every page (Floating mode)</strong></p>
+<ol>
+<li>Go to Project Settings &rarr; Custom Code.</li>
+<li>Paste your embed code into Footer Code.</li>
+<li>Save and publish.</li>
+</ol>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="Luxury Presence" icon=""]
+[fusion_text]
+<p><strong>For one page (Inline mode)</strong></p>
+<ol>
+<li>Open the page in the Luxury Presence editor.</li>
+<li>Add an HTML/Embed content block where you want the form.</li>
+<li>Paste your embed code into the block.</li>
+<li>Save and publish.</li>
+</ol>
+<p><strong>For every page (Floating mode)</strong></p>
+<ol>
+<li>Go to Site Settings &rarr; Global Scripts &rarr; Body.</li>
+<li>Paste your embed code and save.</li>
+</ol>
+[/fusion_text]
+[/fusion_tab]
+[fusion_tab title="Other / GTM" icon=""]
+[fusion_text]
+<p>If your platform isn't listed, the pattern is the same everywhere: find an element that accepts custom HTML or JavaScript — not a plain text block — and paste the code there.</p>
+<p><strong>Using Google Tag Manager</strong></p>
+<ol>
+<li>In your GTM workspace, click Tags &rarr; New &rarr; Custom HTML.</li>
+<li>Paste your embed code into the HTML field.</li>
+<li>Set the trigger to All Pages (Floating mode) or a specific page URL (Inline mode).</li>
+<li>Save and publish the container.</li>
+</ol>
+<p><strong>Anywhere else</strong> — look for blocks named Custom HTML, Code, Embed, HTML/JavaScript, or Script. If you can't find one, your platform may not support custom code — contact their support to confirm.</p>
+[/fusion_text]
+[/fusion_tab]
+[/fusion_tabs]
+[fusion_text]
+<p><strong>Three display modes work on every platform</strong> (set in the generator's Display step):</p>
+<ul>
+<li><strong>Inline</strong> — the form appears on one specific page where you paste the code. Best for a dedicated landing page.</li>
+<li><strong>Floating</strong> — a button stays fixed to a corner on every page. Add the code once in the footer / global scripts of your site. Best for site-wide capture.</li>
+<li><strong>Modal</strong> — the form opens as a popup when someone clicks a button you already have. Install the code site-wide, then in the generator set Display &rarr; Modal and enter a Trigger selector — a CSS selector that matches your button (for example #open-reports or .report-button). Clicking that button opens the form.</li>
+</ul>
+[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
+
+[fusion_title size="2" content_align="left"]5. Send a test lead from your live page[/fusion_title]
+[fusion_text]
+<p>One last check — a real submission from the real page, to make sure your platform, the widget, and your webhook are all talking to each other.</p>
+<ol>
+<li>Open the public page where you installed the widget (not the preview — the live URL).</li>
+<li>Fill out the form with a test name, your own email, and pick any area.</li>
+<li>Click submit. You should see the confirmation screen with a button that opens the RPR report.</li>
+<li>Check your delivery destination:
+<ul>
+<li>ntfy / SimplePush / Pushover — a notification appears on your phone within seconds.</li>
+<li>Toolkit.app — an email should arrive within a minute (check spam the first time).</li>
+<li>Slack / Discord — a message appears in your channel.</li>
+<li>Google Sheets — a new row appears in your sheet.</li>
+<li>GoHighLevel — a new contact / workflow run appears.</li>
+<li>Make / Zapier — check the scenario or task history; you should see one run.</li>
+</ul>
+</li>
+</ol>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#3f9a4d" background_color="#eef6ef" border_size="1px" class="rpr-callout rpr-callout-ok"]<strong>If the test lead arrived, you're done.</strong> Your widget is live and capturing leads. Skip ahead to the FAQ only if something's off.[/fusion_alert]
+
+[fusion_separator style_type="single solid" sep_color="#d2cfc7" top_margin="64px" bottom_margin="32px" /]
+
+[fusion_title size="2" content_align="left"]Common setup questions[/fusion_title]
+
+<!-- PASTE THE FAQ-SEARCH CODE BLOCK HERE (help-faq-search-codeblock.html) -->
+
+[fusion_accordion]
+[fusion_toggle title="Do I need to know how to code?" open="no"]
+<p>No. The generator at the top of this page builds the embed code for you. You fill in a form, copy the result, and paste it into your website. If you can add a YouTube video to a page, you can add this widget.</p>
+[/fusion_toggle]
+[fusion_toggle title="Which website platforms does this work on?" open="no"]
+<p>Any platform that lets you add custom HTML or JavaScript to a page. That covers WordPress (with Avada, Gutenberg, Elementor, Divi, or other builders), Luxury Presence, Squarespace paid plans, Wix, Webflow, Showit, Shopify, and most others. See Step 4 above for platform-specific instructions. If your platform completely locks you out of adding code, you'll need to contact their support team.</p>
+[/fusion_toggle]
+[fusion_toggle title="Do I need a Zapier account?" open="no"]
+<p>No — and Zapier actually requires a paid plan for its webhook trigger. It's just one of many options, and several free ones work great:</p>
+<ul>
+<li>Just want an email when someone submits — Toolkit.app (free, ~2-minute setup, no account)</li>
+<li>A notification on your phone — ntfy.sh or SimplePush (free), or Pushover ($5 one-time)</li>
+<li>Leads in a spreadsheet — Google Sheets (free; the generator gives you a ready-made template)</li>
+<li>A message in team chat — Slack or Discord (free)</li>
+<li>Using GoHighLevel — its native inbound webhook, no third-party tool</li>
+</ul>
+<p>The generator's "How do you want to receive leads?" dropdown walks you through each one.</p>
+[/fusion_toggle]
+[fusion_toggle title="Does it work with my CRM?" open="no"]
+<p>GoHighLevel connects natively — it has an inbound webhook trigger you paste straight into the generator. For other CRMs (Follow Up Boss, HubSpot, Salesforce, kvCORE, and the like), use Make or Zapier as a bridge, or paste the CRM's own inbound webhook URL into the Custom option if it has one. The widget sends each lead as JSON, so the receiving end needs to accept a JSON webhook.</p>
+[/fusion_toggle]
+[fusion_toggle title="Can I offer more than one area?" open="no"]
+<p>Yes. The generator lets you add as many area and report pairs as you want. Each one appears as an option in the dropdown. There's no hard limit, but a list of 20 areas is harder for a visitor to navigate than a list of 5. Focus on your primary markets.</p>
+[/fusion_toggle]
+[fusion_toggle title="Can I use this on more than one website?" open="no"]
+<p>Yes. Generate a separate embed code for each website — each can have different branding, different areas, and a different webhook URL. All of them run off the same hosted script, so when the script is updated, every site gets the improvement automatically with no action on your part.</p>
+[/fusion_toggle]
+[fusion_toggle title="Can two agents at the same brokerage each have their own version?" open="no"]
+<p>Yes. Each agent generates their own embed code with their own name, branding, and webhook. They are completely independent.</p>
+[/fusion_toggle]
+[fusion_toggle title="What does the visitor see after they submit?" open="no"]
+<p>The form transitions to a confirmation screen showing a card with the report for the area they selected. The card displays the area name, a brief heading, and a View Report button that opens the RPR PDF report in a new tab.</p>
+[/fusion_toggle]
+[fusion_toggle title="Is the visitor's information stored anywhere?" open="no"]
+<p>No. The widget itself doesn't store any data. The only place lead data goes is your webhook endpoint — your notification app, spreadsheet, CRM, or wherever you configured. If you haven't set up a webhook, no data is saved anywhere.</p>
+[/fusion_toggle]
+[fusion_toggle title="Can I add this to my Facebook or Instagram page?" open="no"]
+<p>No. Social media platforms don't allow custom JavaScript. The widget works on websites you control — your own domain or a website builder that allows custom code.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]The form isn't showing up on my page[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="Check that you pasted the full code" open="no"]
+<p>The embed code starts with &lt;script and ends with &gt;&lt;/script&gt;. Both parts must be present. If anything got cut off during copy-paste, go back to the generator and copy it again using the Copy button.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check that you used a code/embed block, not a text block" open="no"]
+<p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used the Custom HTML, Code Block, or Embed element — whichever your platform calls it.</p>
+<p>Quick reference: Avada &rarr; Code Block · WordPress Gutenberg &rarr; Custom HTML · Squarespace &rarr; Code · Wix &rarr; Embed a Widget · Webflow &rarr; Embed.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check for platform or hosting restrictions" open="no"]
+<p>Some WordPress hosting configurations — and Squarespace's free plan — block custom JavaScript. If the form shows up in the generator preview but not on your live page, your platform or host may be blocking scripts. Contact your hosting support to confirm.</p>
+<p>Security plugins like Wordfence or Sucuri occasionally flag third-party scripts. If you use one, check its dashboard for blocked requests.</p>
+[/fusion_toggle]
+[fusion_toggle title="Try a hard refresh" open="no"]
+<p>After adding the code, press Ctrl + Shift + R on Windows or Cmd + Shift + R on Mac to force your browser to reload the page without cache. If you use a caching plugin (W3 Total Cache, WP Rocket, etc.), clear its cache from the WordPress admin as well.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]I'm not receiving leads[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="Confirm your webhook URL is set" open="no"]
+<p>Go back to the generator's Lead Delivery step and check the Webhook URL field. If it's empty, a warning appears ("No webhook URL — leads won't be captured") — choose a delivery method, paste the URL, and copy the code again.</p>
+[/fusion_toggle]
+[fusion_toggle title="Confirm your delivery tool is turned on" open="no"]
+<p>If you're routing leads through Zapier, Make, a HubSpot workflow, or a Pabbly workflow, make sure the Zap / scenario / workflow is switched On. One that's off receives nothing — this on/off switch is the single most-missed step.</p>
+[/fusion_toggle]
+[fusion_toggle title="Send a test from the generator" open="no"]
+<p>In the generator, once you've pasted a webhook URL, click the Send test button beneath it. Then check your delivery tool.</p>
+<ul>
+<li>If your tool shows the lead came in but you're not getting notified, the issue is in your tool's action step — check its notification / email configuration.</li>
+<li>If your tool shows nothing came in, the issue is in the webhook connection itself — the URL is wrong or the automation is off.</li>
+</ul>
+[/fusion_toggle]
+[fusion_toggle title="Check that your webhook URL starts with https://" open="no"]
+<p>The widget blocks webhooks that don't use HTTPS. A URL starting with http:// is rejected and delivery is disabled, so no lead data is sent. Copy the URL fresh from your delivery tool if you're unsure.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check your spam folder" open="no"]
+<p>If your delivery tool (Toolkit.app, a Zapier email step, etc.) sends you an email and you're not seeing it, check spam or junk mail. Add the sending address to your contacts to prevent future filtering.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]The submit button isn't working[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="Fill in all required fields" open="no"]
+<p>In the default full form, first name, last name, email, and an area selection are required (phone is optional). If any required field is missing or invalid, the form highlights it and won't submit. If you switched the form to minimal mode in the generator, only email and an area are required.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check the GDPR checkbox if it is visible" open="no"]
+<p>If you enabled the GDPR consent checkbox in the generator (Settings &rarr; Privacy), the form cannot be submitted until that box is checked.</p>
+[/fusion_toggle]
+[fusion_toggle title="Try a different browser or incognito window" open="no"]
+<p>Occasionally a browser extension — particularly ad blockers or tracker blockers like uBlock Origin or Privacy Badger — will interfere with form submission. Try submitting in a private or incognito window, or a different browser, to rule this out.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]The colors or fonts don't look right[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="Allow a few seconds after loading" open="no"]
+<p>Google Fonts load after the page does — there may be a brief moment where a fallback font appears before the custom font takes over. This is normal and only affects the first visit; subsequent visits are instant because the font is cached.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check your hex color code" open="no"]
+<p>Color values must be a valid 3 or 6 digit hex code starting with # — for example #1a1a2e or #fff. If you typed a color name like navy or a value without the #, the widget falls back to the default color.</p>
+[/fusion_toggle]
+[fusion_toggle title="Clear your browser cache" open="no"]
+<p>If you updated your embed code and your changes aren't showing, your browser may be serving a cached version. Hard-refresh with Ctrl + Shift + R (Windows) or Cmd + Shift + R (Mac), and clear any WordPress caching plugin too.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]The report link isn't opening[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="Check the report URL you pasted into the generator" open="no"]
+<p>It should be the public PDF link from RPR's Share button, like: <code>https://www.narrpr.com/reports-v2/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/pdf</code></p>
+<p>The widget accepts any link that starts with https://. The generator shows a "doesn't look like an RPR report URL" warning if your link isn't from narrpr.com — it won't block you, but it's a sign you may have copied the wrong link. Double-check you used Share &rarr; PDF.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check that the report is still published" open="no"]
+<p>RPR reports can expire or be unpublished. Log into narrpr.com and confirm the report is still accessible. If it's expired, run a new report and update the URL in your embed code.</p>
+[/fusion_toggle]
+[fusion_toggle title="Check whether the visitor is logged in to RPR" open="no"]
+<p>Some RPR report links require the viewer to log in to an RPR account to access them. If your visitors are not REALTORS with RPR access, make sure you're using a publicly shareable link. When you click Share on a report in RPR, confirm it generates a public link rather than a member-only one.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[fusion_title size="2" content_align="left"]Updates &amp; multiple pages[/fusion_title]
+[fusion_accordion]
+[fusion_toggle title="How do I update my areas or branding later?" open="no"]
+<p>Come back to the generator, make your changes, and copy the new embed code. Replace the old embed code in your code/embed block (or in the global footer field, if you used Floating mode) with the new one. The old and new codes are both valid at the same time — there's no deactivation step.</p>
+<p>Tip: the generator remembers your settings in your browser automatically, so your work is usually still there. For a portable backup or to edit from another computer, click Copy generator link and save that link — opening it reloads your exact configuration.</p>
+[/fusion_toggle]
+[fusion_toggle title="Can I add the widget to multiple pages on my site?" open="no"]
+<p>Yes. Paste the same embed code into a code/embed block on as many pages as you want. Each page will show an independent copy of the form. If you're using Floating mode, you only need to add it once — it appears on every page automatically.</p>
+[/fusion_toggle]
+[fusion_toggle title="I've worked through everything above and it's still not working" open="no"]
+<p>Hand the problem to your web designer or IT contact with: (1) the embed code from the generator, copied fresh; (2) the name of your website platform; (3) a description of what you see — "the form doesn't appear at all" or "the form appears but leads aren't arriving"; (4) a link to the page where you added the code. Most web professionals can resolve embed issues in under 30 minutes with this information.</p>
+[/fusion_toggle]
+[/fusion_accordion]
+
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-help" background_color="#111113" padding_top="48px" padding_right="48px" padding_bottom="48px" padding_left="48px"]
+[fusion_builder_row]
+[fusion_builder_column type="1_1" align_self="center"]
+[fusion_title size="3" content_align="left"]<span style="color:#ffffff;">Still stuck after all that?</span>[/fusion_title]
+[fusion_text]<p style="color:#b5b5ba;">Email the RPR support team with your site URL, the platform you're using, and a description of what you're seeing. We'll get back to you with next steps.</p>[/fusion_text]
+[fusion_button link="mailto:support@narrpr.com" button_gradient_top_color="#f37737" button_gradient_bottom_color="#f37737" accent_color="#ffffff" size="large" stretch="default" target="_blank"]Contact support[/fusion_button]
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+<<< END <<<
