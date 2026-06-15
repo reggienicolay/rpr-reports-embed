@@ -1,67 +1,19 @@
 <!-- =====================================================================
-     FAQ live-search — paste into an Avada CODE BLOCK element placed
-     directly ABOVE the first FAQ accordion (the "Common setup questions"
-     group), inside the same content column.
+     FAQ live-search  ·  paste into an Avada CODE BLOCK element
+     (NOT a Text element) placed directly above the first FAQ accordion.
 
-     This is the ONE piece with no native Avada equivalent. It filters the
-     native Avada Toggles/Accordion items by text and expands matches.
-     It targets Avada's standard accordion DOM (.fusion-accordian /
-     .fusion-panel / .panel-collapse). If a future Avada version renames
-     those classes, update the selectors below.
+     WHY A CODE BLOCK: a Text element runs this through WordPress's wpautop,
+     which injects <p></p> tags into the <script> and breaks it (the box
+     renders but does nothing). A Code Block base64-encodes its content, so
+     the script stays intact.
+
+     This version is hardened anyway: the script is a SINGLE LINE (no blank
+     lines for wpautop to turn into <p>), it searches the whole document
+     (not a .rpr-help scope), and the input is inline-styled so it looks
+     right wherever it sits. It targets Avada's accordion DOM
+     (.fusion-accordian / .fusion-panel / .panel-collapse).
      ===================================================================== -->
-<div class="rpr-faq-search">
-  <input type="text" id="rprFaqSearch" placeholder="Search the FAQ — try &ldquo;webhook&rdquo; or &ldquo;form not showing&rdquo;" autocomplete="off" aria-label="Search the FAQ">
-</div>
-
+<div class="rpr-faq-search" style="margin:16px 0 8px;"><input id="rprFaqSearch" type="text" placeholder="Search the FAQ — e.g. webhook, leads, form not showing" autocomplete="off" aria-label="Search the FAQ" style="width:100%;padding:12px 14px;font:inherit;font-size:15px;color:#17171a;background:#fff;border:1px solid #d2cfc7;border-radius:4px;outline:none;"></div>
 <script>
-(function () {
-  var input = document.getElementById('rprFaqSearch');
-  if (!input) return;
-
-  // Limit to the help section if it's wrapped in .rpr-help, else whole page.
-  var scope = input.closest('.rpr-help') || document;
-
-  function panelsIn(accordion) {
-    return accordion.querySelectorAll('.fusion-panel');
-  }
-
-  // Show/hide a panel's answer without relying on Avada's click animation.
-  // Avada accordions use Bootstrap-style .panel-collapse.collapse(.in).
-  function setOpen(panel, open) {
-    var body = panel.querySelector('.panel-collapse');
-    var link = panel.querySelector('.panel-title a, .fusion-toggle-heading a, .panel-title');
-    if (!body) return;
-    if (open) {
-      body.classList.add('in', 'show');
-      body.style.height = '';
-      body.setAttribute('aria-expanded', 'true');
-      if (link && link.classList) link.classList.remove('collapsed');
-    } else {
-      body.classList.remove('in', 'show');
-      body.setAttribute('aria-expanded', 'false');
-      if (link && link.classList) link.classList.add('collapsed');
-    }
-  }
-
-  function run() {
-    var q = input.value.trim().toLowerCase();
-    var accordions = scope.querySelectorAll('.fusion-accordian, .fusion-accordion');
-    accordions.forEach(function (acc) {
-      var anyVisible = 0;
-      panelsIn(acc).forEach(function (panel) {
-        var match = !q || panel.textContent.toLowerCase().indexOf(q) !== -1;
-        panel.style.display = match ? '' : 'none';
-        if (q) { setOpen(panel, match); }      // expand matches while searching
-        else   { setOpen(panel, false); }       // collapse all when cleared
-        if (match) anyVisible++;
-      });
-      // Hide this group's heading (the Title element just before the accordion)
-      // when nothing in the group matches.
-      var heading = acc.previousElementSibling;
-      if (heading) heading.style.display = (q && anyVisible === 0) ? 'none' : '';
-    });
-  }
-
-  input.addEventListener('input', run);
-})();
+(function(){var i=document.getElementById('rprFaqSearch');if(!i)return;var run=function(){var q=i.value.trim().toLowerCase();Array.prototype.forEach.call(document.querySelectorAll('.fusion-accordian,.fusion-accordion'),function(acc){var vis=0;Array.prototype.forEach.call(acc.querySelectorAll('.fusion-panel'),function(pn){var match=!q||pn.textContent.toLowerCase().indexOf(q)!==-1;pn.style.display=match?'':'none';var body=pn.querySelector('.panel-collapse');var link=pn.querySelector('.panel-title a');if(body){if(q&&match){body.classList.add('in','show');body.style.height='';if(link){link.setAttribute('aria-expanded','true');if(link.classList)link.classList.remove('collapsed');}}else{body.classList.remove('in','show');if(link){link.setAttribute('aria-expanded','false');if(link.classList)link.classList.add('collapsed');}}}if(match){vis++;}});var h=acc.previousElementSibling;if(h){h.style.display=(q&&vis===0)?'none':'';}});};i.addEventListener('input',run);})();
 </script>

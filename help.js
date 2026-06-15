@@ -43,19 +43,6 @@
     onScroll();
   })();
 
-  /* ---- Platform / display-mode tabs (scoped to nearest .step-body) ---- */
-  root.querySelectorAll('.tab').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      const name = btn.getAttribute('data-tab');
-      const container = btn.closest('.step-body') || root;
-      container.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
-      container.querySelectorAll('.tabpanel').forEach(function (p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      const panel = container.querySelector('[data-panel="' + name + '"]');
-      if (panel) panel.classList.add('active');
-    });
-  });
-
   /* ---- Copy-to-clipboard on the sample embed code ---- */
   root.querySelectorAll('[data-copy]').forEach(function (btn) {
     btn.addEventListener('click', function (e) {

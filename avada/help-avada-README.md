@@ -43,9 +43,13 @@ cosmetic options were intentionally left at default in the import. Set them here
    only, and set **Sticky Column Offset** to clear your header (try `100px`).
    ⚠️ The parent Container's **Column Justification must NOT be "Stretch"** or
    sticky won't work.
-2. **Table of Contents** — select the ToC element → set **Accepted Headings** to
-   `H2, H3` and turn **Highlight Current Heading = On**. (Optional: set the
-   highlight color to your orange `#f37737`.)
+2. **Table of Contents** — select the ToC element → **Accepted Headings = H2**
+   only, **Highlight Current Heading = On**, and **Counter Type = None** (the
+   step headings already number themselves — leaving the counter on produces
+   the doubled "02. 1." labels). The gray-item / orange-active-border styling
+   comes from `help-avada-global.css` (the `awb-toc-el` rules), so just make
+   sure that CSS is pasted into Avada → Options → Custom CSS. The CSS also
+   removes the counter as a fallback if you leave Counter Type set.
 3. **Toggles styling** — for each FAQ accordion, set **Boxed Mode** to taste and
    set **Toggle Hover/Active Accent Color** to `#f37737`. (Behavior can stay as
    Toggles or switch to Accordion = one-open-at-a-time.)
@@ -57,6 +61,11 @@ cosmetic options were intentionally left at default in the import. Set them here
 6. **Callout left-bars** — handled by `help-avada-global.css` via the
    `rpr-callout` class already on each Alert. If you'd rather use Avada's default
    full-border alert look, just skip that CSS rule.
+7. **Step 3 screenshot** — upload a generator screenshot to the WP **Media
+   Library**, then select the **Image** element in Step 3 (placeholder
+   `REPLACE_WITH_SCREENSHOT_URL`) and point it at the image. Suggested capture:
+   the generator's config panel (left) + live form preview (right), ~1200px
+   wide, cropped to the builder area (no browser chrome).
 
 ## What's native vs. custom after this build
 

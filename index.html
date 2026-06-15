@@ -1009,13 +1009,19 @@ input[type="color"] {
             <div class="delivery-panel" id="panel-pushover" hidden>
               <div class="panel-title">How to set up Pushover ($5 one-time, 30-day free trial):</div>
               <ol>
-                <li>Download the Pushover app and create a free account</li>
-                <li>Visit <a href="https://pushover.net/apps/build" target="_blank" rel="noopener noreferrer">pushover.net/apps/build</a> and register a new application — name it "RPR Leads" or similar, then copy the API Token</li>
-                <li>Copy your User Key from the Pushover dashboard</li>
-                <li>Your webhook URL is: <code>https://api.pushover.net/1/messages.json?token=API_TOKEN&amp;user=USER_KEY</code></li>
-                <li>Paste that full URL in the field below</li>
+                <li>Download the Pushover app and create an account, then sign in at <a href="https://pushover.net" target="_blank" rel="noopener noreferrer">pushover.net</a></li>
+                <li>Open <a href="https://pushover.net/webhooks" target="_blank" rel="noopener noreferrer">your Webhooks page</a> and click <strong>Create a New Webhook</strong> — name it "RPR Leads"</li>
+                <li>Under <strong>Data Extraction</strong>, paste these so the notification shows the lead's details:
+                  <ul>
+                    <li><strong>Title Selector:</strong> <code>New lead: {{first_name}} {{last_name}}</code></li>
+                    <li><strong>Body Selector:</strong> <code>{{email}} &middot; {{phone}} &middot; {{selected_area}}</code></li>
+                    <li><strong>URL Selector:</strong> <code>{{report_url}}</code></li>
+                    <li><strong>URL Title Selector:</strong> <code>View report</code></li>
+                  </ul>
+                </li>
+                <li>Save the webhook, then copy its URL (it ends in <code>.json</code>) and paste it below</li>
               </ol>
-              <p class="panel-foot">10,000 notifications per month. $5 one-time purchase per platform.</p>
+              <p class="panel-foot">No app token or user key needed — a Pushover Webhook delivers straight to your devices. 10,000 notifications/month; $5 one-time per platform after the trial.</p>
             </div>
 
             <div class="delivery-panel" id="panel-toolkit" hidden>
@@ -1069,8 +1075,8 @@ input[type="color"] {
                 <li>Click the button above — Google will prompt you to make a copy in your Drive</li>
                 <li>In the copy: <strong>Extensions &gt; Apps Script</strong></li>
                 <li><strong>Deploy &gt; New deployment</strong>, click the <strong>⚙ gear icon</strong> next to "Select type" → <strong>Web app</strong></li>
-                <li>Set <em>Who has access</em> to <strong>Anyone</strong> — <em>not</em> "Anyone at &lt;your org&gt;" if you're on Google Workspace; that one rejects submissions from your website visitors</li>
-                <li>Click <strong>Deploy</strong>, authorize when prompted, copy the URL ending in <code>/exec</code> and paste it below</li>
+                <li>Set <strong>"Who has access"</strong> to <strong>Anyone</strong> — not "Anyone at &lt;your org&gt;" if you're on Google Workspace; that one rejects submissions from your website visitors</li>
+                <li>Click <strong>Deploy</strong>, authorize when prompted, copy the URL ending in <code>/exec</code> and paste it into the webhook field below</li>
               </ol>
               <p class="panel-foot">Full setup guide with screenshots: <a href="https://blog.narrpr.com/google-sheets-setup" target="_blank" rel="noopener noreferrer">blog.narrpr.com/google-sheets-setup</a>. Optional email notifications: Tools &gt; Notification settings.</p>
             </div>
@@ -1514,126 +1520,20 @@ input[type="color"] {
           <div class="step-num">04</div>
           <div class="step-body">
             <h3>Add the code to your website</h3>
-            <p>Drop the embed code into any element that accepts custom HTML or JavaScript. Pick the tab that matches your platform — the steps differ, but the idea is the same everywhere.</p>
+            <p>The embed code is a single <code class="inline">&lt;script&gt;</code> tag. It works anywhere you can add <b>custom HTML or JavaScript</b> — and only there. No plugin, no special integration: you're just pasting the snippet into a spot your platform already provides.</p>
 
-            <p style="font-size:13px;color:var(--ink-mute);margin-bottom:4px;">Pick your platform:</p>
-            <div class="tabs" role="tablist">
-              <button class="tab active" role="tab" data-tab="wp-avada">WordPress · Avada</button>
-              <button class="tab" role="tab" data-tab="wp-gutenberg">WordPress · Gutenberg</button>
-              <button class="tab" role="tab" data-tab="squarespace">Squarespace</button>
-              <button class="tab" role="tab" data-tab="wix">Wix</button>
-              <button class="tab" role="tab" data-tab="webflow">Webflow</button>
-              <button class="tab" role="tab" data-tab="lp">Luxury Presence</button>
-              <button class="tab" role="tab" data-tab="other">Other / GTM</button>
+            <h4>Put it on one page — Inline or Modal mode</h4>
+            <p>In your page editor, find a block called <b>Custom HTML</b>, <b>Code</b>, or <b>Embed</b> — not a plain text block — and paste the embed code into it. Save and publish.</p>
+
+            <h4>Put it on every page — Floating mode</h4>
+            <p>Find your site's global <b>header / footer code</b> or <b>custom code</b> area (often under Site or Theme Settings → Custom Code). Paste the embed code there once and it appears on every page.</p>
+
+            <div class="callout warn">
+              <b>Not every platform allows custom code.</b> Some hosted website platforms — <b>Luxury Presence</b>, for example — restrict custom JavaScript, so you may need to ask their support to add it, or it may not be supported at all. Squarespace's free plan and social-media profiles don't allow it either. If you're unsure, ask your platform's support one question: <i>“Can I add a custom &lt;script&gt; tag to my site?”</i> — that tells you everything.
             </div>
 
-            <!-- WP AVADA -->
-            <div class="tabpanel active" data-panel="wp-avada">
-              <p>Use Avada's <b>Code Block</b> element — it's built to accept raw HTML and JavaScript.</p>
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page and click <b>Edit with Avada Builder</b> (or <b>Avada Live</b>).</li>
-                <li>Click the <b>+</b> where you want the form and choose <b>Code Block</b> (older versions label it <i>HTML</i>).</li>
-                <li>Paste your full embed code into the <b>Code</b> field.</li>
-                <li>Save the Code Block, then <b>Update</b> the page.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Avada → Options → Advanced → Code Fields</b>.</li>
-                <li>Paste your embed code into <b>Space Before &lt;/body&gt;</b>.</li>
-                <li>Click <b>Save Changes</b>.</li>
-              </ol>
-              <div class="callout warn" style="margin-top:20px;">
-                <b>Don't paste into a regular Text Block.</b> Avada's text elements strip <code class="inline">&lt;script&gt;</code> tags. The <b>Code Block</b> is the one place scripts actually run.
-              </div>
-            </div>
-
-            <!-- WP GUTENBERG -->
-            <div class="tabpanel" data-panel="wp-gutenberg">
-              <p>For WordPress sites using the default block editor (no Avada, Elementor, or Divi).</p>
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the WordPress editor.</li>
-                <li>Click the <b>+</b> to add a new block and search for <b>Custom HTML</b>.</li>
-                <li>Paste your embed code into the block.</li>
-                <li>Click <b>Update</b> to publish.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Install the free plugin <b>Insert Headers and Footers</b> (or WPCode).</li>
-                <li>Go to <b>Settings → Insert Headers and Footers → Scripts in Footer</b>.</li>
-                <li>Paste your embed code and save.</li>
-              </ol>
-            </div>
-
-            <!-- SQUARESPACE -->
-            <div class="tabpanel" data-panel="squarespace">
-              <ol>
-                <li>Open the page in the Squarespace editor.</li>
-                <li>Add a <b>Code</b> block where you want the form to appear.</li>
-                <li>Paste your embed code and click <b>Apply</b>.</li>
-                <li>Save and publish.</li>
-              </ol>
-              <div class="callout warn">
-                <b>Squarespace's free plan doesn't allow custom code.</b> You need at least the Basic Commerce or Business plan for the Code block to work.
-              </div>
-            </div>
-
-            <!-- WIX -->
-            <div class="tabpanel" data-panel="wix">
-              <ol>
-                <li>In the Wix editor, click <b>Add (+)</b> → <b>Embed</b> → <b>Custom Embeds</b> → <b>Embed a Widget</b>.</li>
-                <li>An embed box appears on the page — click <b>Enter Code</b>.</li>
-                <li>Paste your embed code and click <b>Update</b>.</li>
-                <li>Position and resize the embed box, then publish.</li>
-              </ol>
-            </div>
-
-            <!-- WEBFLOW -->
-            <div class="tabpanel" data-panel="webflow">
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the Webflow Designer.</li>
-                <li>Drag an <b>Embed</b> element (from the Add panel) to where you want the form.</li>
-                <li>Paste your embed code into the HTML editor and click <b>Save &amp; Close</b>.</li>
-                <li>Publish your site.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Project Settings → Custom Code</b>.</li>
-                <li>Paste your embed code into <b>Footer Code</b>.</li>
-                <li>Save and publish.</li>
-              </ol>
-            </div>
-
-            <!-- LUXURY PRESENCE -->
-            <div class="tabpanel" data-panel="lp">
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the Luxury Presence editor.</li>
-                <li>Add an <b>HTML/Embed</b> content block where you want the form.</li>
-                <li>Paste your embed code into the block.</li>
-                <li>Save and publish.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Site Settings → Global Scripts → Body</b>.</li>
-                <li>Paste your embed code and save.</li>
-              </ol>
-            </div>
-
-            <!-- OTHER / GTM -->
-            <div class="tabpanel" data-panel="other">
-              <p>If your platform isn't listed, the pattern is the same everywhere: find an element that accepts <b>custom HTML</b> or <b>JavaScript</b> — not a plain text block — and paste the code there.</p>
-              <h4>Using Google Tag Manager</h4>
-              <ol>
-                <li>In your GTM workspace, click <b>Tags → New → Custom HTML</b>.</li>
-                <li>Paste your embed code into the HTML field.</li>
-                <li>Set the trigger to <b>All Pages</b> (Floating mode) or a specific page URL (Inline mode).</li>
-                <li>Save and publish the container.</li>
-              </ol>
-              <h4>Anywhere else</h4>
-              <p>Look for blocks or elements named <b>Custom HTML</b>, <b>Code</b>, <b>Embed</b>, <b>HTML/JavaScript</b>, or <b>Script</b>. If you can't find one, your platform may not support custom code — contact their support to confirm.</p>
+            <div class="callout">
+              <b>Can't find the spot?</b> If your platform accepts custom HTML or JavaScript somewhere, the widget works there. If it doesn't, it can't run there. Either way, your web designer can place a single script tag in a few minutes — just send them the embed code.
             </div>
 
             <h4 style="margin-top:32px;">Three display modes work on every platform</h4>
@@ -1700,8 +1600,8 @@ input[type="color"] {
         </div></details>
 
         <details class="faq"><summary>Which website platforms does this work on?</summary><div class="answer">
-          <p>Any platform that lets you add custom HTML or JavaScript to a page. That covers WordPress (with Avada, Gutenberg, Elementor, Divi, or other builders), Luxury Presence, Squarespace paid plans, Wix, Webflow, Showit, Shopify, and most others. See Step 4 above for platform-specific instructions.</p>
-          <p>If your platform completely locks you out of adding code, you'll need to contact their support team.</p>
+          <p>Any platform that lets you add custom HTML or JavaScript — and only those. That covers most open and self-hosted site builders: WordPress (Avada, Gutenberg, Elementor, Divi, etc.), Squarespace paid plans, Wix, Webflow, Showit, and the like.</p>
+          <p>Some closed, hosted platforms restrict custom JavaScript — <b>Luxury Presence</b> is one example — so there you may need their support to add it, or it may not be supported at all. The quickest way to know: ask your platform's support whether you can add a custom <code class="inline">&lt;script&gt;</code> tag. If you can, the widget works; if you can't, it can't run there.</p>
         </div></details>
 
         <details class="faq"><summary>Do I need a Zapier account?</summary><div class="answer">
@@ -1757,8 +1657,7 @@ input[type="color"] {
         </div></details>
 
         <details class="faq"><summary>Check that you used a code/embed block, not a text block</summary><div class="answer">
-          <p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used the <i>Custom HTML</i>, <i>Code Block</i>, or <i>Embed</i> element — whichever your platform calls it.</p>
-          <p>Quick reference: <b>Avada</b> → Code Block · <b>WordPress Gutenberg</b> → Custom HTML · <b>Squarespace</b> → Code · <b>Wix</b> → Embed a Widget · <b>Webflow</b> → Embed.</p>
+          <p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used a <i>Custom HTML</i>, <i>Code</i>, or <i>Embed</i> block — whatever your platform calls it — not a plain text or paragraph block.</p>
         </div></details>
 
         <details class="faq"><summary>Check for platform or hosting restrictions</summary><div class="answer">

@@ -282,26 +282,6 @@ html { scroll-behavior: smooth; }
   margin-top: 8px; font-style: italic;
 }
 
-/* ---------- Platform tabs (Inline / Floating / Modal & platforms) ---------- */
-.rpr-help .tabs {
-  display: flex; gap: 0; flex-wrap: wrap;
-  border-bottom: 1px solid var(--rule);
-  margin: 24px 0 0;
-}
-.rpr-help .tab {
-  border: 0; background: none; cursor: pointer;
-  font-family: var(--font-sans); font-size: 14px; font-weight: 500;
-  color: var(--ink-mute);
-  padding: 12px 20px 14px;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color .15s, border-color .15s;
-}
-.rpr-help .tab:hover { color: var(--ink); }
-.rpr-help .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
-.rpr-help .tabpanel { padding: 24px 0; display: none; }
-.rpr-help .tabpanel.active { display: block; }
-
 /* ---------- FAQ ---------- */
 .rpr-help .faq-group { margin-top: 48px; }
 .rpr-help .faq-group:first-of-type { margin-top: 32px; }
