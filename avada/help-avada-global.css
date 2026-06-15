@@ -52,3 +52,51 @@
   line-height: 1;
   color: #17171a;
 }
+
+/* =====================================================================
+   Table of Contents (Avada "awb-toc-el") — editorial restyle
+   Fixes two things visible on the live page:
+   1. Avada's auto "01. / 02." counter doubling up with the numbers already
+      in the step headings ("02. 1. Get your report URLs"). We remove the
+      auto counter — the headings number themselves.
+   2. Default blue link styling. We switch to the design's gray items with a
+      thin left rule and an orange left-border on the active section.
+   Scoped to .rpr-help so other Tables of Contents on the site are untouched.
+   (You can also set Counter Type = None on the element in the Builder; the
+   rule below removes it either way.)
+   ===================================================================== */
+.rpr-help .awb-toc-el { overflow: visible; }
+.rpr-help .awb-toc-el__list { list-style: none; margin: 0; padding: 0; }
+.rpr-help .awb-toc-el__list-item { margin: 0; }
+
+/* remove Avada's auto "01." "02." counter and the leading flag icon */
+.rpr-help .awb-toc-el__item-anchor::before { content: "" !important; margin: 0 !important; }
+.rpr-help .awb-toc-el__item-icon { display: none !important; }
+
+.rpr-help .awb-toc-el__item-anchor {
+  display: block;
+  padding: 7px 0 7px 14px !important;
+  border-left: 2px solid #e7e5df;
+  color: #6b6b70 !important;            /* override the site link blue */
+  text-decoration: none !important;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  background: transparent !important;
+  transition: color .15s, border-color .15s;
+}
+.rpr-help .awb-toc-el__item-anchor:hover {
+  color: #17171a !important;
+  border-left-color: #d2cfc7;
+}
+.rpr-help .awb-toc-el__list-item--highlighted > .awb-toc-el__item-anchor,
+.rpr-help .awb-toc-el__list-item--highlighted > .awb-toc-el__item-anchor:hover {
+  color: #17171a !important;
+  background: transparent !important;   /* drop Avada's highlight fill */
+  border-left-color: #f37737 !important;
+  font-weight: 600;
+}
+
+/* Bonus fix spotted on the live page: stop Avada SHOUTING the callout text
+   in all-caps (it adds .fusion-alert-capitalize by default). */
+.rpr-help .rpr-callout { text-transform: none !important; }

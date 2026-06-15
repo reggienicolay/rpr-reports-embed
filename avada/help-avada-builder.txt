@@ -105,6 +105,13 @@ NOTES
 <li><strong>Display</strong> — choose Inline (form on a specific page), Floating (a button on every page), or Modal (popup triggered by your own button).</li>
 </ol>
 [/fusion_text]
+[fusion_imageframe image_id="" max_width="760px" align="left" lightbox="yes" caption_style="off"]REPLACE_WITH_SCREENSHOT_URL[/fusion_imageframe]
+[fusion_text]<p style="font-size:13px;color:#6b6b70;font-style:italic;">You'll see your form update in real time as you type.</p>[/fusion_text]
+<!-- STEP 3 SCREENSHOT: in the Builder, select this Image element and pick your
+     uploaded generator screenshot (Media Library), OR replace the
+     REPLACE_WITH_SCREENSHOT_URL placeholder above with the image URL.
+     Suggested capture: the generator's config panel (left) + live form preview
+     (right), ~1200px wide, cropped to the builder area (no browser chrome). -->
 [fusion_alert type="custom" accent_color="#3f9a4d" background_color="#eef6ef" border_size="1px" class="rpr-callout rpr-callout-ok"]<strong>Tip — click "Send test" before you finish.</strong> Once you've pasted a webhook URL, a Send test button appears under it. It fires a sample submission through your webhook so you know the connection works before the widget goes live.[/fusion_alert]
 [fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Your work is saved automatically.</strong> The generator remembers your settings in your browser, so they're still there when you come back. To move your setup to another computer — or keep a backup — click Copy generator link and save that link; opening it reloads your exact configuration. Reset clears everything and starts fresh.[/fusion_alert]
 [fusion_text]<p><strong>Copy your embed code.</strong> Scroll to the Embed code box and click Copy. The code looks roughly like this:</p>[/fusion_text]
@@ -121,113 +128,13 @@ NOTES
 [fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="48px" bottom_margin="48px" /]
 
 [fusion_title size="2" content_align="left"]4. Add the code to your website[/fusion_title]
-[fusion_text]<p>Drop the embed code into any element that accepts custom HTML or JavaScript. Pick the tab that matches your platform — the steps differ, but the idea is the same everywhere.</p>[/fusion_text]
-[fusion_tabs]
-[fusion_tab title="WordPress · Avada" icon=""]
 [fusion_text]
-<p>Use Avada's <strong>Code Block</strong> element — it's built to accept raw HTML and JavaScript.</p>
-<p><strong>For one page (Inline mode)</strong></p>
-<ol>
-<li>Open the page and click Edit with Avada Builder (or Avada Live).</li>
-<li>Click the + where you want the form and choose Code Block (older versions label it HTML).</li>
-<li>Paste your full embed code into the Code field.</li>
-<li>Save the Code Block, then Update the page.</li>
-</ol>
-<p><strong>For every page (Floating mode)</strong></p>
-<ol>
-<li>Go to Avada &rarr; Options &rarr; Advanced &rarr; Code Fields.</li>
-<li>Paste your embed code into Space Before &lt;/body&gt;.</li>
-<li>Click Save Changes.</li>
-</ol>
-<p><em>Don't paste into a regular Text Block — Avada's text elements strip &lt;script&gt; tags. The Code Block is the one place scripts actually run.</em></p>
+<p>The embed code is a single &lt;script&gt; tag. It works anywhere you can add <strong>custom HTML or JavaScript</strong> — and only there. No plugin, no special integration: you're just pasting the snippet into a spot your platform already provides.</p>
+<p><strong>Put it on one page (Inline or Modal mode)</strong> — in your page editor, find a block called <strong>Custom HTML</strong>, <strong>Code</strong>, or <strong>Embed</strong> (not a plain text block) and paste the embed code into it. Save and publish.</p>
+<p><strong>Put it on every page (Floating mode)</strong> — find your site's global <strong>header / footer</strong> or <strong>custom code</strong> area (often Site or Theme Settings &rarr; Custom Code). Paste the embed code there once and it appears on every page.</p>
 [/fusion_text]
-[/fusion_tab]
-[fusion_tab title="WordPress · Gutenberg" icon=""]
-[fusion_text]
-<p>For WordPress sites using the default block editor (no Avada, Elementor, or Divi).</p>
-<p><strong>For one page (Inline mode)</strong></p>
-<ol>
-<li>Open the page in the WordPress editor.</li>
-<li>Click the + to add a new block and search for Custom HTML.</li>
-<li>Paste your embed code into the block.</li>
-<li>Click Update to publish.</li>
-</ol>
-<p><strong>For every page (Floating mode)</strong></p>
-<ol>
-<li>Install the free plugin Insert Headers and Footers (or WPCode).</li>
-<li>Go to Settings &rarr; Insert Headers and Footers &rarr; Scripts in Footer.</li>
-<li>Paste your embed code and save.</li>
-</ol>
-[/fusion_text]
-[/fusion_tab]
-[fusion_tab title="Squarespace" icon=""]
-[fusion_text]
-<ol>
-<li>Open the page in the Squarespace editor.</li>
-<li>Add a Code block where you want the form to appear.</li>
-<li>Paste your embed code and click Apply.</li>
-<li>Save and publish.</li>
-</ol>
-<p><em>Squarespace's free plan doesn't allow custom code. You need at least the Basic Commerce or Business plan for the Code block to work.</em></p>
-[/fusion_text]
-[/fusion_tab]
-[fusion_tab title="Wix" icon=""]
-[fusion_text]
-<ol>
-<li>In the Wix editor, click Add (+) &rarr; Embed &rarr; Custom Embeds &rarr; Embed a Widget.</li>
-<li>An embed box appears on the page — click Enter Code.</li>
-<li>Paste your embed code and click Update.</li>
-<li>Position and resize the embed box, then publish.</li>
-</ol>
-[/fusion_text]
-[/fusion_tab]
-[fusion_tab title="Webflow" icon=""]
-[fusion_text]
-<p><strong>For one page (Inline mode)</strong></p>
-<ol>
-<li>Open the page in the Webflow Designer.</li>
-<li>Drag an Embed element to where you want the form.</li>
-<li>Paste your embed code into the HTML editor and click Save &amp; Close.</li>
-<li>Publish your site.</li>
-</ol>
-<p><strong>For every page (Floating mode)</strong></p>
-<ol>
-<li>Go to Project Settings &rarr; Custom Code.</li>
-<li>Paste your embed code into Footer Code.</li>
-<li>Save and publish.</li>
-</ol>
-[/fusion_text]
-[/fusion_tab]
-[fusion_tab title="Luxury Presence" icon=""]
-[fusion_text]
-<p><strong>For one page (Inline mode)</strong></p>
-<ol>
-<li>Open the page in the Luxury Presence editor.</li>
-<li>Add an HTML/Embed content block where you want the form.</li>
-<li>Paste your embed code into the block.</li>
-<li>Save and publish.</li>
-</ol>
-<p><strong>For every page (Floating mode)</strong></p>
-<ol>
-<li>Go to Site Settings &rarr; Global Scripts &rarr; Body.</li>
-<li>Paste your embed code and save.</li>
-</ol>
-[/fusion_text]
-[/fusion_tab]
-[fusion_tab title="Other / GTM" icon=""]
-[fusion_text]
-<p>If your platform isn't listed, the pattern is the same everywhere: find an element that accepts custom HTML or JavaScript — not a plain text block — and paste the code there.</p>
-<p><strong>Using Google Tag Manager</strong></p>
-<ol>
-<li>In your GTM workspace, click Tags &rarr; New &rarr; Custom HTML.</li>
-<li>Paste your embed code into the HTML field.</li>
-<li>Set the trigger to All Pages (Floating mode) or a specific page URL (Inline mode).</li>
-<li>Save and publish the container.</li>
-</ol>
-<p><strong>Anywhere else</strong> — look for blocks named Custom HTML, Code, Embed, HTML/JavaScript, or Script. If you can't find one, your platform may not support custom code — contact their support to confirm.</p>
-[/fusion_text]
-[/fusion_tab]
-[/fusion_tabs]
+[fusion_alert type="custom" accent_color="#d89f2c" background_color="#fef6e4" border_size="1px" class="rpr-callout rpr-callout-warn"]<strong>Not every platform allows custom code.</strong> Some hosted website platforms — Luxury Presence, for example — restrict custom JavaScript, so you may need to ask their support to add it, or it may not be supported at all. Squarespace's free plan and social-media profiles don't allow it either. If you're unsure, ask your platform's support whether you can add a custom script tag (HTML/JavaScript) to your site — that tells you everything.[/fusion_alert]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Can't find the spot?</strong> If your platform accepts custom HTML or JavaScript somewhere, the widget works there. If it doesn't, it can't run there. Either way, your web designer can place a single script tag in a few minutes — just send them the embed code.[/fusion_alert]
 [fusion_text]
 <p><strong>Three display modes work on every platform</strong> (set in the generator's Display step):</p>
 <ul>
@@ -271,7 +178,7 @@ NOTES
 <p>No. The generator at the top of this page builds the embed code for you. You fill in a form, copy the result, and paste it into your website. If you can add a YouTube video to a page, you can add this widget.</p>
 [/fusion_toggle]
 [fusion_toggle title="Which website platforms does this work on?" open="no"]
-<p>Any platform that lets you add custom HTML or JavaScript to a page. That covers WordPress (with Avada, Gutenberg, Elementor, Divi, or other builders), Luxury Presence, Squarespace paid plans, Wix, Webflow, Showit, Shopify, and most others. See Step 4 above for platform-specific instructions. If your platform completely locks you out of adding code, you'll need to contact their support team.</p>
+<p>Any platform that lets you add custom HTML or JavaScript — and only those. That covers most open and self-hosted site builders: WordPress (Avada, Gutenberg, Elementor, Divi, etc.), Squarespace paid plans, Wix, Webflow, Showit, and the like. Some closed, hosted platforms restrict custom JavaScript — Luxury Presence is one example — so there you may need their support to add it, or it may not be supported at all. The quickest way to know: ask your platform's support whether you can add a custom script tag. If you can, the widget works; if you can't, it can't run there.</p>
 [/fusion_toggle]
 [fusion_toggle title="Do I need a Zapier account?" open="no"]
 <p>No — and Zapier actually requires a paid plan for its webhook trigger. It's just one of many options, and several free ones work great:</p>
@@ -313,8 +220,7 @@ NOTES
 <p>The embed code starts with &lt;script and ends with &gt;&lt;/script&gt;. Both parts must be present. If anything got cut off during copy-paste, go back to the generator and copy it again using the Copy button.</p>
 [/fusion_toggle]
 [fusion_toggle title="Check that you used a code/embed block, not a text block" open="no"]
-<p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used the Custom HTML, Code Block, or Embed element — whichever your platform calls it.</p>
-<p>Quick reference: Avada &rarr; Code Block · WordPress Gutenberg &rarr; Custom HTML · Squarespace &rarr; Code · Wix &rarr; Embed a Widget · Webflow &rarr; Embed.</p>
+<p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used a Custom HTML, Code, or Embed block — whatever your platform calls it — not a plain text or paragraph block.</p>
 [/fusion_toggle]
 [fusion_toggle title="Check for platform or hosting restrictions" open="no"]
 <p>Some WordPress hosting configurations — and Squarespace's free plan — block custom JavaScript. If the form shows up in the generator preview but not on your live page, your platform or host may be blocking scripts. Contact your hosting support to confirm.</p>

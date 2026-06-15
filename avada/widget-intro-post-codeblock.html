@@ -1,0 +1,289 @@
+<!--
+==============================================================================
+ RPR Reports Widget — Intro / Beta blog post  ·  Avada "Code Block" build
+==============================================================================
+ WHY THIS VERSION
+   The native-element build collapses into narrow columns inside the post's
+   sidebar layout and Avada force-uppercases its Alert callouts. This is a
+   single self-contained, editorial design with scoped CSS — nothing leaks,
+   nothing squishes.
+
+ HOW TO USE
+   1. WordPress > Posts > edit this post. Remove the previous widget body.
+   2. Add ONE Avada "Code Block" element (Elements > Code Block) where the
+      article body should go (the post title stays as the WP/Avada title).
+   3. Paste EVERYTHING below this comment into the Code Block. Save.
+      (Tip: for the widest, most premium look, set the post template to a
+      full-width / no-sidebar layout — the design also reads beautifully in
+      the standard sidebar column.)
+   4. Set the two button links — search for "#REPLACE":
+        Get the RPR Reports Widget  ->  your generator URL
+        Share Beta Feedback         ->  your feedback form URL
+
+ NOTES
+   - All styles are scoped under .rpr-article so they can't affect the rest
+     of the site.
+   - Typography is Roboto (your brand font) across the whole piece. The CSS
+     pulls the needed Roboto weights from Google Fonts (300/400/500/700/900);
+     if your site already loads Roboto or that request is blocked, it simply
+     falls back to the loaded Roboto + system sans. Nothing else is forced.
+   - This build uses a CSS grid for the audience cards — NOT Fusion columns —
+     so the column-break problem from the native-element version can't happen.
+==============================================================================
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400&display=swap');
+
+.rpr-article{
+  --ink:#1b1b1d; --soft:#3d3d41; --muted:#77736c; --line:#e4e8ee;
+  --accent:#1a9fff; --accent-deep:#0a72c2; --warm:#eef6ff; --band:#161617;
+  --font:"Roboto",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  max-width:760px; margin:0 auto; padding:8px 0 0;
+  color:var(--soft); font-family:var(--font); font-weight:400; font-size:18px; line-height:1.75;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+.rpr-article *{box-sizing:border-box;}
+.rpr-article p{margin:0 0 1.25em;}
+.rpr-article strong{color:var(--ink); font-weight:700;}
+.rpr-article a{color:var(--accent-deep); text-decoration:none; border-bottom:1px solid rgba(10,114,194,.35);}
+.rpr-article a:hover{border-bottom-color:var(--accent-deep);}
+
+/* Eyebrow / kicker */
+.rpr-kicker{font-size:12px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--accent-deep); display:flex; align-items:center; gap:12px; margin:0 0 22px;}
+.rpr-kicker::before{content:""; width:30px; height:2px; background:var(--accent); display:inline-block; flex:0 0 auto;}
+
+/* Lead deck — light weight, large, for an editorial open */
+.rpr-deck{font-size:26px; line-height:1.5; color:var(--ink); font-weight:300; letter-spacing:-.01em; margin:0 0 4px;}
+
+/* Department label above each section heading */
+.rpr-dept{font-size:11px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--accent-deep); margin:0 0 12px;}
+
+/* Headings — heavy weight + tight tracking for modern editorial contrast */
+.rpr-article h2{font-weight:700; font-size:31px; line-height:1.15;
+  color:var(--ink); letter-spacing:-.022em; margin:0 0 .55em;}
+.rpr-article h3{font-weight:700; font-size:23px; line-height:1.2;
+  color:var(--ink); letter-spacing:-.018em; margin:38px 0 .5em;}
+
+/* Section divider */
+.rpr-rule{border:0; border-top:1px solid var(--line); margin:54px 0;}
+.rpr-flourish{border:0; text-align:center; margin:54px 0; line-height:1; overflow:visible;}
+.rpr-flourish::before{content:"\2766"; color:var(--accent); font-size:20px;}
+
+/* Drop cap on opening paragraph */
+.rpr-dropcap::first-letter{float:left; font-weight:700;
+  font-size:62px; line-height:.8; padding:8px 14px 0 0; color:var(--accent-deep);}
+
+/* Stamped emphatic line ("Name. Email. Phone. Message.") */
+.rpr-stamp{font-size:14px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink); margin:0 0 1.25em;}
+
+/* Larger emphasis line — light + large to feel like a lede, not just bold */
+.rpr-emph{font-size:22px; line-height:1.5; font-weight:300; letter-spacing:-.01em; color:var(--ink); margin:0 0 1.25em;}
+
+/* Inline aside quote (the two short framing lines) */
+.rpr-aside{font-style:italic; font-weight:300; color:var(--muted); font-size:21px; margin:0 0 1.25em;
+  padding-left:18px; border-left:2px solid var(--line);}
+
+/* Editorial note / callout */
+.rpr-note{background:var(--warm); border-left:3px solid var(--accent); padding:22px 26px;
+  margin:34px 0; font-size:17px; line-height:1.6; color:var(--soft);}
+.rpr-note strong{color:var(--ink);}
+.rpr-note--ok{background:#f1f6ef; border-left-color:#3f9a4d;}
+
+/* Numbered steps — big light numerals */
+.rpr-steps{list-style:none; counter-reset:s; margin:28px 0; padding:0;}
+.rpr-steps li{counter-increment:s; position:relative; padding:18px 0 18px 62px;
+  border-top:1px solid var(--line); font-size:17px; line-height:1.55; color:var(--soft);}
+.rpr-steps li:last-child{border-bottom:1px solid var(--line);}
+.rpr-steps li::before{content:counter(s,decimal-leading-zero); position:absolute; left:0; top:13px;
+  font-weight:300; font-size:30px; letter-spacing:-.02em; color:var(--accent);}
+
+/* Centerpiece pull quote */
+.rpr-pull{margin:50px 0; text-align:center;}
+.rpr-pull::before{content:"\201C"; display:block; font-weight:900; color:var(--accent);
+  font-size:64px; line-height:.4; margin:14px 0 18px;}
+.rpr-pull p{font-weight:300; font-style:italic; font-size:25px; line-height:1.5;
+  letter-spacing:-.01em; color:var(--ink); max-width:600px; margin:0 auto;}
+
+/* Audience card grid — fixed 2x2 hairline grid (collapses to 1 on mobile).
+   Locked to two columns so it can never fan out into narrow, uneven strips
+   on a full-width template; grid items stretch to equal height by default. */
+.rpr-grid{display:grid; grid-template-columns:repeat(2,1fr); align-items:stretch;
+  gap:1px; background:var(--line); border:1px solid var(--line); margin:38px 0;}
+.rpr-card{background:#fff; padding:30px 28px;}
+.rpr-card-k{font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent-deep); margin:0 0 14px;}
+.rpr-card h3{font-weight:700; font-size:21px; line-height:1.2; letter-spacing:-.018em; color:var(--ink); margin:0 0 14px;}
+.rpr-card p{font-size:16px; line-height:1.62; margin:0 0 1em; color:var(--soft);}
+.rpr-card p:last-child{margin-bottom:0;}
+
+/* Closing CTA band */
+.rpr-cta{background:var(--band); padding:56px 48px; margin:64px 0 0;}
+.rpr-cta .rpr-kicker{color:#7cc4ff;}
+.rpr-cta h2{color:#fff;}
+.rpr-cta p{color:#b6b3ac; font-size:18px; max-width:62ch;}
+.rpr-btns{display:flex; flex-wrap:wrap; gap:14px; margin-top:30px;}
+.rpr-btn{font-size:13px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; text-decoration:none; border:0; padding:16px 32px; display:inline-block; transition:all .15s;}
+.rpr-btn--solid{background:var(--accent); color:#fff;}
+.rpr-btn--solid:hover{background:#0a8ae6;}
+.rpr-btn--ghost{background:transparent; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.45);}
+.rpr-btn--ghost:hover{box-shadow:inset 0 0 0 1px #fff; background:rgba(255,255,255,.07);}
+
+@media (max-width:600px){
+  .rpr-article{font-size:17px;}
+  .rpr-deck{font-size:22px;}
+  .rpr-article h2{font-size:26px;}
+  .rpr-pull p{font-size:21px;}
+  .rpr-cta{padding:40px 26px;}
+  .rpr-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<div class="rpr-article">
+
+  <p class="rpr-kicker">RPR Reports Widget &middot; Now in Beta</p>
+  <p class="rpr-deck">Give every visitor a reason to raise their hand &mdash; offer the RPR reports they actually want, capture who they are and what they care about, and turn anonymous traffic into real conversations.</p>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">The Moment</p>
+  <h2>Your website visitor already has a question</h2>
+  <p class="rpr-dropcap">Someone lands on your website because they are trying to figure something out.</p>
+  <p>Maybe they want to know what homes are selling for nearby. Maybe they are comparing neighborhoods before making a move. Maybe they own a property and want to understand what is happening in their market before they raise their hand.</p>
+  <p>Many real estate websites respond to that moment with a contact form.</p>
+  <p class="rpr-stamp">Name. &nbsp;Email. &nbsp;Phone. &nbsp;Message.</p>
+  <p>That works if the visitor is ready to talk. Many are not. They are still researching. Still comparing. Still deciding whether you are the right person to trust.</p>
+  <p>The RPR Reports Widget gives them a better reason to engage.</p>
+  <p>With the widget, your website can offer selected RPR reports to visitors based on the area or market they care about. When they request a report, you receive their contact information, the report they selected and the context behind their interest.</p>
+  <p>That gives you a better follow-up than &ldquo;Thanks for visiting my website.&rdquo;</p>
+  <div class="rpr-note"><strong>It gives you a reason to start a real estate conversation.</strong> And while the widget is in beta, your real-world feedback will help shape what comes next.</div>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">The Widget</p>
+  <h2>What is the RPR Reports Widget?</h2>
+  <p>The RPR Reports Widget is an embeddable tool that lets REALTORS&reg; offer selected RPR reports directly from their own website or landing page.</p>
+  <p>You choose the reports. Your visitor chooses the area they care about. The widget collects their contact information, sends the lead where you want it to go and then gives the visitor access to the matching RPR report.</p>
+  <p class="rpr-emph">RPR provides the report and the local data. You bring the interpretation.</p>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">How It Works</p>
+  <h2>How does the RPR Reports Widget work?</h2>
+  <p>The widget works in two simple steps.</p>
+  <p>First, the visitor chooses an area from a dropdown and enters their contact information. Then, after submitting the form, they see a report card with a button to view the matching RPR report.</p>
+  <p>Between those two steps, the widget sends the lead to the destination you selected during setup.</p>
+  <p>The setup follows a simple path:</p>
+  <ol class="rpr-steps">
+    <li>Create dynamic RPR report links for the areas, properties or markets you want to feature.</li>
+    <li>Add each report to the widget generator as a label and URL.</li>
+    <li>Choose where you want leads to go.</li>
+    <li>Customize the branding, form fields, display style and the text visitors see in the widget.</li>
+    <li>Copy the embed code and place it on your website.</li>
+  </ol>
+  <div class="rpr-note"><strong>One widget, many reports.</strong> A single widget can include multiple report options &mdash; for example, reports for three ZIP codes, two neighborhoods or several local market areas, all from the same dropdown.</div>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">Your Leads</p>
+  <h2>Where does the lead go?</h2>
+  <p>You decide during setup.</p>
+  <p>The RPR Reports Widget does not simply email leads from RPR. Instead, you choose the destination that fits your follow-up process, such as a Google Sheet, Zapier, Slack, GoHighLevel, a phone push notification, a CRM workflow or another supported option.</p>
+  <p>Each lead includes the visitor&rsquo;s contact information, the area they selected and the RPR report they requested.</p>
+  <p class="rpr-emph">That gives you more than a name and email address. It gives you the reason they engaged.</p>
+  <p>If someone requests a Market Trends Report for a specific ZIP code, your follow-up can start with that market. If someone requests a Trade Area Report, your follow-up can start with the location or business question they were researching.</p>
+  <p>The widget works best when the lead lands somewhere you already check.</p>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">The Difference</p>
+  <h2>Why this is different from a standard contact form</h2>
+  <p>A standard contact form usually starts with what the agent wants:</p>
+  <p class="rpr-aside">&ldquo;Send me your information.&rdquo;</p>
+  <p>The RPR Reports Widget starts with what the visitor wants:</p>
+  <p class="rpr-aside">&ldquo;Choose the local report you want to see.&rdquo;</p>
+  <p>That shift changes the value exchange.</p>
+  <p>Before the widget, a website visitor might browse a few pages and leave without telling you what they cared about. After the widget, that same visitor can request a report tied to a specific ZIP code, neighborhood, market area or trade area.</p>
+  <p><strong>Now your follow-up has context.</strong> Instead of saying, &ldquo;Thanks for visiting my website,&rdquo; you can say:</p>
+  <div class="rpr-pull">
+    <p>I saw you requested the Market Trends Report for 94550. Inventory has shifted over the last few months, and I&rsquo;d be happy to walk you through what that means if you are thinking about buying or selling.</p>
+  </div>
+  <p>That is more useful than a generic follow-up. It is also more natural.</p>
+  <p>The report gives you a reason to reconnect without forcing a hard sell.</p>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">The Reports</p>
+  <h2>What kind of reports can you offer?</h2>
+  <p>The widget is built around dynamic RPR report links. That means you create the report in RPR first, then add the shareable report link to the widget generator.</p>
+  <p>In practice, the widget can be used with any dynamic RPR report link that makes sense for your audience. It works especially well with reports people are likely to request from a website, such as Market Trends, Market Activity, Neighborhood, School and Trade Area reports.</p>
+  <p>Because the widget text is customizable, you can shape the experience around the reports you choose. That flexibility is what makes the widget useful across different pages, audiences and follow-up goals.</p>
+
+  <hr class="rpr-flourish">
+
+  <p class="rpr-dept">The Opportunity</p>
+  <h2>The real opportunity is how you configure the reports</h2>
+  <p>One of the biggest advantages of the RPR Reports Widget is that you are not limited to a single use case.</p>
+  <p>Because you create the report first in RPR, you decide what information to include, what information to hide and how the report supports the audience you are trying to reach. The same report type can serve very different purposes depending on how it is configured.</p>
+  <p class="rpr-emph">Think of the widget less as a report-delivery tool and more as a way to package local market information into something people actually want.</p>
+
+  <div class="rpr-grid">
+    <div class="rpr-card">
+      <p class="rpr-card-k">For Buyers</p>
+      <h3>Weekend open house updates</h3>
+      <p>A Market Activity Report can be configured to highlight open houses happening in a specific area.</p>
+      <p>Imagine promoting a &ldquo;This Weekend&rsquo;s Open Houses&rdquo; report in your email newsletter every Friday. Visitors select their area, request the report and see upcoming open houses without having to search multiple websites.</p>
+      <p><strong>You receive a lead from someone actively looking at homes.</strong></p>
+    </div>
+    <div class="rpr-card">
+      <p class="rpr-card-k">For Sellers</p>
+      <h3>Local market activity</h3>
+      <p>That same Market Activity Report can be configured differently for homeowners.</p>
+      <p>Instead of focusing on open houses, you might highlight new listings, pending sales, price changes and recently sold properties in a ZIP code or neighborhood.</p>
+      <p><strong>Now the report becomes a market pulse for homeowners who want to understand what is happening around them.</strong></p>
+    </div>
+    <div class="rpr-card">
+      <p class="rpr-card-k">For Buyers Relocating</p>
+      <h3>Compare a new area</h3>
+      <p>Neighborhood Reports and School Reports can help buyers compare communities before they ever schedule a showing.</p>
+      <p><strong>A visitor researching several areas can request reports for each location</strong> and begin narrowing their options while giving you valuable insight into where they are focusing their search.</p>
+    </div>
+    <div class="rpr-card">
+      <p class="rpr-card-k">For Investors &amp; Commercial</p>
+      <h3>Trade area research</h3>
+      <p>Trade Area Reports can provide demographic, consumer-spending and business-location insights that support investment and site-selection decisions.</p>
+      <p><strong>The report becomes a research tool, and the lead tells you which market area caught their attention.</strong></p>
+    </div>
+  </div>
+
+  <h3>Start with the audience, not the report</h3>
+  <p>The most effective implementations usually begin with a simple question:</p>
+  <p class="rpr-aside">&ldquo;What information would someone visiting this page actually want?&rdquo;</p>
+  <p>Once you know the answer, you can build or customize an RPR report around that need, add it to the widget and create a stronger reason for someone to engage.</p>
+  <p>That is why there is not a single &ldquo;best&rdquo; way to use the RPR Reports Widget. The combination of report types, report settings, customizable widget text and local market knowledge creates dozens of possibilities.</p>
+  <p class="rpr-emph">The more intentionally you configure the report, the more useful the experience becomes for both the visitor and your follow-up.</p>
+
+  <hr class="rpr-rule">
+
+  <p class="rpr-dept">Getting Started</p>
+  <h2>Keep the first version simple</h2>
+  <p>The widget can appear directly on a page, open from a floating button or launch from an existing button on your site.</p>
+  <p>You can also choose how much information to ask for. Minimal mode asks for area and email address. Full mode asks for first name, last name, email, phone and area.</p>
+  <p>For many agents, minimal mode is a good place to start because it keeps the request simple. The visitor gets the report they asked for, and you get enough information to follow up with context.</p>
+  <p>The text inside the widget is customizable, too. That means you can fine-tune the headline, subheadline, button text and other copy to match the reports you are offering.</p>
+  <div class="rpr-note rpr-note--ok"><strong>Start with one report, one page and one lead destination.</strong> You can always expand from there.</div>
+
+  <div class="rpr-cta">
+    <p class="rpr-kicker">Try It While It Is In Beta</p>
+    <h2>Put one report on one page and see what comes back</h2>
+    <p>The RPR Reports Widget is currently in beta, and we&rsquo;re inviting REALTORS&reg; to try it on real pages and tell us what would make it more useful. Start with one RPR report for a market you already talk about often. Add it to the generator, choose where you want the lead to go, customize the widget text to match the report you&rsquo;re offering and embed it on one page of your website. When someone requests a report, follow up with the context they already gave you &mdash; then use the feedback form to tell us what worked, what felt confusing and what would help you use the widget in your business.</p>
+    <div class="rpr-btns">
+      <a class="rpr-btn rpr-btn--solid" href="#REPLACE-generator-url" target="_blank" rel="noopener">Get the RPR Reports Widget</a>
+      <a class="rpr-btn rpr-btn--ghost" href="#REPLACE-feedback-url" target="_blank" rel="noopener">Share Beta Feedback</a>
+    </div>
+  </div>
+
+</div>

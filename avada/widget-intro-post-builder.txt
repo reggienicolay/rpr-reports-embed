@@ -1,0 +1,191 @@
+==============================================================================
+ RPR Reports Widget — Intro / Beta blog post  ·  Avada Builder element code
+==============================================================================
+ HOW TO USE
+   1. WordPress > edit the post. Delete the old widget body first.
+   2. Open the WP "Code editor" (block editor: ⋮ menu > Code editor) OR use
+      Avada Builder's paste-elements feature
+      (avada.com/documentation/how-to-generate-element-code-for-pasting-into-avada/).
+   3. Paste EVERYTHING between >>> START >>> and <<< END <<< into the content,
+      then open Avada Builder. It renders as native, editable elements.
+   4. Set the two button links — search for "#REPLACE".
+
+ NOTES
+   - All the editorial styling is done with INLINE styles inside Text elements,
+     so there is NOTHING to add to Avada > Options > Custom CSS. Single paste.
+   - Typography inherits your site's Roboto. Weights/sizes are set inline.
+   - The four audience cards are a flexbox INSIDE one Text element (not Fusion
+     columns) — they lock to two across and collapse to one on narrow screens,
+     so the broken-column problem can't happen.
+==============================================================================
+
+>>> START >>>
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-post" padding_top="48px" padding_bottom="8px"]
+[fusion_builder_row]
+[fusion_builder_column type="1_1" align_self="auto"]
+[fusion_text]
+<p style="display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 22px;"><span style="width:30px;height:2px;background:#1a9fff;display:inline-block;"></span>RPR Reports Widget · Now in Beta</p>
+<p style="font-size:26px;line-height:1.5;color:#1b1b1d;font-weight:300;letter-spacing:-.01em;margin:0;">Give every visitor a reason to raise their hand — offer the RPR reports they actually want, capture who they are and what they care about, and turn anonymous traffic into real conversations.</p>
+[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">The Moment</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">Your website visitor already has a question</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;"><span style="float:left;font-size:62px;line-height:.8;font-weight:700;color:#0a72c2;padding:6px 14px 0 0;">S</span>omeone lands on your website because they are trying to figure something out.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Maybe they want to know what homes are selling for nearby. Maybe they are comparing neighborhoods before making a move. Maybe they own a property and want to understand what is happening in their market before they raise their hand.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Many real estate websites respond to that moment with a contact form.</p>
+<p style="font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#1b1b1d;margin:0 0 1.1em;">Name. &nbsp;Email. &nbsp;Phone. &nbsp;Message.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">That works if the visitor is ready to talk. Many are not. They are still researching. Still comparing. Still deciding whether you are the right person to trust.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The RPR Reports Widget gives them a better reason to engage.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">With the widget, your website can offer selected RPR reports to visitors based on the area or market they care about. When they request a report, you receive their contact information, the report they selected and the context behind their interest.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">That gives you a better follow-up than “Thanks for visiting my website.”</p>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#1a9fff" background_color="#eef6ff" border_size="1px" margin_top="30px" margin_bottom="0px"]<span style="text-transform:none;font-size:17px;line-height:1.6;color:#3d3d41;"><strong style="color:#1b1b1d;">It gives you a reason to start a real estate conversation.</strong> And while the widget is in beta, your real-world feedback will help shape what comes next.</span>[/fusion_alert]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">The Widget</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">What is the RPR Reports Widget?</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The RPR Reports Widget is an embeddable tool that lets REALTORS® offer selected RPR reports directly from their own website or landing page.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">You choose the reports. Your visitor chooses the area they care about. The widget collects their contact information, sends the lead where you want it to go and then gives the visitor access to the matching RPR report.</p>
+<p style="font-size:22px;line-height:1.5;font-weight:300;letter-spacing:-.01em;color:#1b1b1d;margin:0;">RPR provides the report and the local data. You bring the interpretation.</p>
+[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">How It Works</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">How does the RPR Reports Widget work?</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The widget works in two simple steps.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">First, the visitor chooses an area from a dropdown and enters their contact information. Then, after submitting the form, they see a report card with a button to view the matching RPR report.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Between those two steps, the widget sends the lead to the destination you selected during setup.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.4em;">The setup follows a simple path:</p>
+<div style="display:flex;gap:18px;padding:18px 0;border-top:1px solid #e4e8ee;"><span style="font-weight:300;font-size:30px;line-height:1;color:#1a9fff;letter-spacing:-.02em;min-width:36px;">01</span><span style="font-size:17px;line-height:1.55;color:#3d3d41;">Create dynamic RPR report links for the areas, properties or markets you want to feature.</span></div>
+<div style="display:flex;gap:18px;padding:18px 0;border-top:1px solid #e4e8ee;"><span style="font-weight:300;font-size:30px;line-height:1;color:#1a9fff;letter-spacing:-.02em;min-width:36px;">02</span><span style="font-size:17px;line-height:1.55;color:#3d3d41;">Add each report to the widget generator as a label and URL.</span></div>
+<div style="display:flex;gap:18px;padding:18px 0;border-top:1px solid #e4e8ee;"><span style="font-weight:300;font-size:30px;line-height:1;color:#1a9fff;letter-spacing:-.02em;min-width:36px;">03</span><span style="font-size:17px;line-height:1.55;color:#3d3d41;">Choose where you want leads to go.</span></div>
+<div style="display:flex;gap:18px;padding:18px 0;border-top:1px solid #e4e8ee;"><span style="font-weight:300;font-size:30px;line-height:1;color:#1a9fff;letter-spacing:-.02em;min-width:36px;">04</span><span style="font-size:17px;line-height:1.55;color:#3d3d41;">Customize the branding, form fields, display style and the text visitors see in the widget.</span></div>
+<div style="display:flex;gap:18px;padding:18px 0;border-top:1px solid #e4e8ee;border-bottom:1px solid #e4e8ee;"><span style="font-weight:300;font-size:30px;line-height:1;color:#1a9fff;letter-spacing:-.02em;min-width:36px;">05</span><span style="font-size:17px;line-height:1.55;color:#3d3d41;">Copy the embed code and place it on your website.</span></div>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#1a9fff" background_color="#eef6ff" border_size="1px" margin_top="30px" margin_bottom="0px"]<span style="text-transform:none;font-size:17px;line-height:1.6;color:#3d3d41;"><strong style="color:#1b1b1d;">One widget, many reports.</strong> A single widget can include multiple report options — for example, reports for three ZIP codes, two neighborhoods or several local market areas, all from the same dropdown.</span>[/fusion_alert]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">Your Leads</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">Where does the lead go?</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">You decide during setup.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The RPR Reports Widget does not simply email leads from RPR. Instead, you choose the destination that fits your follow-up process, such as a Google Sheet, Zapier, Slack, GoHighLevel, a phone push notification, a CRM workflow or another supported option.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Each lead includes the visitor’s contact information, the area they selected and the RPR report they requested.</p>
+<p style="font-size:22px;line-height:1.5;font-weight:300;letter-spacing:-.01em;color:#1b1b1d;margin:0 0 1.1em;">That gives you more than a name and email address. It gives you the reason they engaged.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">If someone requests a Market Trends Report for a specific ZIP code, your follow-up can start with that market. If someone requests a Trade Area Report, your follow-up can start with the location or business question they were researching.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0;">The widget works best when the lead lands somewhere you already check.</p>
+[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">The Difference</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">Why this is different from a standard contact form</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">A standard contact form usually starts with what the agent wants:</p>
+<p style="font-style:italic;font-weight:300;color:#77736c;font-size:21px;margin:0 0 1.1em;padding-left:18px;border-left:2px solid #e4e8ee;">“Send me your information.”</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The RPR Reports Widget starts with what the visitor wants:</p>
+<p style="font-style:italic;font-weight:300;color:#77736c;font-size:21px;margin:0 0 1.1em;padding-left:18px;border-left:2px solid #e4e8ee;">“Choose the local report you want to see.”</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">That shift changes the value exchange.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Before the widget, a website visitor might browse a few pages and leave without telling you what they cared about. After the widget, that same visitor can request a report tied to a specific ZIP code, neighborhood, market area or trade area.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;"><strong style="color:#1b1b1d;font-weight:700;">Now your follow-up has context.</strong> Instead of saying, “Thanks for visiting my website,” you can say:</p>
+<div style="text-align:center;margin:44px 0;">
+<div style="font-weight:900;font-size:60px;line-height:.4;color:#1a9fff;margin:8px 0 18px;">“</div>
+<p style="font-weight:300;font-style:italic;font-size:25px;line-height:1.5;letter-spacing:-.01em;color:#1b1b1d;max-width:600px;margin:0 auto;">I saw you requested the Market Trends Report for 94550. Inventory has shifted over the last few months, and I’d be happy to walk you through what that means if you are thinking about buying or selling.</p>
+</div>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">That is more useful than a generic follow-up. It is also more natural.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0;">The report gives you a reason to reconnect without forcing a hard sell.</p>
+[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">The Reports</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">What kind of reports can you offer?</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The widget is built around dynamic RPR report links. That means you create the report in RPR first, then add the shareable report link to the widget generator.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">In practice, the widget can be used with any dynamic RPR report link that makes sense for your audience. It works especially well with reports people are likely to request from a website, such as Market Trends, Market Activity, Neighborhood, School and Trade Area reports.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0;">Because the widget text is customizable, you can shape the experience around the reports you choose. That flexibility is what makes the widget useful across different pages, audiences and follow-up goals.</p>
+[/fusion_text]
+
+[fusion_text]<div style="text-align:center;margin:44px 0;color:#1a9fff;font-size:20px;">&#10086;</div>[/fusion_text]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">The Opportunity</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">The real opportunity is how you configure the reports</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">One of the biggest advantages of the RPR Reports Widget is that you are not limited to a single use case.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Because you create the report first in RPR, you decide what information to include, what information to hide and how the report supports the audience you are trying to reach. The same report type can serve very different purposes depending on how it is configured.</p>
+<p style="font-size:22px;line-height:1.5;font-weight:300;letter-spacing:-.01em;color:#1b1b1d;margin:0;">Think of the widget less as a report-delivery tool and more as a way to package local market information into something people actually want.</p>
+[/fusion_text]
+
+[fusion_text]
+<div style="display:flex;flex-wrap:wrap;gap:1px;background:#e4e8ee;border:1px solid #e4e8ee;margin:38px 0;">
+<div style="background:#fff;padding:30px 28px;flex:1 1 calc(50% - 1px);min-width:260px;box-sizing:border-box;">
+<p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a72c2;margin:0 0 14px;">For Buyers</p>
+<h3 style="font-weight:700;font-size:21px;line-height:1.2;letter-spacing:-.018em;color:#1b1b1d;margin:0 0 14px;">Weekend open house updates</h3>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">A Market Activity Report can be configured to highlight open houses happening in a specific area.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">Imagine promoting a “This Weekend’s Open Houses” report in your email newsletter every Friday. Visitors select their area, request the report and see upcoming open houses without having to search multiple websites.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0;"><strong style="color:#1b1b1d;">You receive a lead from someone actively looking at homes.</strong></p>
+</div>
+<div style="background:#fff;padding:30px 28px;flex:1 1 calc(50% - 1px);min-width:260px;box-sizing:border-box;">
+<p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a72c2;margin:0 0 14px;">For Sellers</p>
+<h3 style="font-weight:700;font-size:21px;line-height:1.2;letter-spacing:-.018em;color:#1b1b1d;margin:0 0 14px;">Local market activity</h3>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">That same Market Activity Report can be configured differently for homeowners.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">Instead of focusing on open houses, you might highlight new listings, pending sales, price changes and recently sold properties in a ZIP code or neighborhood.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0;"><strong style="color:#1b1b1d;">Now the report becomes a market pulse for homeowners who want to understand what is happening around them.</strong></p>
+</div>
+<div style="background:#fff;padding:30px 28px;flex:1 1 calc(50% - 1px);min-width:260px;box-sizing:border-box;">
+<p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a72c2;margin:0 0 14px;">For Buyers Relocating</p>
+<h3 style="font-weight:700;font-size:21px;line-height:1.2;letter-spacing:-.018em;color:#1b1b1d;margin:0 0 14px;">Compare a new area</h3>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">Neighborhood Reports and School Reports can help buyers compare communities before they ever schedule a showing.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0;"><strong style="color:#1b1b1d;">A visitor researching several areas can request reports for each location</strong> and begin narrowing their options while giving you valuable insight into where they are focusing their search.</p>
+</div>
+<div style="background:#fff;padding:30px 28px;flex:1 1 calc(50% - 1px);min-width:260px;box-sizing:border-box;">
+<p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a72c2;margin:0 0 14px;">For Investors &amp; Commercial</p>
+<h3 style="font-weight:700;font-size:21px;line-height:1.2;letter-spacing:-.018em;color:#1b1b1d;margin:0 0 14px;">Trade area research</h3>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0 0 1em;">Trade Area Reports can provide demographic, consumer-spending and business-location insights that support investment and site-selection decisions.</p>
+<p style="font-size:16px;line-height:1.62;color:#3d3d41;margin:0;"><strong style="color:#1b1b1d;">The report becomes a research tool, and the lead tells you which market area caught their attention.</strong></p>
+</div>
+</div>
+[/fusion_text]
+
+[fusion_text]
+<h3 style="font-weight:700;font-size:23px;line-height:1.2;letter-spacing:-.018em;color:#1b1b1d;margin:0 0 .5em;">Start with the audience, not the report</h3>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The most effective implementations usually begin with a simple question:</p>
+<p style="font-style:italic;font-weight:300;color:#77736c;font-size:21px;margin:0 0 1.1em;padding-left:18px;border-left:2px solid #e4e8ee;">“What information would someone visiting this page actually want?”</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">Once you know the answer, you can build or customize an RPR report around that need, add it to the widget and create a stronger reason for someone to engage.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">That is why there is not a single “best” way to use the RPR Reports Widget. The combination of report types, report settings, customizable widget text and local market knowledge creates dozens of possibilities.</p>
+<p style="font-size:22px;line-height:1.5;font-weight:300;letter-spacing:-.01em;color:#1b1b1d;margin:0;">The more intentionally you configure the report, the more useful the experience becomes for both the visitor and your follow-up.</p>
+[/fusion_text]
+[fusion_separator style_type="single solid" sep_color="#e4e8ee" top_margin="44px" bottom_margin="44px" /]
+
+[fusion_text]
+<p style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a72c2;margin:0 0 12px;">Getting Started</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#1b1b1d;letter-spacing:-.022em;margin:0 0 .5em;">Keep the first version simple</h2>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The widget can appear directly on a page, open from a floating button or launch from an existing button on your site.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">You can also choose how much information to ask for. Minimal mode asks for area and email address. Full mode asks for first name, last name, email, phone and area.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">For many agents, minimal mode is a good place to start because it keeps the request simple. The visitor gets the report they asked for, and you get enough information to follow up with context.</p>
+<p style="font-size:18px;line-height:1.75;color:#3d3d41;margin:0 0 1.1em;">The text inside the widget is customizable, too. That means you can fine-tune the headline, subheadline, button text and other copy to match the reports you are offering.</p>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#3f9a4d" background_color="#f1f6ef" border_size="1px" margin_top="30px" margin_bottom="0px"]<span style="text-transform:none;font-size:17px;line-height:1.6;color:#3d3d41;"><strong style="color:#1b1b1d;">Start with one report, one page and one lead destination.</strong> You can always expand from there.</span>[/fusion_alert]
+
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-post" background_color="#161617" padding_top="56px" padding_right="48px" padding_bottom="56px" padding_left="48px"]
+[fusion_builder_row]
+[fusion_builder_column type="1_1" align_self="center"]
+[fusion_text]
+<p style="display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#7cc4ff;margin:0 0 18px;"><span style="width:30px;height:2px;background:#1a9fff;display:inline-block;"></span>Try It While It Is In Beta</p>
+<h2 style="font-weight:700;font-size:31px;line-height:1.15;color:#ffffff;letter-spacing:-.022em;margin:0 0 .5em;">Put one report on one page and see what comes back</h2>
+<p style="color:#b6b3ac;font-size:18px;line-height:1.7;max-width:62ch;margin:0;">The RPR Reports Widget is currently in beta, and we’re inviting REALTORS® to try it on real pages and tell us what would make it more useful. Start with one RPR report for a market you already talk about often. Add it to the generator, choose where you want the lead to go, customize the widget text to match the report you’re offering and embed it on one page of your website. When someone requests a report, follow up with the context they already gave you — then use the feedback form to tell us what worked, what felt confusing and what would help you use the widget in your business.</p>
+[/fusion_text]
+[fusion_button link="#REPLACE-generator-url" button_gradient_top_color="#1a9fff" button_gradient_bottom_color="#1a9fff" accent_color="#ffffff" size="large" stretch="default" target="_blank"]Get the RPR Reports Widget[/fusion_button]
+[fusion_button link="#REPLACE-feedback-url" button_gradient_top_color="#ffffff" button_gradient_bottom_color="#ffffff" accent_color="#161617" size="large" stretch="default" target="_blank"]Share Beta Feedback[/fusion_button]
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+<<< END <<<

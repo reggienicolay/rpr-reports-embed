@@ -292,26 +292,6 @@ html { scroll-behavior: smooth; }
   margin-top: 8px; font-style: italic;
 }
 
-/* ---------- Platform tabs (Inline / Floating / Modal & platforms) ---------- */
-.rpr-help .tabs {
-  display: flex; gap: 0; flex-wrap: wrap;
-  border-bottom: 1px solid var(--rule);
-  margin: 24px 0 0;
-}
-.rpr-help .tab {
-  border: 0; background: none; cursor: pointer;
-  font-family: var(--font-sans); font-size: 14px; font-weight: 500;
-  color: var(--ink-mute);
-  padding: 12px 20px 14px;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color .15s, border-color .15s;
-}
-.rpr-help .tab:hover { color: var(--ink); }
-.rpr-help .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
-.rpr-help .tabpanel { padding: 24px 0; display: none; }
-.rpr-help .tabpanel.active { display: block; }
-
 /* ---------- FAQ ---------- */
 .rpr-help .faq-group { margin-top: 48px; }
 .rpr-help .faq-group:first-of-type { margin-top: 32px; }
@@ -623,126 +603,20 @@ html { scroll-behavior: smooth; }
           <div class="step-num">04</div>
           <div class="step-body">
             <h3>Add the code to your website</h3>
-            <p>Drop the embed code into any element that accepts custom HTML or JavaScript. Pick the tab that matches your platform — the steps differ, but the idea is the same everywhere.</p>
+            <p>The embed code is a single <code class="inline">&lt;script&gt;</code> tag. It works anywhere you can add <b>custom HTML or JavaScript</b> — and only there. No plugin, no special integration: you're just pasting the snippet into a spot your platform already provides.</p>
 
-            <p style="font-size:13px;color:var(--ink-mute);margin-bottom:4px;">Pick your platform:</p>
-            <div class="tabs" role="tablist">
-              <button class="tab active" role="tab" data-tab="wp-avada">WordPress · Avada</button>
-              <button class="tab" role="tab" data-tab="wp-gutenberg">WordPress · Gutenberg</button>
-              <button class="tab" role="tab" data-tab="squarespace">Squarespace</button>
-              <button class="tab" role="tab" data-tab="wix">Wix</button>
-              <button class="tab" role="tab" data-tab="webflow">Webflow</button>
-              <button class="tab" role="tab" data-tab="lp">Luxury Presence</button>
-              <button class="tab" role="tab" data-tab="other">Other / GTM</button>
+            <h4>Put it on one page — Inline or Modal mode</h4>
+            <p>In your page editor, find a block called <b>Custom HTML</b>, <b>Code</b>, or <b>Embed</b> — not a plain text block — and paste the embed code into it. Save and publish.</p>
+
+            <h4>Put it on every page — Floating mode</h4>
+            <p>Find your site's global <b>header / footer code</b> or <b>custom code</b> area (often under Site or Theme Settings → Custom Code). Paste the embed code there once and it appears on every page.</p>
+
+            <div class="callout warn">
+              <b>Not every platform allows custom code.</b> Some hosted website platforms — <b>Luxury Presence</b>, for example — restrict custom JavaScript, so you may need to ask their support to add it, or it may not be supported at all. Squarespace's free plan and social-media profiles don't allow it either. If you're unsure, ask your platform's support one question: <i>“Can I add a custom &lt;script&gt; tag to my site?”</i> — that tells you everything.
             </div>
 
-            <!-- WP AVADA -->
-            <div class="tabpanel active" data-panel="wp-avada">
-              <p>Use Avada's <b>Code Block</b> element — it's built to accept raw HTML and JavaScript.</p>
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page and click <b>Edit with Avada Builder</b> (or <b>Avada Live</b>).</li>
-                <li>Click the <b>+</b> where you want the form and choose <b>Code Block</b> (older versions label it <i>HTML</i>).</li>
-                <li>Paste your full embed code into the <b>Code</b> field.</li>
-                <li>Save the Code Block, then <b>Update</b> the page.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Avada → Options → Advanced → Code Fields</b>.</li>
-                <li>Paste your embed code into <b>Space Before &lt;/body&gt;</b>.</li>
-                <li>Click <b>Save Changes</b>.</li>
-              </ol>
-              <div class="callout warn" style="margin-top:20px;">
-                <b>Don't paste into a regular Text Block.</b> Avada's text elements strip <code class="inline">&lt;script&gt;</code> tags. The <b>Code Block</b> is the one place scripts actually run.
-              </div>
-            </div>
-
-            <!-- WP GUTENBERG -->
-            <div class="tabpanel" data-panel="wp-gutenberg">
-              <p>For WordPress sites using the default block editor (no Avada, Elementor, or Divi).</p>
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the WordPress editor.</li>
-                <li>Click the <b>+</b> to add a new block and search for <b>Custom HTML</b>.</li>
-                <li>Paste your embed code into the block.</li>
-                <li>Click <b>Update</b> to publish.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Install the free plugin <b>Insert Headers and Footers</b> (or WPCode).</li>
-                <li>Go to <b>Settings → Insert Headers and Footers → Scripts in Footer</b>.</li>
-                <li>Paste your embed code and save.</li>
-              </ol>
-            </div>
-
-            <!-- SQUARESPACE -->
-            <div class="tabpanel" data-panel="squarespace">
-              <ol>
-                <li>Open the page in the Squarespace editor.</li>
-                <li>Add a <b>Code</b> block where you want the form to appear.</li>
-                <li>Paste your embed code and click <b>Apply</b>.</li>
-                <li>Save and publish.</li>
-              </ol>
-              <div class="callout warn">
-                <b>Squarespace's free plan doesn't allow custom code.</b> You need at least the Basic Commerce or Business plan for the Code block to work.
-              </div>
-            </div>
-
-            <!-- WIX -->
-            <div class="tabpanel" data-panel="wix">
-              <ol>
-                <li>In the Wix editor, click <b>Add (+)</b> → <b>Embed</b> → <b>Custom Embeds</b> → <b>Embed a Widget</b>.</li>
-                <li>An embed box appears on the page — click <b>Enter Code</b>.</li>
-                <li>Paste your embed code and click <b>Update</b>.</li>
-                <li>Position and resize the embed box, then publish.</li>
-              </ol>
-            </div>
-
-            <!-- WEBFLOW -->
-            <div class="tabpanel" data-panel="webflow">
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the Webflow Designer.</li>
-                <li>Drag an <b>Embed</b> element (from the Add panel) to where you want the form.</li>
-                <li>Paste your embed code into the HTML editor and click <b>Save &amp; Close</b>.</li>
-                <li>Publish your site.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Project Settings → Custom Code</b>.</li>
-                <li>Paste your embed code into <b>Footer Code</b>.</li>
-                <li>Save and publish.</li>
-              </ol>
-            </div>
-
-            <!-- LUXURY PRESENCE -->
-            <div class="tabpanel" data-panel="lp">
-              <h4>For one page (Inline mode)</h4>
-              <ol>
-                <li>Open the page in the Luxury Presence editor.</li>
-                <li>Add an <b>HTML/Embed</b> content block where you want the form.</li>
-                <li>Paste your embed code into the block.</li>
-                <li>Save and publish.</li>
-              </ol>
-              <h4>For every page (Floating mode)</h4>
-              <ol>
-                <li>Go to <b>Site Settings → Global Scripts → Body</b>.</li>
-                <li>Paste your embed code and save.</li>
-              </ol>
-            </div>
-
-            <!-- OTHER / GTM -->
-            <div class="tabpanel" data-panel="other">
-              <p>If your platform isn't listed, the pattern is the same everywhere: find an element that accepts <b>custom HTML</b> or <b>JavaScript</b> — not a plain text block — and paste the code there.</p>
-              <h4>Using Google Tag Manager</h4>
-              <ol>
-                <li>In your GTM workspace, click <b>Tags → New → Custom HTML</b>.</li>
-                <li>Paste your embed code into the HTML field.</li>
-                <li>Set the trigger to <b>All Pages</b> (Floating mode) or a specific page URL (Inline mode).</li>
-                <li>Save and publish the container.</li>
-              </ol>
-              <h4>Anywhere else</h4>
-              <p>Look for blocks or elements named <b>Custom HTML</b>, <b>Code</b>, <b>Embed</b>, <b>HTML/JavaScript</b>, or <b>Script</b>. If you can't find one, your platform may not support custom code — contact their support to confirm.</p>
+            <div class="callout">
+              <b>Can't find the spot?</b> If your platform accepts custom HTML or JavaScript somewhere, the widget works there. If it doesn't, it can't run there. Either way, your web designer can place a single script tag in a few minutes — just send them the embed code.
             </div>
 
             <h4 style="margin-top:32px;">Three display modes work on every platform</h4>
@@ -809,8 +683,8 @@ html { scroll-behavior: smooth; }
         </div></details>
 
         <details class="faq"><summary>Which website platforms does this work on?</summary><div class="answer">
-          <p>Any platform that lets you add custom HTML or JavaScript to a page. That covers WordPress (with Avada, Gutenberg, Elementor, Divi, or other builders), Luxury Presence, Squarespace paid plans, Wix, Webflow, Showit, Shopify, and most others. See Step 4 above for platform-specific instructions.</p>
-          <p>If your platform completely locks you out of adding code, you'll need to contact their support team.</p>
+          <p>Any platform that lets you add custom HTML or JavaScript — and only those. That covers most open and self-hosted site builders: WordPress (Avada, Gutenberg, Elementor, Divi, etc.), Squarespace paid plans, Wix, Webflow, Showit, and the like.</p>
+          <p>Some closed, hosted platforms restrict custom JavaScript — <b>Luxury Presence</b> is one example — so there you may need their support to add it, or it may not be supported at all. The quickest way to know: ask your platform's support whether you can add a custom <code class="inline">&lt;script&gt;</code> tag. If you can, the widget works; if you can't, it can't run there.</p>
         </div></details>
 
         <details class="faq"><summary>Do I need a Zapier account?</summary><div class="answer">
@@ -866,8 +740,7 @@ html { scroll-behavior: smooth; }
         </div></details>
 
         <details class="faq"><summary>Check that you used a code/embed block, not a text block</summary><div class="answer">
-          <p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used the <i>Custom HTML</i>, <i>Code Block</i>, or <i>Embed</i> element — whichever your platform calls it.</p>
-          <p>Quick reference: <b>Avada</b> → Code Block · <b>WordPress Gutenberg</b> → Custom HTML · <b>Squarespace</b> → Code · <b>Wix</b> → Embed a Widget · <b>Webflow</b> → Embed.</p>
+          <p>On almost every platform, code pasted into a regular text or paragraph block displays as plain text rather than executing. Make sure you used a <i>Custom HTML</i>, <i>Code</i>, or <i>Embed</i> block — whatever your platform calls it — not a plain text or paragraph block.</p>
         </div></details>
 
         <details class="faq"><summary>Check for platform or hosting restrictions</summary><div class="answer">
@@ -1067,19 +940,6 @@ html { scroll-behavior: smooth; }
     window.addEventListener('resize', onScroll, { passive: true });
     onScroll();
   })();
-
-  /* ---- Platform / display-mode tabs (scoped to nearest .step-body) ---- */
-  root.querySelectorAll('.tab').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      const name = btn.getAttribute('data-tab');
-      const container = btn.closest('.step-body') || root;
-      container.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
-      container.querySelectorAll('.tabpanel').forEach(function (p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      const panel = container.querySelector('[data-panel="' + name + '"]');
-      if (panel) panel.classList.add('active');
-    });
-  });
 
   /* ---- Copy-to-clipboard on the sample embed code ---- */
   root.querySelectorAll('[data-copy]').forEach(function (btn) {

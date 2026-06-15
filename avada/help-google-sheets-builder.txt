@@ -1,0 +1,175 @@
+==============================================================================
+ RPR × Google Sheets integration — Help page  ·  NATIVE Avada elements
+==============================================================================
+This rebuilds the Google Sheets guide as native, click-to-edit Avada elements
+(Title / Text / Alert / Separator / Syntax Highlighter) — no monolithic HTML
+blob, so anyone can edit it in Fusion Builder.
+
+HOW TO USE
+  1. Edit the page in the WP Code editor, paste everything between >>> START and
+     <<< END, save, then open Avada Builder — it becomes native elements.
+  2. Make sure help-avada-global.css is in Avada → Options → Custom CSS (same
+     file the main help page uses). It styles the .rpr-help callouts + inline
+     code on this page too.
+  3. Screenshots are light text placeholders ("📷 Screenshot — …"). Swap each
+     for an Image element (upload to Media, drop an Image element in its place)
+     when you have the capture.
+
+NOTE: Step 3 links the generator as blog.narrpr.com/reports-widget/ to match the
+  other help pages. If your generator actually lives at a different URL, fix the
+  link in that one Text element.
+==============================================================================
+
+>>> START >>>
+
+[fusion_builder_container type="flex" hundred_percent="no" class="rpr-help" padding_top="40px" padding_bottom="60px"]
+[fusion_builder_row]
+[fusion_builder_column type="1_1" align_self="flex-start"]
+
+[fusion_text]
+<p>If you've added the <strong>RPR Market Reports</strong> widget to your website and you want every lead to land in a Google Sheet — with optional email notifications when a new row is added — this is your three-minute setup.</p>
+<p>You don't need to write any code. We've published a Google Sheets template with the receiver script already attached. You make a copy, deploy it as a Web App, and paste the URL into the embed generator.</p>
+[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="32px" bottom_margin="32px" /]
+
+[fusion_title size="2" content_align="left"]What you'll end up with[/fusion_title]
+[fusion_text]
+<ul>
+<li>A Google Sheet that gains a new row every time a visitor submits the form</li>
+<li>Columns: <strong>Timestamp · First Name · Last Name · Email · Phone · Area · Report URL</strong></li>
+<li>Optional: a Google Sheets <strong>Notification Rule</strong> that emails you when a row is added — fires within a minute or two</li>
+<li>Total cost: free, on any Google account</li>
+</ul>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#d89f2c" background_color="#fef6e4" border_size="1px" class="rpr-callout rpr-callout-warn"]<strong>Heads up about the form mode you picked.</strong> If you set up your widget in Minimal mode, the First Name, Last Name, and Phone columns will arrive empty — the Minimal form only captures email + area. That's by design (lower friction, higher conversions). If you need names and phone numbers, switch to Full mode in the embed generator's Widget Settings.[/fusion_alert]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Step 1 — Make a copy of the RPR template[/fusion_title]
+[fusion_text]
+<p>Click the link below. Google will open a "Copy document?" prompt. Click <strong>Make a copy</strong>.</p>
+<p><strong><a href="https://docs.google.com/spreadsheets/d/1idAudX9UPqkYLvlMXK8TZcnBLKwKQQZzCA0y3U4ZoCE/copy" target="_blank" rel="noopener">Make a copy of the RPR Lead Capture template &rarr;</a></strong></p>
+<p>You'll get your own private copy in your Google Drive. The receiver script is already attached — you don't need to paste any code.</p>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Tip:</strong> Rename the Sheet if you like ("Beverly Hills leads", "Q3 market reports", whatever). The script doesn't care about the file name.[/fusion_alert]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the "Copy document?" prompt with the Make a copy button highlighted.</em></p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Step 2 — Deploy the script as a Web App[/fusion_title]
+[fusion_text]<p>In your new Sheet, go to <strong>Extensions &rarr; Apps Script</strong>. A new tab opens with the script editor.</p>[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the Extensions menu with Apps Script highlighted.</em></p>[/fusion_text]
+[fusion_text]<p>In the top-right corner of the script editor, click <strong>Deploy &rarr; New deployment</strong>.</p>[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the Deploy button with "New deployment" expanded.</em></p>[/fusion_text]
+[fusion_text]
+<p>A dialog opens. <strong>The "Configuration" panel will be blank until you pick a deployment type — this is normal.</strong></p>
+<ol>
+<li>Click the <strong>gear icon ⚙</strong> in the top-left of the dialog, next to the words "Select type". A small dropdown appears.</li>
+<li>Choose <strong>Web app</strong> from the dropdown. The Configuration panel now fills in.</li>
+<li>Set <strong>Execute as</strong> to <strong>Me (your-email@gmail.com)</strong> (the default).</li>
+<li>Set <strong>Who has access</strong> to <strong>Anyone</strong> — this is the most important setting and the one most people get wrong. See the warning below if you're on Google Workspace.</li>
+<li>Click <strong>Deploy</strong>.</li>
+</ol>
+[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the New deployment dialog: gear icon highlighted, Web app selected, the three configuration fields filled in.</em></p>[/fusion_text]
+[fusion_alert type="custom" accent_color="#d89f2c" background_color="#fef6e4" border_size="1px" class="rpr-callout rpr-callout-warn"]<strong>⚠ If you're on Google Workspace, the "Who has access" dropdown shows three options — only one is correct.</strong>
+<ul>
+<li>✅ <strong>Anyone</strong> — public access. This is what you want. Anyone with the URL can POST to it; the URL is unguessable so this is safe.</li>
+<li>❌ <strong>Anyone with Google account</strong> — requires the visitor to be signed into a Google account when they submit. Most aren't.</li>
+<li>❌ <strong>Anyone within &lt;your-org&gt;</strong> (e.g. "Anyone at Realtors Property Resource") — accepts only POSTs from people signed into your Workspace. Your website visitors aren't, so every submission is silently rejected. The widget can't tell (it uses mode: 'no-cors' for browser compatibility), so the test looks fine but no rows land.</li>
+</ul>
+If your dropdown has no true "Anyone" option, your Workspace admin has disabled external Apps Script publishing. Ask them to enable it for your account, or move the Sheet to a personal Google account.[/fusion_alert]
+[fusion_text]<p>The first time you deploy, Google asks you to <strong>authorize access</strong>. This is normal — you're granting your own script permission to write to your own Sheet. Click through the consent screens. If Google warns "This app isn't verified," click <strong>Advanced &rarr; Go to (your project name) (unsafe)</strong> — it's only "unverified" because it's a private project, not a public Marketplace add-on.</p>[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the authorization warning + Advanced link.</em></p>[/fusion_text]
+[fusion_text]<p>When the deploy finishes, you'll see your <strong>Web app URL</strong>. Click <strong>Copy</strong>.</p>[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the deployment success screen with the Web app URL + Copy button.</em></p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Step 3 — Paste the URL into the embed generator[/fusion_title]
+[fusion_text]
+<p>Go back to the <a href="https://blog.narrpr.com/reports-widget/" target="_blank" rel="noopener">RPR embed generator</a>, open the <strong>Lead Delivery</strong> step, pick <strong>Google Sheets</strong> from the dropdown, and paste the URL into the <strong>Webhook URL</strong> field.</p>
+<p>Click <strong>Send test</strong> in the generator. If everything is wired up, a test row appears in your Sheet within a few seconds. If it doesn't, see Troubleshooting below.</p>
+[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the Lead Delivery panel with the URL pasted in + a test row in the Sheet.</em></p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Step 4 — Get an email when a new lead arrives (optional)[/fusion_title]
+[fusion_text]
+<p>In your Sheet, go to <strong>Tools &rarr; Notification settings &rarr; Edit notifications</strong>. Pick:</p>
+<ul>
+<li><strong>Notify me at:</strong> your-email@example.com</li>
+<li><strong>When…</strong> Any changes are made</li>
+<li><strong>How often…</strong> Right away</li>
+</ul>
+<p>Click <strong>Save</strong>. You'll now get a short email every time a row is added, usually within 1–2 minutes of submission. Google batches these on busy days.</p>
+[/fusion_text]
+[fusion_text]<p><em style="color:#6b6b70;font-size:.9em;">📷 Screenshot — the Notification rules dialog.</em></p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Troubleshooting[/fusion_title]
+
+[fusion_title size="3" content_align="left"]The test row never appears[/fusion_title]
+[fusion_text]
+<p>Four things to check, in order:</p>
+<ol>
+<li>The URL you pasted ends in <code>/exec</code> (not <code>/dev</code>). The <code>/dev</code> URL is the development sandbox — only <code>/exec</code> actually runs.</li>
+<li><strong>The URL doesn't contain <code>/a/macros/&lt;your-domain&gt;/</code></strong> — e.g. <code>https://script.google.com/a/macros/yourcompany.com/s/.../exec</code> is the Workspace-restricted version, which silently rejects the widget's unauthenticated POSTs. Redeploy with <strong>Who has access: Anyone</strong>; the new URL should look like <code>https://script.google.com/macros/s/.../exec</code> with no <code>/a/macros/</code> segment.</li>
+<li><strong>Who has access</strong> is <strong>Anyone</strong>, not "Anyone with Google account".</li>
+<li>The deployment is <strong>active</strong> — Apps Script &rarr; <strong>Deploy &rarr; Manage deployments</strong> should show an active "Web app" deployment.</li>
+</ol>
+[/fusion_text]
+[fusion_alert type="custom" accent_color="#f37737" background_color="#fbf6f2" border_size="1px" class="rpr-callout"]<strong>Quick way to verify POSTs are reaching the script:</strong> in Apps Script, click the clock icon in the left sidebar ("Executions"). Every POST that hits your doPost shows up with status Completed or Failed. Empty log after "Send test" = your URL or access setting is wrong (POSTs aren't reaching the script). Executions present but Sheet empty = the script ran but errored — click the failed entry for the stack trace.[/fusion_alert]
+
+[fusion_title size="3" content_align="left"]Some columns are empty[/fusion_title]
+[fusion_text]<p>You're probably running the widget in <strong>Minimal</strong> mode (email + area only). Switch to <strong>Full</strong> mode in the Widget Settings panel of the embed generator, copy the new embed code, and paste it back into your website. Minimal is great for high-conversion capture, but it doesn't ask for first/last/phone.</p>[/fusion_text]
+
+[fusion_title size="3" content_align="left"]I want to update the script (a new version was released)[/fusion_title]
+[fusion_text]<p>Make a fresh copy from the template URL above. Your old Sheet keeps working — but the new copy has the updated logic. Redeploy the new copy as a Web App and replace the URL in your widget.</p>[/fusion_text]
+
+[fusion_title size="3" content_align="left"]The Sheet is filling up with test/spam submissions[/fusion_title]
+[fusion_text]<p>The widget has a built-in honeypot that silently blocks bots. If you're still getting noise, it's likely someone who has your live page URL submitting the real form. You can rate-limit by checking the most recent row's timestamp inside the script — ping us if you want a snippet.</p>[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]How it works (for the curious)[/fusion_title]
+[fusion_text]<p>The widget runs entirely in the visitor's browser. When they submit the form, it does a <code>fetch()</code> POST to the URL you pasted, with a JSON body like:</p>[/fusion_text]
+[fusion_syntax_highlighter language="json"]{
+  "form_id":       "rpr-reports-abc123",
+  "first_name":    "Sarah",
+  "last_name":     "Johnson",
+  "email":         "sarah@example.com",
+  "phone":         "555-555-5555",
+  "selected_area": "Beverly Hills 90210",
+  "report_url":    "https://www.narrpr.com/reports-v2/UUID/pdf",
+  "agent_name":    "Your Name",
+  "brokerage":     "Your Brokerage",
+  "gdpr_consent":  null,
+  "source_url":    "https://yoursite.com/market-reports",
+  "timestamp":     "2026-04-27T10:00:00.000Z"
+}[/fusion_syntax_highlighter]
+[fusion_text]
+<p>Google's Apps Script invokes a function called <code>doPost(e)</code> whenever a POST hits the Web App URL. Our template's <code>doPost</code> parses the JSON body and calls <code>appendRow()</code> on your Sheet. That's the whole job — about 30 lines, readable any time at <strong>Extensions &rarr; Apps Script</strong> in your Sheet.</p>
+<p>If you'd rather host the receiver yourself (Cloudflare Workers, a custom backend, etc.), the <a href="https://github.com/reggienicolay/rpr-reports-embed#webhook-payload" target="_blank" rel="noopener">embed widget README</a> documents the full payload contract.</p>
+[/fusion_text]
+
+[fusion_separator style_type="single solid" sep_color="#e7e5df" top_margin="40px" bottom_margin="40px" /]
+
+[fusion_title size="2" content_align="left"]Privacy &amp; data handling[/fusion_title]
+[fusion_text]
+<ul>
+<li>All lead data flows from the visitor's browser straight to <strong>your</strong> Google Sheet. RPR never sees it.</li>
+<li>The Web App URL is hosted on <code>script.google.com</code> — Google's own infrastructure. You control retention.</li>
+<li>If a visitor exercises their GDPR right to be deleted, find their row in the Sheet and delete it. Done.</li>
+<li>Don't share the Web App URL publicly. Anyone with it can write rows to your Sheet.</li>
+</ul>
+[/fusion_text]
+
+[/fusion_builder_column]
+[/fusion_builder_row]
+[/fusion_builder_container]
+
+<<< END <<<
