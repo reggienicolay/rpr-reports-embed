@@ -1,10 +1,16 @@
 /**
- * rpr-reports-embed.js  v1.5.0
+ * rpr-reports-embed.js  v1.5.1
  *
  * Standalone market report lead capture widget.
  * Drop a single <script> tag on any page — no framework, no jQuery.
  *
  * IMPORTANT: Do NOT add async or defer to this script tag.
+ *
+ * v1.5.1: Pushover fix — only the Messages API URL (/1/messages.json) gets
+ * token/user formatting. Pushover's inbound Webhooks (/1/webhooks/<id>.json)
+ * now fall through to raw-JSON passthrough so Pushover's own field extraction
+ * works. The Cloudflare Worker proxy mirrors the same narrowing. No change to
+ * any other delivery destination.
  *
  * v1.5.0: Phase 3 — Transparent proxy. The generator now auto-registers
  * agent configs via the Worker admin API and always emits data-proxy.
@@ -902,7 +908,7 @@
 						/* Proxy mode — send standard JSON to the Worker which handles
 						   formatting and delivery server-side. */
 						webhookPayload._meta = {
-							widget_version: '1.5.0',
+							widget_version: '1.5.1',
 							source_url:     window.location.href,
 							timestamp:      new Date().toISOString(),
 						};
@@ -1016,9 +1022,11 @@
 						};
 						deliveryUrl = 'https://api.simplepush.io/send';
 
-					} else if ( /^https:\/\/api\.pushover\.net\//i.test( deliveryUrl ) ) {
-						/* Pushover — extract token/user from URL query params,
-						   POST credentials in JSON body only. */
+					} else if ( /^https:\/\/api\.pushover\.net\/1\/messages\.json/i.test( deliveryUrl ) ) {
+						/* Pushover Messages API — extract token/user from URL query
+						   params, POST credentials in JSON body only. Pushover's inbound
+						   Webhooks (/1/webhooks/<id>.json) accept raw JSON and extract
+						   fields themselves, so those fall through to raw passthrough. */
 						const s  = v => String( v || '' ).trim();
 						const name = [ s( webhookPayload.first_name ), s( webhookPayload.last_name ) ]
 							.filter( Boolean ).join( ' ' );

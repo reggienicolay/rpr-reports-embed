@@ -21,7 +21,10 @@ const PATTERNS: [RegExp, Destination][] = [
 	[/^https:\/\/ntfy\.sh\//i, 'ntfy'],
 	[/^https:\/\/(api\.)?simplepush\.io\//i, 'simplepush'],
 	[/^https:\/\/simplepu\.sh\//i, 'simplepush'],
-	[/^https:\/\/api\.pushover\.net\//i, 'pushover'],
+	/* Only the Messages API needs token/user formatting. Pushover's inbound
+	   Webhooks (api.pushover.net/1/webhooks/<id>.json) accept raw JSON and do
+	   their own field extraction, so let those fall through to raw passthrough. */
+	[/^https:\/\/api\.pushover\.net\/1\/messages\.json/i, 'pushover'],
 ];
 
 function detectDestination(url: string): Destination {
