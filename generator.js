@@ -34,7 +34,7 @@ const FIELD_KEYS = [
 const DELIVERY_META = {
   ntfy:       { placeholder: 'https://ntfy.sh/your-topic-name',                                  destination: 'ntfy app' },
   simplepush: { placeholder: 'https://api.simplepush.io/send/YOUR-KEY',                          destination: 'SimplePush app' },
-  pushover:   { placeholder: 'https://api.pushover.net/1/messages.json?token=...&user=...',     destination: 'Pushover app' },
+  pushover:   { placeholder: 'https://api.pushover.net/1/webhooks/....json',                    destination: 'Pushover app' },
   toolkit:    { placeholder: 'https://gettoolkit.app/webhook/...',                              destination: 'email inbox' },
   slack:      { placeholder: 'https://hooks.slack.com/services/...',                             destination: 'Slack channel' },
   discord:    { placeholder: 'https://discord.com/api/webhooks/...',                             destination: 'Discord channel' },
